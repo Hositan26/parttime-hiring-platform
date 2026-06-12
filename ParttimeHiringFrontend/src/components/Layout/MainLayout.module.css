@@ -1,0 +1,307 @@
+/* ============================================================
+   MainLayout – Premium Glassmorphism Theme
+   ============================================================ */
+
+/* ---------- slideUp entrance for main content ---------- */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- subtle glow pulse for logo icon ---------- */
+@keyframes logoGlow {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(16, 185, 129, 0.55);
+  }
+}
+
+/* ---------- Layout root ---------- */
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Header – Glassmorphism ---------- */
+.header {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: none;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* gradient bottom accent line */
+.header::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    #10b981 20%,
+    #059669 50%,
+    #2563eb 80%,
+    transparent 100%
+  );
+  opacity: 0.55;
+}
+
+/* ---------- Nav container ---------- */
+.navContainer {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ---------- Nav links group ---------- */
+.navLinks {
+  display: flex;
+  gap: 2rem;
+  flex: 1;
+  justify-content: center;
+}
+
+/* ---------- Logo ---------- */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.logo:hover {
+  opacity: 0.88;
+}
+
+.logoIcon {
+  background: linear-gradient(135deg, #10b981, #059669);
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  animation: logoGlow 3s ease-in-out infinite;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.logoIcon:hover {
+  transform: rotate(-6deg) scale(1.08);
+}
+
+.logoText {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #065f46, #10b981);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ---------- Nav right ---------- */
+.navRight {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* ---------- Nav link – animated underline ---------- */
+.navLink {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-gray);
+  position: relative;
+  padding-bottom: 4px;
+  transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+}
+
+.navLink::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 0;
+  height: 2.5px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #10b981, #059669);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.navLink:hover {
+  color: #059669;
+}
+
+.navLink:hover::after {
+  width: 100%;
+  left: 0;
+}
+
+/* active state – persistent gradient underline */
+.navLink.active {
+  color: #059669;
+}
+
+.navLink.active::after {
+  width: 100%;
+  left: 0;
+  background: linear-gradient(90deg, #10b981, #2563eb);
+}
+
+/* ---------- Icon button (notification bell, etc.) ---------- */
+.iconBtn {
+  background: rgba(241, 245, 249, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition:
+    background 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.iconBtn:hover {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  transform: scale(1.12);
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.18);
+}
+
+.iconBtn:active {
+  transform: scale(0.95);
+}
+
+/* ---------- User menu ---------- */
+.userMenu {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.userMenu:hover {
+  color: #059669;
+}
+
+/* ---------- User avatar – ring effect ---------- */
+.userAvatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid transparent;
+  transition:
+    border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.userAvatar:hover {
+  border-color: #10b981;
+  box-shadow:
+    0 0 0 3px rgba(16, 185, 129, 0.2),
+    0 0 12px rgba(16, 185, 129, 0.15);
+  transform: scale(1.08);
+}
+
+/* ---------- Logout button – gradient hover ---------- */
+.logoutBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(241, 245, 249, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  padding: 0.5rem 1.1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  position: relative;
+  overflow: hidden;
+  transition:
+    all 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.logoutBtn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #10b981, #059669);
+  opacity: 0;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: inherit;
+  z-index: 0;
+}
+
+.logoutBtn:hover {
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+  transform: translateY(-1px);
+}
+
+.logoutBtn:hover::before {
+  opacity: 1;
+}
+
+/* keep button text above the gradient overlay */
+.logoutBtn > * {
+  position: relative;
+  z-index: 1;
+}
+
+.logoutBtn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);
+}
+
+/* ---------- Main content area ---------- */
+.main {
+  flex: 1;
+  padding: 2rem;
+  animation: slideUp 0.45s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.contentContainer {
+  max-width: 1280px;
+  margin: 0 auto;
+}

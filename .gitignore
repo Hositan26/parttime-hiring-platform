@@ -1,0 +1,12 @@
+# IntelliJ IDEA
+.idea/
+.run/
+*.iws
+*.iml
+*.ipr
+
+# Vibe code
+VIBECODE.md
+
+# Environment secrets
+.env

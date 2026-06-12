@@ -1,0 +1,93 @@
+/* ============================================
+   AppliedJobs — Premium Aesthetic
+   ============================================ */
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes subtlePulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.7; }
+}
+
+/* ---- Container ---- */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* ---- Header Card ---- */
+.headerCard {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, transparent 60%),
+              var(--bg-white);
+  padding: 2rem;
+  border-radius: var(--radius-xl);
+  box-shadow:
+    var(--shadow-sm),
+    0 4px 20px rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--border-color);
+  animation: slideUp 0.4s ease-out both;
+  transition: box-shadow 0.3s;
+}
+
+.headerCard:hover {
+  box-shadow:
+    var(--shadow-md),
+    0 8px 28px rgba(0, 0, 0, 0.05);
+}
+
+.headerCard h1 {
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 50%, #065f46 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.headerCard p {
+  color: var(--text-gray);
+  font-size: 0.875rem;
+}
+
+/* ---- Content Card ---- */
+.contentCard {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 4rem 2rem;
+  border-radius: var(--radius-xl);
+  box-shadow:
+    var(--shadow-sm),
+    0 4px 20px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(226, 232, 240, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: slideUp 0.5s ease-out both;
+  animation-delay: 0.1s;
+  transition: box-shadow 0.3s, border-color 0.3s;
+}
+
+.contentCard:hover {
+  box-shadow:
+    var(--shadow-md),
+    0 8px 28px rgba(0, 0, 0, 0.05);
+  border-color: rgba(16, 185, 129, 0.12);
+}
+
+/* ---- Error Text ---- */
+.errorText {
+  color: #ef4444;
+  font-size: 0.875rem;
+  animation: subtlePulse 2.5s ease-in-out infinite;
+}
