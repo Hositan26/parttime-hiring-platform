@@ -4,7 +4,7 @@ import { JobCard } from '../../components/JobCard/JobCard';
 import { Input } from '../../components/Input/Input';
 import { Button } from '../../components/Button/Button';
 import { Filter, RefreshCcw } from 'lucide-react';
-import { getJobs, searchJobs, getCategories, getShifts, type Job } from '../../services/job.service';
+import { searchJobs, getCategories, getShifts, type Job } from '../../services/job.service';
 import styles from './Jobs.module.css';
 
 export const Jobs: React.FC = () => {

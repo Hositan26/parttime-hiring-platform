@@ -5,8 +5,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import tanhs.fudn.parttime_hiring_plaform_project.entity.User;
-import tanhs.fudn.parttime_hiring_plaform_project.repository.UserRepository;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.UserRepository;
 
 import java.util.Collections;
 import java.util.List;

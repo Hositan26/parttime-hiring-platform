@@ -1,0 +1,353 @@
+.appsPage {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  animation: fadeInUp 0.4s ease forwards;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  color: var(--text-gray);
+  font-size: 0.9rem;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btnOutline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-white);
+  color: var(--text-dark);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnOutline:hover {
+  background-color: #F3F4F6;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+
+.statCard {
+  background-color: var(--bg-white);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.statCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.statIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.statInfo {
+  flex: 1;
+}
+
+.statLabel {
+  font-size: 0.8rem;
+  color: var(--text-gray);
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.statValue {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+  line-height: 1;
+}
+
+.statSub {
+  font-size: 0.75rem;
+  color: var(--text-gray);
+  font-weight: 500;
+}
+
+.tableSection {
+  background-color: var(--bg-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.tableToolbar {
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: #F9FAFB;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 8px 16px;
+  width: 250px;
+}
+
+.searchBox input {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+.filtersGroup {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.select {
+  padding: 10px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-white);
+  font-size: 0.85rem;
+  color: var(--text-dark);
+  outline: none;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  text-align: left;
+  padding: 16px 24px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: #F9FAFB;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.table td {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr:hover {
+  background-color: #F9FAFB;
+}
+
+.candidateInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+}
+
+.candidateName {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-dark);
+  margin-bottom: 2px;
+}
+
+.candidateContact {
+  font-size: 0.8rem;
+  color: var(--text-gray);
+  display: flex;
+  flex-direction: column;
+}
+
+.jobStoreInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.jobTitle {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-dark);
+}
+
+.storeInfo {
+  font-size: 0.8rem;
+  color: var(--text-gray);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dateCol {
+  display: flex;
+  flex-direction: column;
+}
+
+.dateText {
+  font-size: 0.85rem;
+  color: var(--text-dark);
+  font-weight: 500;
+}
+
+.timeText {
+  font-size: 0.8rem;
+  color: var(--text-gray);
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.statusPending { background-color: #FEF3C7; color: #D97706; border: 1px solid #FDE68A; }
+.statusViewed { background-color: #E0F2FE; color: #0284C7; border: 1px solid #BAE6FD; }
+.statusAccepted { background-color: var(--primary-light); color: var(--primary); border: 1px solid #A7F3D0; }
+.statusRejected { background-color: #FEE2E2; color: #DC2626; border: 1px solid #FECACA; }
+
+.noteText {
+  font-size: 0.85rem;
+  color: var(--text-gray);
+  max-width: 200px;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-white);
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.actionBtn:hover {
+  background-color: #F3F4F6;
+}
+
+.actionsCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.moreBtn {
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-gray);
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+}
+
+.moreBtn:hover {
+  background-color: #F3F4F6;
+}
+
+.pagination {
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.85rem;
+  color: var(--text-gray);
+}
+
+.pageControls {
+  display: flex;
+  gap: 8px;
+}
+
+.pageBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-white);
+  border-radius: var(--radius-sm);
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.pageBtn:hover:not(.active) {
+  background-color: #F3F4F6;
+}
+
+.pageBtn.active {
+  background-color: var(--primary-light);
+  color: var(--primary);
+  border-color: var(--primary-light);
+  font-weight: 700;
+}

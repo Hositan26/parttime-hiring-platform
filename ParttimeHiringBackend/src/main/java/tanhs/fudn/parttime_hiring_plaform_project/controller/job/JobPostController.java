@@ -5,64 +5,83 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PathVariable;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.job.JobPostDTO;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.job.JobPostDetailDTO;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.JobPostResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.JobPostDetailResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.job.JobPost;
-import tanhs.fudn.parttime_hiring_plaform_project.repository.JobPostRepository;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.job.JobPostRepository;
 
 import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.data.jpa.domain.Specification;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.job.JobPostSpecification;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.job.JobCategoryRepository;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.job.WorkShiftRepository;
+import java.math.BigDecimal;
+
 @RestController
 @RequestMapping("/api/jobs")
 public class JobPostController {
 
     private final JobPostRepository jobPostRepository;
-    private final tanhs.fudn.parttime_hiring_plaform_project.repository.JobCategoryRepository categoryRepository;
-    private final tanhs.fudn.parttime_hiring_plaform_project.repository.WorkShiftRepository shiftRepository;
+    private final JobCategoryRepository categoryRepository;
+    private final WorkShiftRepository shiftRepository;
 
     public JobPostController(JobPostRepository jobPostRepository,
-                             tanhs.fudn.parttime_hiring_plaform_project.repository.JobCategoryRepository categoryRepository,
-                             tanhs.fudn.parttime_hiring_plaform_project.repository.WorkShiftRepository shiftRepository) {
+                             JobCategoryRepository categoryRepository,
+                             WorkShiftRepository shiftRepository) {
         this.jobPostRepository = jobPostRepository;
         this.categoryRepository = categoryRepository;
         this.shiftRepository = shiftRepository;
     }
 
+    /**
+     * API Lấy danh sách tất cả các ngành nghề (Job Categories).
+     * @return Danh sách các ngành nghề.
+     */
     @GetMapping("/categories")
     public ResponseEntity<?> getCategories() {
         return ResponseEntity.ok(categoryRepository.findAll());
     }
 
+    /**
+     * API Lấy danh sách tất cả các ca làm việc (Work Shifts).
+     * @return Danh sách các ca làm việc.
+     */
     @GetMapping("/shifts")
     public ResponseEntity<?> getShifts() {
         return ResponseEntity.ok(shiftRepository.findAll());
     }
 
+    /**
+     * API Tìm kiếm công việc với nhiều tiêu chí lọc (Tên, Cửa hàng, Ngành nghề, Mức lương, Địa điểm...).
+     * @return Danh sách các công việc phù hợp với tiêu chí lọc.
+     */
     @GetMapping("/search")
-    public ResponseEntity<List<JobPostDTO>> searchJobs(
-            @org.springframework.web.bind.annotation.RequestParam(required = false) String title,
-            @org.springframework.web.bind.annotation.RequestParam(required = false) String storeName,
-            @org.springframework.web.bind.annotation.RequestParam(required = false) Integer categoryId,
-            @org.springframework.web.bind.annotation.RequestParam(required = false) Integer shiftId,
-            @org.springframework.web.bind.annotation.RequestParam(required = false) java.math.BigDecimal minWage,
-            @org.springframework.web.bind.annotation.RequestParam(required = false) java.math.BigDecimal maxWage,
-            @org.springframework.web.bind.annotation.RequestParam(required = false) String city,
-            @org.springframework.web.bind.annotation.RequestParam(required = false) String district,
-            @org.springframework.web.bind.annotation.RequestParam(required = false) String ward,
-            @org.springframework.web.bind.annotation.RequestParam(required = false) String streetAddress
+    public ResponseEntity<List<JobPostResponse>> searchJobs(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String storeName,
+            @RequestParam(required = false) Integer categoryId,
+            @RequestParam(required = false) Integer shiftId,
+            @RequestParam(required = false) BigDecimal minWage,
+            @RequestParam(required = false) BigDecimal maxWage,
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) String district,
+            @RequestParam(required = false) String ward,
+            @RequestParam(required = false) String streetAddress
     ) {
-        org.springframework.data.jpa.domain.Specification<JobPost> spec = 
-            tanhs.fudn.parttime_hiring_plaform_project.repository.JobPostSpecification.filterJobs(
+        Specification<JobPost> spec = 
+            JobPostSpecification.filterJobs(
                 title, storeName, categoryId, shiftId, minWage, maxWage, city, district, ward, streetAddress
             );
 
         List<JobPost> jobPosts = jobPostRepository.findAll(spec);
         DecimalFormat df = new DecimalFormat("#,###");
 
-        List<JobPostDTO> dtos = jobPosts.stream().map(job -> {
+        List<JobPostResponse> dtos = jobPosts.stream().map(job -> {
             String salaryStr = "";
             if (job.getHourlyWageMax() != null) {
                 salaryStr = df.format(job.getHourlyWageMin()) + "đ - " + df.format(job.getHourlyWageMax()) + "đ/giờ";
@@ -89,7 +108,7 @@ public class JobPostController {
                     ? job.getPublishedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) 
                     : (job.getCreatedAt() != null ? job.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "");
 
-            return JobPostDTO.builder()
+            return JobPostResponse.builder()
                     .id(job.getJobPostId())
                     .title(job.getTitle())
                     .store(storeStr)
@@ -104,12 +123,16 @@ public class JobPostController {
         return ResponseEntity.ok(dtos);
     }
 
+    /**
+     * API Lấy danh sách tất cả các bài đăng tuyển dụng.
+     * @return Danh sách chi tiết các công việc.
+     */
     @GetMapping
-    public ResponseEntity<List<JobPostDTO>> getAllJobs() {
+    public ResponseEntity<List<JobPostResponse>> getAllJobs() {
         List<JobPost> jobPosts = jobPostRepository.findAll();
         DecimalFormat df = new DecimalFormat("#,###");
 
-        List<JobPostDTO> dtos = jobPosts.stream().map(job -> {
+        List<JobPostResponse> dtos = jobPosts.stream().map(job -> {
             // Định dạng chuỗi lương
             String salaryStr = "";
             if (job.getHourlyWageMax() != null) {
@@ -141,7 +164,7 @@ public class JobPostController {
                     ? job.getPublishedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) 
                     : (job.getCreatedAt() != null ? job.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "");
 
-            return JobPostDTO.builder()
+            return JobPostResponse.builder()
                     .id(job.getJobPostId())
                     .title(job.getTitle())
                     .store(storeStr)
@@ -156,8 +179,13 @@ public class JobPostController {
         return ResponseEntity.ok(dtos);
     }
     
+    /**
+     * API Lấy thông tin chi tiết của một bài đăng tuyển dụng cụ thể theo ID.
+     * @param id ID của bài đăng tuyển dụng.
+     * @return Chi tiết công việc tương ứng.
+     */
     @GetMapping("/{id}")
-    public ResponseEntity<JobPostDetailDTO> getJobById(@PathVariable Integer id) {
+    public ResponseEntity<JobPostDetailResponse> getJobById(@PathVariable Integer id) {
         JobPost job = jobPostRepository.findById(id).orElse(null);
         if (job == null) {
             return ResponseEntity.notFound().build();
@@ -193,7 +221,7 @@ public class JobPostController {
 
         String ageRange = (job.getMinAge() != null ? job.getMinAge() : "18") + " - " + (job.getMaxAge() != null ? job.getMaxAge() : "25") + " tuổi";
 
-        JobPostDetailDTO detail = JobPostDetailDTO.builder()
+        JobPostDetailResponse detail = JobPostDetailResponse.builder()
                 .id(job.getJobPostId())
                 .title(job.getTitle())
                 .company(companyStr)

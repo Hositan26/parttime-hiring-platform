@@ -275,6 +275,11 @@ export const Profile: React.FC = () => {
               Chọn lối tắt phù hợp để tiếp tục thao tác nhanh trong hệ thống.
             </p>
             <div className={styles.quickLinks}>
+              {user.roles?.some((role: any) => role.name === 'ROLE_EMPLOYER' || role === 'ROLE_EMPLOYER') && (
+                <a href="/employer/dashboard" className={styles.quickLink} style={{ backgroundColor: '#E5F7ED', color: '#00B14F', borderColor: '#00B14F' }}>
+                  <Briefcase size={18} /> Quản lý doanh nghiệp
+                </a>
+              )}
               <a href="/applied-jobs" className={styles.quickLink}>
                 <Briefcase size={18} /> Việc đã ứng tuyển
               </a>

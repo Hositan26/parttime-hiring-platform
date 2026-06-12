@@ -5,12 +5,12 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
-import tanhs.fudn.parttime_hiring_plaform_project.entity.Role;
-import tanhs.fudn.parttime_hiring_plaform_project.entity.User;
-import tanhs.fudn.parttime_hiring_plaform_project.entity.UserOauthAccount;
-import tanhs.fudn.parttime_hiring_plaform_project.repository.RoleRepository;
-import tanhs.fudn.parttime_hiring_plaform_project.repository.UserOauthAccountRepository;
-import tanhs.fudn.parttime_hiring_plaform_project.repository.UserRepository;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.Role;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.UserOauthAccount;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.RoleRepository;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.UserOauthAccountRepository;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.UserRepository;
 
 import java.util.Collections;
 import java.util.Optional;

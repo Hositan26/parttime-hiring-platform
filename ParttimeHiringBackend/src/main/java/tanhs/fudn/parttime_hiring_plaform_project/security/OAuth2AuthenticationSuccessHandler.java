@@ -9,8 +9,8 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
-import tanhs.fudn.parttime_hiring_plaform_project.entity.User;
-import tanhs.fudn.parttime_hiring_plaform_project.repository.UserRepository;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.UserRepository;
 
 import java.io.IOException;
 

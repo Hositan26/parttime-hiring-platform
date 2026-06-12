@@ -5,24 +5,37 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import tanhs.fudn.parttime_hiring_plaform_project.entity.User;
-import tanhs.fudn.parttime_hiring_plaform_project.repository.UserRepository;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.UserRepository;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.Role;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
 
     private final UserRepository userRepository;
-    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserController(UserRepository userRepository, org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
+    public UserController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
+    /**
+     * API Lấy thông tin chi tiết của người dùng hiện tại đang đăng nhập.
+     * @param authentication Đối tượng xác thực chứa thông tin người dùng.
+     * @return Đối tượng chứa thông tin người dùng.
+     */
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -40,13 +53,23 @@ public class UserController {
                     response.put("avatarUrl", user.getAvatarUrl());
                     response.put("dateOfBirth", user.getDateOfBirth() != null ? user.getDateOfBirth().toString() : null);
                     response.put("hasPassword", user.getPassword() != null && !user.getPassword().isEmpty());
+                    List<String> roles = user.getRoles().stream()
+                            .map(Role::getRoleName)
+                            .collect(Collectors.toList());
+                    response.put("roles", roles);
                     return ResponseEntity.ok(response);
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @org.springframework.web.bind.annotation.PutMapping("/me")
-    public ResponseEntity<?> updateCurrentUser(Authentication authentication, @org.springframework.web.bind.annotation.RequestBody Map<String, String> payload) {
+    /**
+     * API Cập nhật thông tin của người dùng hiện tại đang đăng nhập.
+     * @param authentication Đối tượng xác thực chứa thông tin người dùng.
+     * @param payload Dữ liệu cập nhật từ client.
+     * @return Đối tượng người dùng sau khi đã cập nhật.
+     */
+    @PutMapping("/me")
+    public ResponseEntity<?> updateCurrentUser(Authentication authentication, @RequestBody Map<String, String> payload) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).body("Unauthorized");
         }
@@ -76,7 +99,7 @@ public class UserController {
                     if (payload.containsKey("dateOfBirth")) {
                         String dob = payload.get("dateOfBirth");
                         if (dob != null && !dob.isEmpty()) {
-                            user.setDateOfBirth(java.time.LocalDate.parse(dob));
+                            user.setDateOfBirth(LocalDate.parse(dob));
                         }
                     }
                     
@@ -96,6 +119,10 @@ public class UserController {
                     response.put("avatarUrl", user.getAvatarUrl());
                     response.put("dateOfBirth", user.getDateOfBirth() != null ? user.getDateOfBirth().toString() : null);
                     response.put("hasPassword", user.getPassword() != null && !user.getPassword().isEmpty());
+                    List<String> roles = user.getRoles().stream()
+                            .map(Role::getRoleName)
+                            .collect(Collectors.toList());
+                    response.put("roles", roles);
                     return ResponseEntity.ok(response);
                 })
                 .orElse(ResponseEntity.notFound().build());

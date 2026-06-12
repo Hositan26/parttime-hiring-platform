@@ -9,10 +9,10 @@ import org.springframework.stereotype.Service;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.AuthResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.request.LoginRequest;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.request.RegisterRequest;
-import tanhs.fudn.parttime_hiring_plaform_project.entity.Role;
-import tanhs.fudn.parttime_hiring_plaform_project.entity.User;
-import tanhs.fudn.parttime_hiring_plaform_project.repository.RoleRepository;
-import tanhs.fudn.parttime_hiring_plaform_project.repository.UserRepository;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.Role;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.RoleRepository;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.UserRepository;
 import tanhs.fudn.parttime_hiring_plaform_project.security.JwtTokenProvider;
 
 import java.time.LocalDate;

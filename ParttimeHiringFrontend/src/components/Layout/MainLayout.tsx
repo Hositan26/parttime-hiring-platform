@@ -18,11 +18,16 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       .catch(err => console.error(err));
   }, []);
 
+  const isEmployer = user?.roles?.some((r: any) => r.name === 'ROLE_EMPLOYER' || r === 'ROLE_EMPLOYER' || r === 'EMPLOYER') || user?.roles?.includes('EMPLOYER');
+
   const navLinks = [
     { name: 'Jobs', path: '/jobs' },
     { name: 'Đã ứng tuyển', path: '/applied-jobs' },
     { name: 'Profile', path: '/profile' },
-    { name: 'Xác minh doanh nghiệp', path: '/verify-business' }
+    { 
+      name: isEmployer ? 'Quản lý doanh nghiệp' : 'Xác minh doanh nghiệp', 
+      path: isEmployer ? '/employer/dashboard' : '/verify-business' 
+    }
   ];
 
   return (

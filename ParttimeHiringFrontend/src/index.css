@@ -1,17 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --primary: #10B981; /* Mint Green */
-  --primary-hover: #059669;
-  --bg-color: #f8fafc;
-  --bg-white: #ffffff;
-  --text-dark: #0f172a;
-  --text-gray: #64748b;
-  --text-light: #94a3b8;
-  --border-color: #e2e8f0;
+  --primary: #00B14F; /* JobPortal Green */
+  --primary-hover: #009944;
+  --primary-light: #E5F7ED;
+  --bg-color: #F8FAFC;
+  --bg-white: #FFFFFF;
+  --text-dark: #111827;
+  --text-gray: #4B5563;
+  --text-light: #9CA3AF;
+  --border-color: #E5E7EB;
+  --danger: #EF4444;
+  --warning: #F59E0B;
+  --success: #10B981;
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.02);
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.04);
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;

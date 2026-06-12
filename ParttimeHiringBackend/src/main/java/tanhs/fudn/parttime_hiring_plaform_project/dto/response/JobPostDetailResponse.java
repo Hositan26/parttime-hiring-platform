@@ -1,4 +1,4 @@
-package tanhs.fudn.parttime_hiring_plaform_project.dto.job;
+package tanhs.fudn.parttime_hiring_plaform_project.dto.response;
 
 import lombok.*;
 
@@ -9,7 +9,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class JobPostDetailDTO {
+public class JobPostDetailResponse {
     private Integer id;
     private String title;
     private String company;

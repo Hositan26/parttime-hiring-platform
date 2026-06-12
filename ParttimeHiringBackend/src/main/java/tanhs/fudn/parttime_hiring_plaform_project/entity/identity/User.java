@@ -1,4 +1,4 @@
-package tanhs.fudn.parttime_hiring_plaform_project.entity;
+package tanhs.fudn.parttime_hiring_plaform_project.entity.identity;
 
 import jakarta.persistence.*;
 import lombok.*;

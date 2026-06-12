@@ -1,4 +1,4 @@
-package tanhs.fudn.parttime_hiring_plaform_project.repository;
+package tanhs.fudn.parttime_hiring_plaform_project.repository.job;
 
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
@@ -11,6 +11,7 @@ import tanhs.fudn.parttime_hiring_plaform_project.entity.job.JobPost;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.job.WorkShift;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class JobPostSpecification {
             // Always filter out expired jobs
             predicates.add(criteriaBuilder.or(
                     criteriaBuilder.isNull(root.get("expiredAt")),
-                    criteriaBuilder.greaterThanOrEqualTo(root.get("expiredAt"), java.time.LocalDateTime.now())
+                    criteriaBuilder.greaterThanOrEqualTo(root.get("expiredAt"), LocalDateTime.now())
             ));
 
             // Status should be ACTIVE/ACCEPTED (optional, but good practice if you have a status field)

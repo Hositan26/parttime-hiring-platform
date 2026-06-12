@@ -42,7 +42,7 @@ export const JobDetail: React.FC = () => {
     return <MainLayout><div style={{ padding: '50px', textAlign: 'center' }}>Không tìm thấy công việc!</div></MainLayout>;
   }
 
-  const tagColors = ['type', 'category', 'category', 'category', 'status'];
+  
 
   return (
     <MainLayout>
