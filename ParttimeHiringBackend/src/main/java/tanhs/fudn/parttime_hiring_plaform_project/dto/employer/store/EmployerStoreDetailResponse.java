@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EmployerStoreDetailDTO {
+public class EmployerStoreDetailResponse {
     private Integer storeId;
     private String name;
     private String phone;

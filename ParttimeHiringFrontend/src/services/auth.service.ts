@@ -9,6 +9,7 @@ export const register = async (username: string, password: string, displayName?:
     headers: {
       'Content-Type': 'application/json',
     },
+    credentials: 'include',
     body: JSON.stringify({ username, password, displayName, dateOfBirth }),
   });
 
@@ -28,6 +29,7 @@ export const login = async (username: string, password: string) => {
     headers: {
       'Content-Type': 'application/json',
     },
+    credentials: 'include',
     body: JSON.stringify({ username, password }),
   });
 
@@ -42,14 +44,9 @@ export const login = async (username: string, password: string) => {
  * Lấy thông tin user hiện tại
  */
 export const getMe = async () => {
-  const token = localStorage.getItem('token');
-  if (!token) throw new Error('No token');
-
   const response = await fetch('http://localhost:8088/parttime_hiring_platform/api/users/me', {
     method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
+    credentials: 'include'
   });
 
   if (!response.ok) {
@@ -69,15 +66,12 @@ export const updateMe = async (data: {
   dateOfBirth?: string;
   currentPassword?: string;
 }) => {
-  const token = localStorage.getItem('token');
-  if (!token) throw new Error('No token');
-
   const response = await fetch('http://localhost:8088/parttime_hiring_platform/api/users/me', {
     method: 'PUT',
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
+      'Content-Type': 'application/json'
     },
+    credentials: 'include',
     body: JSON.stringify(data)
   });
 

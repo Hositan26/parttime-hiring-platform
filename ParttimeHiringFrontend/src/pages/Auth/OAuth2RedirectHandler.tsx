@@ -6,18 +6,13 @@ export const OAuth2RedirectHandler: React.FC = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // Trích xuất token từ tham số URL
     const params = new URLSearchParams(location.search);
-    const token = params.get('token');
     const error = params.get('error');
 
-    if (token) {
-      // Lưu token vào localStorage
-      localStorage.setItem('token', token);
-      // Chuyển hướng đến trang chính
+    if (!error) {
+      // Backend already set HttpOnly cookie, just navigate to jobs
       navigate('/jobs');
     } else {
-      // Nếu có lỗi (ví dụ error=access_denied), hiển thị hoặc chuyển về trang login
       console.error('Lỗi đăng nhập OAuth2:', error);
       navigate('/login', { state: { error: error || 'Đăng nhập Google thất bại' } });
     }

@@ -1,31 +1,31 @@
 package tanhs.fudn.parttime_hiring_plaform_project.controller.employer;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.dashboard.DashboardOverviewDTO;
-import tanhs.fudn.parttime_hiring_plaform_project.service.employer.EmployerDashboardService;
-import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.UserRepository;
-import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
-
 import java.security.Principal;
 
+import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.dashboard.DashboardOverviewResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.service.employer.EmployerDashboardService;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.ApiResponse;
+
+@Slf4j
 @RestController
-@RequestMapping("/api/v1/employer/dashboard")
+@RequestMapping("/dashboard")
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EmployerDashboardController {
 
-    private final EmployerDashboardService employerDashboardService;
-    private final UserRepository userRepository;
+    EmployerDashboardService employerDashboardService;
 
     @GetMapping("/overview")
-    public ResponseEntity<DashboardOverviewDTO> getOverview(Principal principal) {
-        if (principal == null) {
-            return ResponseEntity.status(401).build();
-        }
-        User user = userRepository.findByUsername(principal.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        DashboardOverviewDTO overview = employerDashboardService.getDashboardOverview(user.getId().intValue());
-        return ResponseEntity.ok(overview);
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<DashboardOverviewResponse>> getOverview(Principal principal) {
+        DashboardOverviewResponse overview = employerDashboardService.getDashboardOverview(principal.getName());
+        return ResponseEntity.ok(ApiResponse.success(overview));
     }
 }

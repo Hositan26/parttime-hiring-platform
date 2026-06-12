@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EmployerStoreDTO {
+public class EmployerStoreResponse {
     private Integer storeId;
     private String name;
     private String phone;

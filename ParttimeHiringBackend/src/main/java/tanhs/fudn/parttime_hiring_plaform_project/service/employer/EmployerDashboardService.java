@@ -1,12 +1,19 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.employer;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.PageRequest;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.dashboard.*;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.employer.Employer;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.application.JobApplication;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.job.JobPost;
+import tanhs.fudn.parttime_hiring_plaform_project.mapper.DashboardMapper;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.UserRepository;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.employer.EmployerRepository;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.employer.StoreRepository;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.job.JobPostRepository;
@@ -18,18 +25,30 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EmployerDashboardService {
 
-    private final EmployerRepository employerRepository;
-    private final StoreRepository storeRepository;
-    private final JobPostRepository jobPostRepository;
-    private final JobApplicationRepository jobApplicationRepository;
+    UserRepository userRepository;
+    EmployerRepository employerRepository;
+    StoreRepository storeRepository;
+    JobPostRepository jobPostRepository;
+    JobApplicationRepository jobApplicationRepository;
+    DashboardMapper dashboardMapper;
 
-    public DashboardOverviewDTO getDashboardOverview(Integer userId) {
-        Employer employer = employerRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Employer not found"));
+    private Employer getEmployerByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng."));
+        return employerRepository.findByUserId(user.getId().intValue())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhà tuyển dụng."));
+    }
+
+    @Transactional(readOnly = true)
+    public DashboardOverviewResponse getDashboardOverview(String username) {
+        log.info("Lấy thông tin tổng quan Dashboard cho username: {}", username);
+        Employer employer = getEmployerByUsername(username);
         Integer employerId = employer.getEmployerId();
 
         long totalStores = storeRepository.countByEmployer_EmployerId(employerId);
@@ -57,44 +76,19 @@ public class EmployerDashboardService {
         List<JobApplication> recentApps = jobApplicationRepository.findRecentApplicationsByEmployerId(employerId, PageRequest.of(0, 5));
         List<RecentApplicationDTO> recentApplications = recentApps.stream().map(app -> {
             String timeAgo = getTimeAgo(app.getAppliedAt());
-            return RecentApplicationDTO.builder()
-                    .name(app.getApplicant().getDisplayName())
-                    .role(app.getJobPost().getTitle())
-                    .store(app.getJobPost().getStore().getStoreName())
-                    .time(timeAgo)
-                    .status("PENDING".equals(app.getStatus()) ? "Chờ xử lý" : ("ACCEPTED".equals(app.getStatus()) ? "Đã nhận" : "Từ chối"))
-                    .isPending("PENDING".equals(app.getStatus()))
-                    .img(app.getApplicant().getAvatarUrl() != null ? app.getApplicant().getAvatarUrl() : "https://i.pravatar.cc/150")
-                    .build();
+            return dashboardMapper.toRecentApplicationDTO(app, timeAgo);
         }).collect(Collectors.toList());
 
         List<JobPost> expiring = jobPostRepository.findExpiringJobsByEmployerId(employerId, PageRequest.of(0, 5));
         List<ExpiringJobDTO> expiringJobs = expiring.stream().map(job -> {
             long daysLeft = ChronoUnit.DAYS.between(LocalDateTime.now(), job.getExpiredAt());
-            return ExpiringJobDTO.builder()
-                    .name(job.getTitle())
-                    .store(job.getStore().getStoreName())
-                    .expire(daysLeft > 0 ? "Còn " + daysLeft + " ngày" : "Hết hạn hôm nay")
-                    .logo("https://cdn-icons-png.flaticon.com/512/3268/3268832.png")
-                    .build();
+            String expireStr = daysLeft > 0 ? "Còn " + daysLeft + " ngày" : "Hết hạn hôm nay";
+            return dashboardMapper.toExpiringJobDTO(job, expireStr);
         }).collect(Collectors.toList());
 
-        String verificationStatus = "ACTIVE".equals(employer.getStatus()) ? "Đã xác minh" : "Chờ xác minh";
-        String verificationDate = employer.getUpdatedAt() != null ? 
-                employer.getUpdatedAt().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) : 
-                (employer.getCreatedAt() != null ? employer.getCreatedAt().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "N/A");
-
-        return DashboardOverviewDTO.builder()
-                .totalStores(totalStores)
-                .totalJobs(totalJobs)
-                .totalApplications(totalApplications)
-                .pendingApplications(pendingApplications)
-                .verificationStatus(verificationStatus)
-                .verificationDate(verificationDate)
-                .monthlyStats(monthlyStats)
-                .recentApplications(recentApplications)
-                .expiringJobs(expiringJobs)
-                .build();
+        return dashboardMapper.toDashboardOverviewResponse(
+                employer, totalStores, totalJobs, totalApplications, pendingApplications,
+                monthlyStats, recentApplications, expiringJobs);
     }
 
     private String getTimeAgo(LocalDateTime dateTime) {

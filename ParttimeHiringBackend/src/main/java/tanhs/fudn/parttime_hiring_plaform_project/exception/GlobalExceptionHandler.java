@@ -10,39 +10,47 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Xử lý các exception toàn cục cho toàn bộ ứng dụng.
- */
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.ApiResponse;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    /**
-     * Bắt lỗi khi dữ liệu đầu vào (DTO) không hợp lệ (thất bại ở các annotation như @NotBlank).
-     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
-        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+        
+        ApiResponse<Map<String, String>> response = ApiResponse.<Map<String, String>>builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .code("VALIDATION_ERROR")
+                .message("Dữ liệu đầu vào không hợp lệ")
+                .result(errors)
+                .build();
+                
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
-    /**
-     * Bắt lỗi RuntimeException chung (các lỗi nghiệp vụ, không tìm thấy, xác thực, v.v.).
-     */
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
-        return ResponseEntity.badRequest().body(ex.getMessage());
+    public ResponseEntity<ApiResponse<String>> handleRuntimeException(RuntimeException ex) {
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .code("BUSINESS_ERROR")
+                .message(ex.getMessage())
+                .build();
+        return ResponseEntity.badRequest().body(response);
     }
 
-    /**
-     * Bắt tất cả các lỗi hệ thống khác chưa được xử lý.
-     */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleGlobalException(Exception ex) {
-        return ResponseEntity.internalServerError().body("Lỗi hệ thống nội bộ: " + ex.getMessage());
+    public ResponseEntity<ApiResponse<String>> handleGlobalException(Exception ex) {
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .code("INTERNAL_SERVER_ERROR")
+                .message("Lỗi hệ thống nội bộ: " + ex.getMessage())
+                .build();
+        return ResponseEntity.internalServerError().body(response);
     }
 }

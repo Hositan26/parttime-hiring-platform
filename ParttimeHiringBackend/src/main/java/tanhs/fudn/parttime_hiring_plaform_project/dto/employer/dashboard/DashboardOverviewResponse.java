@@ -11,7 +11,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DashboardOverviewDTO {
+public class DashboardOverviewResponse {
     private long totalStores;
     private long totalJobs;
     private long totalApplications;

@@ -12,20 +12,17 @@ export interface Job {
 }
 
 export const getJobs = async (): Promise<Job[]> => {
-  const token = localStorage.getItem('token');
   const response = await fetch(API_URL, {
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
+    credentials: 'include'
   });
   if (!response.ok) {
     throw new Error('Failed to fetch jobs');
   }
-  return response.json();
+  const data = await response.json();
+  return data.result;
 };
 
 export const searchJobs = async (filters: any): Promise<Job[]> => {
-  const token = localStorage.getItem('token');
   const params = new URLSearchParams();
   for (const key in filters) {
     if (filters[key] !== undefined && filters[key] !== null && filters[key] !== '') {
@@ -34,36 +31,31 @@ export const searchJobs = async (filters: any): Promise<Job[]> => {
   }
   
   const response = await fetch(`${API_URL}/search?${params.toString()}`, {
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
+    credentials: 'include'
   });
   if (!response.ok) {
     throw new Error('Failed to search jobs');
   }
-  return response.json();
+  const data = await response.json();
+  return data.result;
 };
 
 export const getCategories = async (): Promise<any[]> => {
-  const token = localStorage.getItem('token');
   const response = await fetch(`${API_URL}/categories`, {
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
+    credentials: 'include'
   });
   if (!response.ok) return [];
-  return response.json();
+  const data = await response.json();
+  return data.result;
 };
 
 export const getShifts = async (): Promise<any[]> => {
-  const token = localStorage.getItem('token');
   const response = await fetch(`${API_URL}/shifts`, {
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
+    credentials: 'include'
   });
   if (!response.ok) return [];
-  return response.json();
+  const data = await response.json();
+  return data.result;
 };
 
 export interface JobDetail {
@@ -89,14 +81,12 @@ export interface JobDetail {
 }
 
 export const getJobById = async (id: string | number): Promise<JobDetail> => {
-  const token = localStorage.getItem('token');
   const response = await fetch(`${API_URL}/${id}`, {
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
+    credentials: 'include'
   });
   if (!response.ok) {
     throw new Error('Failed to fetch job details');
   }
-  return response.json();
+  const data = await response.json();
+  return data.result;
 };

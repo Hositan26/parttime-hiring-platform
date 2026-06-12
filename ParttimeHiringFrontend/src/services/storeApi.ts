@@ -1,3 +1,11 @@
+export interface ApiResponse<T> {
+  status: number;
+  code: string;
+  message: string;
+  result: T;
+  timestamp: string;
+}
+
 export interface EmployerStoreDTO {
   storeId: string | number;
   name: string;
@@ -17,38 +25,28 @@ export interface EmployerStoreListDTO {
 }
 
 export const getEmployerStores = async (sortBy: string = 'newest'): Promise<EmployerStoreListDTO> => {
-  const token = localStorage.getItem('token');
-  if (!token) throw new Error('No token');
-  
   const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/v1/employer/stores?sortBy=${sortBy}`, {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
+    credentials: 'include'
   });
   
   if (!response.ok) {
-    throw new Error('Failed to fetch stores');
+    const errData = await response.json().catch(() => ({}));
+    throw new Error(errData.message || 'Failed to fetch stores');
   }
   
-  return response.json();
+  const data: ApiResponse<EmployerStoreListDTO> = await response.json();
+  return data.result;
 };
 
-
-
 export const deleteStore = async (storeId: string | number): Promise<void> => {
-  const token = localStorage.getItem('token');
-  if (!token) throw new Error('No token');
-  
   const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/v1/employer/stores/${storeId}`, {
     method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
+    credentials: 'include'
   });
   
   if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(errText || 'Failed to delete store');
+    const errData = await response.json().catch(() => ({}));
+    throw new Error(errData.message || 'Failed to delete store');
   }
 };
 
@@ -73,20 +71,17 @@ export interface EmployerStoreDetailDTO {
 }
 
 export const getStoreDetail = async (storeId: string | number): Promise<EmployerStoreDetailDTO> => {
-  const token = localStorage.getItem('token');
-  if (!token) throw new Error('No token');
-  
   const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/v1/employer/stores/${storeId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
+    credentials: 'include'
   });
   
   if (!response.ok) {
-    throw new Error('Failed to fetch store detail');
+    const errData = await response.json().catch(() => ({}));
+    throw new Error(errData.message || 'Failed to fetch store detail');
   }
   
-  return response.json();
+  const data: ApiResponse<EmployerStoreDetailDTO> = await response.json();
+  return data.result;
 };
 
 export interface UpdateStoreRequestDTO {
@@ -96,24 +91,22 @@ export interface UpdateStoreRequestDTO {
   description: string;
 }
 
-export const updateStore = async (storeId: string | number, data: UpdateStoreRequestDTO): Promise<void> => {
-  const token = localStorage.getItem('token');
-  if (!token) throw new Error('No token');
-  
+export const updateStore = async (storeId: string | number, requestData: UpdateStoreRequestDTO): Promise<void> => {
   const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/v1/employer/stores/${storeId}`, {
     method: 'PUT',
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify(data)
+    credentials: 'include',
+    body: JSON.stringify(requestData)
   });
   
   if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(errText || 'Failed to update store');
+    const errData = await response.json().catch(() => ({}));
+    throw new Error(errData.message || 'Failed to update store');
   }
 };
+
 export interface CreateStoreRequestDTO {
   name: string;
   phone: string;
@@ -124,42 +117,36 @@ export interface CreateStoreRequestDTO {
   description: string;
 }
 
-export const createStore = async (data: CreateStoreRequestDTO): Promise<EmployerStoreDTO> => {
-  const token = localStorage.getItem('token');
-  if (!token) throw new Error('No token');
-  
+export const createStore = async (requestData: CreateStoreRequestDTO): Promise<EmployerStoreDTO> => {
   const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/v1/employer/stores`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify(data)
+    credentials: 'include',
+    body: JSON.stringify(requestData)
   });
   
   if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(errText || 'Failed to create store');
+    const errData = await response.json().catch(() => ({}));
+    throw new Error(errData.message || 'Failed to create store');
   }
   
-  return response.json();
+  const data: ApiResponse<EmployerStoreDTO> = await response.json();
+  return data.result;
 };
 
 export const toggleStoreStatus = async (storeId: string | number): Promise<EmployerStoreDTO> => {
-  const token = localStorage.getItem('token');
-  if (!token) throw new Error('No token');
-  
   const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/v1/employer/stores/${storeId}/status`, {
     method: 'PATCH',
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
+    credentials: 'include'
   });
   
   if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(errText || 'Failed to toggle status');
+    const errData = await response.json().catch(() => ({}));
+    throw new Error(errData.message || 'Failed to toggle status');
   }
   
-  return response.json();
+  const data: ApiResponse<EmployerStoreDTO> = await response.json();
+  return data.result;
 };

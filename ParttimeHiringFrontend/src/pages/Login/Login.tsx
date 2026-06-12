@@ -19,8 +19,8 @@ export const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      const data = await login(username, password);
-      localStorage.setItem('token', data.token); // Lưu token
+      await login(username, password);
+      // Backend automatically sets HttpOnly cookie for session token
       navigate('/jobs'); // Chuyển hướng
     } catch (err: any) {
       setError(err.message);

@@ -35,14 +35,11 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found after OAuth2 login"));
 
-        // Tạo JWT Token từ User (Lưu ý: JwtTokenProvider hiện tại dùng Authentication, ta cần dùng email hoặc username)
-        // Thay vì Authentication, ta tạo Authentication thủ công hoặc thêm method cho JwtTokenProvider
-        // Để nhanh, ta mượn cơ chế Spring hoặc sửa JwtTokenProvider. 
-        // Trong JwtTokenProvider ta thêm method: generateTokenFromUsername(String username)
         String token = tokenProvider.generateTokenFromUsername(user.getUsername());
 
+        response.addHeader("Set-Cookie", "access_token=" + token + "; HttpOnly; Path=/; Max-Age=" + (7 * 24 * 60 * 60) + "; SameSite=Lax");
+
         String targetUrl = UriComponentsBuilder.fromUriString(redirectUri)
-                .queryParam("token", token)
                 .build().toUriString();
 
         getRedirectStrategy().sendRedirect(request, response, targetUrl);

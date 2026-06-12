@@ -11,9 +11,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EmployerStoreListDTO {
+public class EmployerStoreListResponse {
     private long totalStores;
     private long activeStores;
     private long inactiveStores;
-    private List<EmployerStoreDTO> stores;
+    private List<EmployerStoreResponse> stores;
 }

@@ -1,47 +1,56 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.employer;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.store.CreateStoreRequestDTO;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.store.EmployerStoreDTO;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.store.EmployerStoreDetailDTO;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.store.EmployerStoreListDTO;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.store.EmployerStoreResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.store.EmployerStoreDetailResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.store.EmployerStoreListResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.store.UpdateStoreRequestDTO;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.employer.Employer;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.employer.Store;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.job.JobPost;
+import tanhs.fudn.parttime_hiring_plaform_project.mapper.StoreMapper;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.application.JobApplicationRepository;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.employer.EmployerRepository;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.employer.StoreRepository;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.UserRepository;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.job.JobPostRepository;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Service xử lý các nghiệp vụ liên quan đến Cửa hàng (Store) của Nhà tuyển dụng.
- */
+@Slf4j
 @Service
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EmployerStoreService {
 
-    private final EmployerRepository employerRepository;
-    private final StoreRepository storeRepository;
-    private final JobPostRepository jobPostRepository;
-    private final JobApplicationRepository jobApplicationRepository;
+    UserRepository userRepository;
+    EmployerRepository employerRepository;
+    StoreRepository storeRepository;
+    JobPostRepository jobPostRepository;
+    JobApplicationRepository jobApplicationRepository;
+    StoreMapper storeMapper;
 
-    /**
-     * Lấy danh sách các cửa hàng của một nhà tuyển dụng, kèm theo thống kê số lượng tin tuyển dụng và đơn ứng tuyển.
-     * @param userId ID của người dùng đang đăng nhập (Employer).
-     * @param sortBy Tiêu chí sắp xếp danh sách (ví dụ: "applications", "jobs", "newest").
-     * @return DTO chứa danh sách cửa hàng và các số liệu tổng quan.
-     */
-    public EmployerStoreListDTO getEmployerStores(Integer userId, String sortBy) {
-        Employer employer = employerRepository.findByUserId(userId)
+    private Employer getEmployerByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng."));
+        return employerRepository.findByUserId(user.getId().intValue())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhà tuyển dụng."));
+    }
+
+    @Transactional(readOnly = true)
+    public EmployerStoreListResponse getEmployerStores(String username, String sortBy) {
+        log.info("Lấy danh sách cửa hàng cho username: {}, sortBy: {}", username, sortBy);
+        Employer employer = getEmployerByUsername(username);
         
         List<Store> stores = storeRepository.findByEmployer_EmployerId(employer.getEmployerId());
         
@@ -49,33 +58,21 @@ public class EmployerStoreService {
         long activeStores = stores.stream().filter(Store::getIsActive).count();
         long inactiveStores = totalStores - activeStores;
         
-        List<EmployerStoreDTO> storeDTOs = stores.stream().map(store -> {
+        List<EmployerStoreResponse> storeDTOs = stores.stream().map(store -> {
             long jobsCount = jobPostRepository.countByStore_StoreId(store.getStoreId());
             long applicationsCount = jobApplicationRepository.countByStoreId(store.getStoreId());
-            
-            String address = store.getStreetAddress() + ", " + store.getWard() + ", " + store.getDistrict() + ", " + store.getCity();
-            
-            return EmployerStoreDTO.builder()
-                    .storeId(store.getStoreId())
-                    .name(store.getStoreName())
-                    .phone(store.getPhoneContact() != null ? store.getPhoneContact() : employer.getPhoneContact())
-                    .address(address)
-                    .jobs(jobsCount)
-                    .applications(applicationsCount)
-                    .status(store.getIsActive() ? "ACTIVE" : "INACTIVE")
-                    .logo("https://cdn-icons-png.flaticon.com/512/3268/3268832.png")
-                    .build();
+            return storeMapper.toEmployerStoreResponse(store, jobsCount, applicationsCount, employer.getPhoneContact());
         }).collect(Collectors.toList());
         
         if ("applications".equalsIgnoreCase(sortBy)) {
-            storeDTOs.sort(Comparator.comparing(EmployerStoreDTO::getApplications).reversed());
+            storeDTOs.sort(Comparator.comparing(EmployerStoreResponse::getApplications).reversed());
         } else if ("jobs".equalsIgnoreCase(sortBy)) {
-            storeDTOs.sort(Comparator.comparing(EmployerStoreDTO::getJobs).reversed());
+            storeDTOs.sort(Comparator.comparing(EmployerStoreResponse::getJobs).reversed());
         } else {
-            storeDTOs.sort(Comparator.comparing(EmployerStoreDTO::getStoreId).reversed());
+            storeDTOs.sort(Comparator.comparing(EmployerStoreResponse::getStoreId).reversed());
         }
         
-        return EmployerStoreListDTO.builder()
+        return EmployerStoreListResponse.builder()
                 .totalStores(totalStores)
                 .activeStores(activeStores)
                 .inactiveStores(inactiveStores)
@@ -83,17 +80,10 @@ public class EmployerStoreService {
                 .build();
     }
 
-    /**
-     * Xóa một cửa hàng khỏi hệ thống.
-     * Chỉ cho phép xóa nếu cửa hàng thuộc về nhà tuyển dụng này, cửa hàng đã được duyệt, và chưa có tin tuyển dụng nào.
-     * @param userId ID của nhà tuyển dụng.
-     * @param storeId ID của cửa hàng cần xóa.
-     * @throws RuntimeException Nếu vi phạm các quy tắc nghiệp vụ khi xóa.
-     */
     @Transactional
-    public void deleteStore(Integer userId, Integer storeId) {
-        Employer employer = employerRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhà tuyển dụng."));
+    public void deleteStore(String username, Integer storeId) {
+        log.info("Xóa cửa hàng ID: {} bởi username: {}", storeId, username);
+        Employer employer = getEmployerByUsername(username);
         
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
@@ -114,17 +104,10 @@ public class EmployerStoreService {
         storeRepository.delete(store);
     }
 
-    /**
-     * Cập nhật thông tin cửa hàng (Tên, số điện thoại, địa chỉ, mô tả).
-     * @param userId ID của nhà tuyển dụng.
-     * @param storeId ID của cửa hàng cần sửa.
-     * @param request Dữ liệu cập nhật mới.
-     * @throws RuntimeException Nếu cửa hàng đang chờ phê duyệt hoặc không thuộc về nhà tuyển dụng.
-     */
     @Transactional
-    public void updateStore(Integer userId, Integer storeId, UpdateStoreRequestDTO request) {
-        Employer employer = employerRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhà tuyển dụng."));
+    public void updateStore(String username, Integer storeId, UpdateStoreRequestDTO request) {
+        log.info("Cập nhật cửa hàng ID: {} bởi username: {}", storeId, username);
+        Employer employer = getEmployerByUsername(username);
         
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
@@ -145,16 +128,10 @@ public class EmployerStoreService {
         storeRepository.save(store);
     }
 
-    /**
-     * Tạo mới một cửa hàng. Cửa hàng mặc định sẽ có trạng thái chờ phê duyệt (isActive = false).
-     * @param userId ID của nhà tuyển dụng.
-     * @param request Dữ liệu khởi tạo cửa hàng.
-     * @return DTO chứa thông tin cửa hàng vừa được tạo.
-     */
     @Transactional
-    public EmployerStoreDTO createStore(Integer userId, CreateStoreRequestDTO request) {
-        Employer employer = employerRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhà tuyển dụng."));
+    public EmployerStoreResponse createStore(String username, CreateStoreRequestDTO request) {
+        log.info("Tạo cửa hàng mới bởi username: {}", username);
+        Employer employer = getEmployerByUsername(username);
                 
         Store store = Store.builder()
                 .employer(employer)
@@ -170,33 +147,13 @@ public class EmployerStoreService {
                 
         store = storeRepository.save(store);
         
-        String address = (store.getStreetAddress() != null ? store.getStreetAddress() : "") + ", " +
-                         (store.getWard() != null ? store.getWard() : "") + ", " +
-                         (store.getDistrict() != null ? store.getDistrict() : "") + ", " +
-                         (store.getCity() != null ? store.getCity() : "");
-        
-        return EmployerStoreDTO.builder()
-                .storeId(store.getStoreId())
-                .name(store.getStoreName())
-                .phone(store.getPhoneContact() != null ? store.getPhoneContact() : employer.getPhoneContact())
-                .address(address)
-                .jobs(0L)
-                .applications(0L)
-                .status("INACTIVE")
-                .logo("https://ui-avatars.com/api/?name=" + store.getStoreName().replace(" ", "+") + "&background=random")
-                .build();
+        return storeMapper.toNewEmployerStoreResponse(store, employer.getPhoneContact());
     }
 
-    /**
-     * Bật/Tắt trạng thái hoạt động của một cửa hàng.
-     * @param userId ID của nhà tuyển dụng.
-     * @param storeId ID của cửa hàng cần thay đổi trạng thái.
-     * @return DTO chứa thông tin cửa hàng sau khi thay đổi.
-     */
     @Transactional
-    public EmployerStoreDTO toggleStoreStatus(Integer userId, Integer storeId) {
-        Employer employer = employerRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhà tuyển dụng."));
+    public EmployerStoreResponse toggleStoreStatus(String username, Integer storeId) {
+        log.info("Thay đổi trạng thái cửa hàng ID: {} bởi username: {}", storeId, username);
+        Employer employer = getEmployerByUsername(username);
         
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
@@ -211,33 +168,13 @@ public class EmployerStoreService {
         long jobCount = jobPostRepository.countByStore_StoreId(storeId);
         long applicationCount = jobApplicationRepository.countByStoreId(storeId);
         
-        String address = String.format("%s, %s, %s, %s", 
-                store.getStreetAddress() != null ? store.getStreetAddress() : "",
-                store.getWard() != null ? store.getWard() : "",
-                store.getDistrict() != null ? store.getDistrict() : "",
-                store.getCity() != null ? store.getCity() : "").replaceAll("^, |, $|(,\\s*,)+", ", ");
-
-        return EmployerStoreDTO.builder()
-                .storeId(store.getStoreId())
-                .name(store.getStoreName())
-                .phone(store.getPhoneContact() != null ? store.getPhoneContact() : employer.getPhoneContact())
-                .address(address)
-                .jobs(jobCount)
-                .applications(applicationCount)
-                .status(store.getIsActive() ? "ACTIVE" : "PAUSED")
-                .logo("https://ui-avatars.com/api/?name=" + store.getStoreName().replace(" ", "+") + "&background=random")
-                .build();
+        return storeMapper.toToggledEmployerStoreResponse(store, jobCount, applicationCount, employer.getPhoneContact());
     }
 
-    /**
-     * Lấy thông tin chi tiết của cửa hàng, bao gồm danh sách các tin tuyển dụng liên kết với cửa hàng đó.
-     * @param userId ID của nhà tuyển dụng.
-     * @param storeId ID của cửa hàng.
-     * @return DTO chứa thông tin chi tiết cửa hàng.
-     */
-    public EmployerStoreDetailDTO getStoreDetail(Integer userId, Integer storeId) {
-        Employer employer = employerRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhà tuyển dụng."));
+    @Transactional(readOnly = true)
+    public EmployerStoreDetailResponse getStoreDetail(String username, Integer storeId) {
+        log.info("Lấy chi tiết cửa hàng ID: {} bởi username: {}", storeId, username);
+        Employer employer = getEmployerByUsername(username);
         
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
@@ -248,29 +185,11 @@ public class EmployerStoreService {
         
         List<JobPost> jobs = jobPostRepository.findByStore_StoreId(storeId);
         
-        List<EmployerStoreDetailDTO.StoreJobDTO> jobDTOs = jobs.stream().map(job -> {
+        List<EmployerStoreDetailResponse.StoreJobDTO> jobDTOs = jobs.stream().map(job -> {
             long appCount = jobApplicationRepository.countByJobPost_JobPostId(job.getJobPostId());
-            return EmployerStoreDetailDTO.StoreJobDTO.builder()
-                    .jobId(job.getJobPostId())
-                    .title(job.getTitle())
-                    .status(job.getStatus())
-                    .applications(appCount)
-                    .expiredAt(job.getExpiredAt())
-                    .createdAt(job.getCreatedAt())
-                    .build();
+            return storeMapper.toStoreJobDTO(job, appCount);
         }).collect(Collectors.toList());
         
-        String address = store.getStreetAddress() + ", " + store.getWard() + ", " + store.getDistrict() + ", " + store.getCity();
-        
-        return EmployerStoreDetailDTO.builder()
-                .storeId(store.getStoreId())
-                .name(store.getStoreName())
-                .phone(store.getPhoneContact() != null ? store.getPhoneContact() : employer.getPhoneContact())
-                .address(address)
-                .description(store.getDescription())
-                .status(store.getIsActive() ? "ACTIVE" : "INACTIVE")
-                .logo("https://cdn-icons-png.flaticon.com/512/3268/3268832.png")
-                .jobs(jobDTOs)
-                .build();
+        return storeMapper.toEmployerStoreDetailResponse(store, employer.getPhoneContact(), jobDTOs);
     }
 }
