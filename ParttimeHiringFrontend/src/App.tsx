@@ -12,6 +12,7 @@ import { OAuth2RedirectHandler } from './pages/Auth/OAuth2RedirectHandler';
 import { EmployerLayout } from './components/Layout/EmployerLayout';
 import { Dashboard as EmployerDashboard } from './pages/Employer/Dashboard/Dashboard';
 import { Stores as EmployerStores } from './pages/Employer/Stores/Stores';
+import { StoreDetail as EmployerStoreDetail } from './pages/Employer/Stores/StoreDetail';
 import { Jobs as EmployerJobs } from './pages/Employer/Jobs/Jobs';
 import { Applications as EmployerApplications } from './pages/Employer/Applications/Applications';
 import { Profile as EmployerProfile } from './pages/Employer/Profile/Profile';
@@ -35,6 +36,7 @@ function App() {
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<EmployerDashboard />} />
           <Route path="stores" element={<EmployerStores />} />
+          <Route path="stores/:id" element={<EmployerStoreDetail />} />
           <Route path="jobs" element={<EmployerJobs />} />
           <Route path="applications" element={<EmployerApplications />} />
           <Route path="profile" element={<EmployerProfile />} />

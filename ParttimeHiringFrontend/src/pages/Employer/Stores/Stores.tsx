@@ -1,31 +1,65 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Store, BriefcaseBusiness, PauseCircle, Search, MapPin, Phone, Eye, MoreVertical, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getEmployerStores, type EmployerStoreListDTO } from '../../../services/storeApi';
+import { Plus, Store, BriefcaseBusiness, Clock, Search, MapPin, Phone, Eye, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { getEmployerStores, deleteStore, type EmployerStoreListDTO } from '../../../services/storeApi';
 import styles from './Stores.module.css';
 
+import { useNavigate } from 'react-router-dom';
+
+import { CreateStoreModal } from './CreateStoreModal';
+
 export const Stores: React.FC = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState<EmployerStoreListDTO | null>(null);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState('newest');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+  
+
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const result = await getEmployerStores(sortBy);
+      setData(result);
+    } catch (error) {
+      console.error('Failed to fetch stores', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const result = await getEmployerStores(sortBy);
-        setData(result);
-      } catch (error) {
-        console.error('Failed to fetch stores', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
   }, [sortBy]);
+
+
 
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSortBy(e.target.value);
   };
+
+
+
+  const handleDelete = async (storeId: string | number) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa cửa hàng này? Nếu cửa hàng đang có tin tuyển dụng sẽ không thể xóa.')) return;
+    try {
+      await deleteStore(storeId);
+      fetchData();
+    } catch (error: any) {
+      alert(error.message || 'Không thể xóa cửa hàng');
+    }
+  };
+
+  const lowerSearchTerm = searchTerm.trim().toLowerCase();
+  const filteredStores = data?.stores?.filter(store => {
+    if (!lowerSearchTerm) return true;
+    return (
+      (store.name?.toLowerCase() || '').includes(lowerSearchTerm) || 
+      `st${store.storeId?.toString()?.padStart(3, '0') || ''}`.toLowerCase().includes(lowerSearchTerm) ||
+      (store.address?.toLowerCase() || '').includes(lowerSearchTerm)
+    );
+  }) || [];
 
   return (
     <div className={styles.storesPage}>
@@ -35,8 +69,8 @@ export const Stores: React.FC = () => {
           <p className={styles.subtitle}>Quản lý thông tin và trạng thái của các cửa hàng đang hoạt động.</p>
         </div>
         <div className={styles.actions}>
-          <button className={styles.btnPrimary}>
-            <Plus size={18} /> Tạo store mới
+          <button className={styles.btnPrimary} onClick={() => setIsCreating(true)}>
+            <Plus size={18} /> Tạo cửa hàng mới
           </button>
         </div>
       </div>
@@ -64,10 +98,10 @@ export const Stores: React.FC = () => {
         </div>
         <div className={styles.statCard}>
           <div className={styles.statIcon} style={{ backgroundColor: '#FEF3C7', color: '#D97706' }}>
-            <PauseCircle size={24} />
+            <Clock size={24} />
           </div>
           <div className={styles.statInfo}>
-            <div className={styles.statLabel}>Cửa hàng tạm ngưng</div>
+            <div className={styles.statLabel}>Chờ phê duyệt</div>
             <div className={styles.statValue}>{data?.inactiveStores || 0}</div>
             <div className={styles.statSub}>{data?.totalStores ? ((data.inactiveStores / data.totalStores) * 100).toFixed(1) : 0}% tổng số cửa hàng</div>
           </div>
@@ -78,7 +112,12 @@ export const Stores: React.FC = () => {
         <div className={styles.tableToolbar}>
           <div className={styles.searchBox}>
             <Search size={18} color="var(--text-light)" />
-            <input type="text" placeholder="Tìm kiếm store..." />
+            <input 
+              type="text" 
+              placeholder="Tìm kiếm store..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
           <select className={styles.sortSelect} value={sortBy} onChange={handleSortChange}>
             <option value="newest">Sắp xếp: Mới nhất</option>
@@ -104,15 +143,15 @@ export const Stores: React.FC = () => {
               <tr>
                 <td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>Đang tải dữ liệu...</td>
               </tr>
-            ) : data?.stores && data.stores.length > 0 ? (
-              data.stores.map((store, idx) => (
+            ) : filteredStores.length > 0 ? (
+              filteredStores.map((store, idx) => (
                 <tr key={idx}>
                   <td>
                     <div className={styles.storeInfo}>
                       <img src={store.logo} alt="logo" className={styles.storeLogo} />
                       <div>
                         <div className={styles.storeName}>{store.name}</div>
-                        <div className={styles.storeId}>Store ID: ST{store.storeId.toString().padStart(3, '0')}</div>
+                        <div className={styles.storeId}>Store ID: ST{store.storeId?.toString()?.padStart(3, '0')}</div>
                       </div>
                     </div>
                   </td>
@@ -131,32 +170,39 @@ export const Stores: React.FC = () => {
                   <td style={{textAlign: 'center', fontWeight: '600'}}>{store.applications}</td>
                   <td>
                     <span className={`${styles.statusBadge} ${store.status === 'ACTIVE' ? styles.statusActive : styles.statusInactive}`}>
-                      {store.status === 'ACTIVE' ? 'Đang hoạt động' : 'Tạm ngưng'}
+                        {store.status === 'ACTIVE' ? 'Đang hoạt động' : 'Chờ phê duyệt'}
                     </span>
                   </td>
                   <td>
-                    <div className={styles.actionsCell}>
-                      <button className={styles.actionBtn}>
-                        <Eye size={14} /> Chi tiết
+                    <div className={styles.actionCell}>
+                      <button className={styles.actionBtn} onClick={() => navigate(`/employer/stores/${store.storeId}`)}>
+                        <Eye size={18} />
                       </button>
-                      <button className={styles.moreBtn}>
-                        <MoreVertical size={18} />
-                      </button>
+                      {store.status !== 'INACTIVE' && (
+                        <button 
+                          className={`${styles.actionBtn} ${styles.danger}`} 
+                          onClick={() => handleDelete(store.storeId)}
+                          style={{ color: '#ef4444', borderColor: '#fee2e2', backgroundColor: '#fef2f2' }}
+                          title="Xóa cửa hàng"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>Chưa có cửa hàng nào.</td>
+                <td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>Không tìm thấy cửa hàng nào.</td>
               </tr>
             )}
           </tbody>
         </table>
 
-        {data?.stores && data.stores.length >= 6 && (
+        {filteredStores.length >= 6 && (
           <div className={styles.pagination}>
-            <div>Hiển thị 1 - {data.stores.length} trong số {data.totalStores} cửa hàng</div>
+            <div>Hiển thị 1 - {filteredStores.length} trong số {data?.totalStores} cửa hàng</div>
             <div className={styles.pageControls}>
               <button className={styles.pageBtn}><ChevronLeft size={16} /></button>
               <button className={`${styles.pageBtn} ${styles.active}`}>1</button>
@@ -165,6 +211,16 @@ export const Stores: React.FC = () => {
           </div>
         )}
       </div>
+
+      {isCreating && (
+        <CreateStoreModal 
+          onClose={() => setIsCreating(false)} 
+          onSuccess={() => {
+            setIsCreating(false);
+            fetchData();
+          }} 
+        />
+      )}
     </div>
   );
 };

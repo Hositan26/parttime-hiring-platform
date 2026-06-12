@@ -29,4 +29,20 @@ public class GlobalExceptionHandler {
         });
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
+
+    /**
+     * Bắt lỗi RuntimeException chung (các lỗi nghiệp vụ, không tìm thấy, xác thực, v.v.).
+     */
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
+    /**
+     * Bắt tất cả các lỗi hệ thống khác chưa được xử lý.
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleGlobalException(Exception ex) {
+        return ResponseEntity.internalServerError().body("Lỗi hệ thống nội bộ: " + ex.getMessage());
+    }
 }

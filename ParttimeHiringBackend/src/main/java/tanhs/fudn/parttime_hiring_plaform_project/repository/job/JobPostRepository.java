@@ -10,6 +10,7 @@ public interface JobPostRepository extends JpaRepository<JobPost, Integer>, JpaS
     
     long countByEmployer_EmployerId(Integer employerId);
     long countByStore_StoreId(Integer storeId);
+    java.util.List<JobPost> findByStore_StoreId(Integer storeId);
 
     @org.springframework.data.jpa.repository.Query("SELECT jp FROM JobPost jp WHERE jp.employer.employerId = :employerId AND jp.expiredAt > CURRENT_TIMESTAMP ORDER BY jp.expiredAt ASC")
     java.util.List<JobPost> findExpiringJobsByEmployerId(@org.springframework.data.repository.query.Param("employerId") Integer employerId, org.springframework.data.domain.Pageable pageable);
