@@ -149,8 +149,7 @@ A full-stack recruitment platform that connects job seekers with employers for p
 .
 ├── ParttimeHiringBackend    # Java Spring Boot API service
 ├── ParttimeHiringFrontend   # React Vite web application
-├── database                 # Database schemas and dumps
-├── VIBECODE.md              # Technical guidelines and DB Schema
+├── database                 # Database schemas             
 └── README.md                # Project overview (this file)
 ```
 
