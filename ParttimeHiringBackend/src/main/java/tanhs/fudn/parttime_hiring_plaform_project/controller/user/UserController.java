@@ -5,12 +5,16 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.UserRepository;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import jakarta.validation.Valid;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.Role;
 
 import java.util.HashMap;
@@ -127,4 +131,5 @@ public class UserController {
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
+
 }

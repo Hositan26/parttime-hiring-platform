@@ -60,8 +60,16 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </button>
 
             <div className={styles.userMenu}>
-              {user?.avatarUrl ? (
-                <img src={user.avatarUrl} alt="Avatar" className={styles.userAvatar} />
+              {user?.avatarUrl && user.avatarUrl !== 'null' ? (
+                <img 
+                  src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:8088/parttime_hiring_platform${user.avatarUrl.startsWith('/') ? '' : '/'}${user.avatarUrl}`} 
+                  alt="Avatar" 
+                  className={styles.userAvatar} 
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.displayName || user?.username || 'Bạn')}&background=random`;
+                  }}
+                />
               ) : (
                 <UserIcon size={18} />
               )}

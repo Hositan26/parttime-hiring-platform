@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.Map;
 
-import tanhs.fudn.parttime_hiring_plaform_project.dto.response.ApiResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.common.ApiResponse;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {

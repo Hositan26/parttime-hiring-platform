@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.job.JobPost;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.ApplicationStatus;
 
 import java.time.LocalDateTime;
 
@@ -35,8 +36,9 @@ public class JobApplication {
     @Column(name = "note", columnDefinition = "TEXT")
     private String note;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private String status;
+    private ApplicationStatus status;
 
     @Column(name = "applied_at", insertable = false, updatable = false)
     private LocalDateTime appliedAt;

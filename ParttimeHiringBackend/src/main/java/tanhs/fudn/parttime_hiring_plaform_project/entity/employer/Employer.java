@@ -3,6 +3,7 @@ package tanhs.fudn.parttime_hiring_plaform_project.entity.employer;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.EmployerStatus;
 
 @Entity
 @Table(name = "employers")
@@ -39,8 +40,15 @@ public class Employer {
     @Column(name = "website")
     private String website;
 
+    @Column(name = "tax_code")
+    private String taxCode;
+
+    @Column(name = "representative_name")
+    private String representativeName;
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private String status;
+    private EmployerStatus status;
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;

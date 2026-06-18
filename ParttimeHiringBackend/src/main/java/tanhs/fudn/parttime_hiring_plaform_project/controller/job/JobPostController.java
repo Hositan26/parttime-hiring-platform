@@ -5,11 +5,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.response.ApiResponse;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.response.CategoryResponse;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.response.JobPostDetailResponse;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.response.JobPostResponse;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.response.ShiftResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.common.ApiResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.job.CategoryResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.job.JobPostDetailResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.job.JobPostResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.job.ShiftResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.service.job.JobPostService;
 
 import java.math.BigDecimal;

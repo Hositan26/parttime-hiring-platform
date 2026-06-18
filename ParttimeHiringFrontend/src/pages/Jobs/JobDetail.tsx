@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { MainLayout } from '../../components/Layout/MainLayout';
 import { PhoneCall, MapPin, Clock, Banknote, Users, CalendarDays, User, ArrowLeft, X, Send, ShieldCheck } from 'lucide-react';
 import { getJobById, type JobDetail as JobDetailType } from '../../services/job.service';
+import { applyForJob } from '../../services/application.service';
 import styles from './JobDetail.module.css';
 
 export const JobDetail: React.FC = () => {
@@ -13,6 +14,15 @@ export const JobDetail: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [phone, setPhone] = useState('');
   const [note, setNote] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const handleOpenModal = () => {
+    setSuccessMsg('');
+    setErrorMsg('');
+    setShowModal(true);
+  };
 
   useEffect(() => {
     if (id) {
@@ -28,10 +38,27 @@ export const JobDetail: React.FC = () => {
     }
   }, [id]);
 
-  const handleApply = (e: React.FormEvent) => {
+  const handleApply = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert('Đã gửi đơn ứng tuyển thành công!');
-    setShowModal(false);
+    if (!job) return;
+    
+    setErrorMsg('');
+    setSuccessMsg('');
+
+    try {
+      setSubmitting(true);
+      await applyForJob({
+        jobPostId: Number(id),
+        contactPhone: phone,
+        note: note
+      });
+      setSuccessMsg('Tuyệt vời! Đã gửi đơn ứng tuyển thành công.');
+      setTimeout(() => setShowModal(false), 2000);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Có lỗi xảy ra, vui lòng thử lại.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (loading) {
@@ -74,7 +101,7 @@ export const JobDetail: React.FC = () => {
                   <Users size={16} /> {job.company}
                 </span>
               </div>
-              <button className={styles.applyBtn} onClick={() => setShowModal(true)}>
+              <button className={styles.applyBtn} onClick={handleOpenModal}>
                 Ứng tuyển ngay
               </button>
             </div>
@@ -305,10 +332,13 @@ export const JobDetail: React.FC = () => {
                 </div>
               </div>
 
+              {errorMsg && <div className={styles.errorMessage}>{errorMsg}</div>}
+              {successMsg && <div className={styles.successMessage}>{successMsg}</div>}
+
               <div className={styles.modalActions}>
-                <button type="button" className={styles.cancelBtn} onClick={() => setShowModal(false)}>Hủy</button>
-                <button type="submit" className={styles.submitBtn}>
-                  <Send size={16} /> Xác nhận ứng tuyển
+                <button type="button" className={styles.cancelBtn} onClick={() => setShowModal(false)} disabled={submitting}>Hủy</button>
+                <button type="submit" className={styles.submitBtn} disabled={submitting}>
+                  <Send size={16} /> {submitting ? 'Đang gửi...' : 'Xác nhận ứng tuyển'}
                 </button>
               </div>
             </form>

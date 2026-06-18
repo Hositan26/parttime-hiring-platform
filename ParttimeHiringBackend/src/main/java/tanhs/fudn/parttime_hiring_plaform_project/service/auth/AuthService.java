@@ -14,9 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import tanhs.fudn.parttime_hiring_plaform_project.dto.response.LoginResponse;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.request.LoginRequest;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.request.RegisterRequest;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.auth.LoginResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.request.auth.LoginRequest;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.request.auth.RegisterRequest;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.Role;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.RoleRepository;

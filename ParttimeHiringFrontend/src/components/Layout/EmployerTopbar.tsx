@@ -35,8 +35,17 @@ export const EmployerTopbar: React.FC = () => {
             <div className={styles.greeting}>Xin chào, <span>{displayName}</span></div>
             <div className={styles.role}>Employer</div>
           </div>
-          {user?.avatarUrl ? (
-            <img src={user.avatarUrl} alt="Avatar" className={styles.avatarImg} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
+          {user?.avatarUrl && user.avatarUrl !== 'null' ? (
+            <img 
+              src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:8088/parttime_hiring_platform${user.avatarUrl.startsWith('/') ? '' : '/'}${user.avatarUrl}`} 
+              alt="Avatar" 
+              className={styles.avatarImg} 
+              style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} 
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`;
+              }}
+            />
           ) : (
             <div className={styles.avatar}>{initial}</div>
           )}

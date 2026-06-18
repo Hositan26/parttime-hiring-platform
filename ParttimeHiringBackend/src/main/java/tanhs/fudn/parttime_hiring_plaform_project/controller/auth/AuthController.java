@@ -7,10 +7,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.response.ApiResponse;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.response.LoginResponse;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.request.LoginRequest;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.request.RegisterRequest;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.common.ApiResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.auth.LoginResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.request.auth.LoginRequest;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.request.auth.RegisterRequest;
 import tanhs.fudn.parttime_hiring_plaform_project.service.auth.AuthService;
 
 @RestController

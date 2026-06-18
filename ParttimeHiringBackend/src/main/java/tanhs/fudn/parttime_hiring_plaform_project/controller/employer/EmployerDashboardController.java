@@ -9,9 +9,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 
-import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.dashboard.DashboardOverviewResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.employer.dashboard.DashboardOverviewResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.service.employer.EmployerDashboardService;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.response.ApiResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.common.ApiResponse;
 
 @Slf4j
 @RestController

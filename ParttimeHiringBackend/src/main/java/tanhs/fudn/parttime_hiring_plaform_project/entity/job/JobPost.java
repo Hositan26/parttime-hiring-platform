@@ -8,6 +8,9 @@ import tanhs.fudn.parttime_hiring_plaform_project.entity.employer.Store;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.JobStatus;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.GenderRequirement;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.EmploymentType;
 
 @Entity
 @Table(name = "job_posts")
@@ -61,14 +64,17 @@ public class JobPost {
     @Column(name = "max_age")
     private Integer maxAge;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "gender_requirement", nullable = false)
-    private String genderRequirement;
+    private GenderRequirement genderRequirement;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "employment_type", nullable = false)
-    private String employmentType;
+    private EmploymentType employmentType;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private String status;
+    private JobStatus status;
 
     @Column(name = "published_at")
     private LocalDateTime publishedAt;

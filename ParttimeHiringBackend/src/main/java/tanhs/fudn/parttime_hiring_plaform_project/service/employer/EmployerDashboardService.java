@@ -7,9 +7,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.PageRequest;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.dashboard.*;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.employer.dashboard.*;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.employer.Employer;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.application.JobApplication;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.ApplicationStatus;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.job.JobPost;
 import tanhs.fudn.parttime_hiring_plaform_project.mapper.DashboardMapper;
@@ -54,11 +55,11 @@ public class EmployerDashboardService {
         long totalStores = storeRepository.countByEmployer_EmployerId(employerId);
         long totalJobs = jobPostRepository.countByEmployer_EmployerId(employerId);
         long totalApplications = jobApplicationRepository.countByEmployerId(employerId);
-        long pendingApplications = jobApplicationRepository.countByEmployerIdAndStatus(employerId, "PENDING");
+        long pendingApplications = jobApplicationRepository.countByEmployerIdAndStatus(employerId, ApplicationStatus.PENDING);
 
         LocalDateTime sixMonthsAgo = LocalDateTime.now().minusMonths(6).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
         List<Object[]> monthlyData = jobApplicationRepository.countApplicationsByMonth(employerId, sixMonthsAgo);
-        List<MonthlyStatDTO> monthlyStats = new ArrayList<>();
+        List<MonthlyStatResponse> monthlyStats = new ArrayList<>();
         
         for (int i = 5; i >= 0; i--) {
             LocalDateTime month = LocalDateTime.now().minusMonths(i);
@@ -70,17 +71,17 @@ public class EmployerDashboardService {
                     break;
                 }
             }
-            monthlyStats.add(new MonthlyStatDTO("Tháng " + monthValue, count));
+            monthlyStats.add(new MonthlyStatResponse("Tháng " + monthValue, count));
         }
 
         List<JobApplication> recentApps = jobApplicationRepository.findRecentApplicationsByEmployerId(employerId, PageRequest.of(0, 5));
-        List<RecentApplicationDTO> recentApplications = recentApps.stream().map(app -> {
+        List<RecentApplicationResponse> recentApplications = recentApps.stream().map(app -> {
             String timeAgo = getTimeAgo(app.getAppliedAt());
             return dashboardMapper.toRecentApplicationDTO(app, timeAgo);
         }).collect(Collectors.toList());
 
         List<JobPost> expiring = jobPostRepository.findExpiringJobsByEmployerId(employerId, PageRequest.of(0, 5));
-        List<ExpiringJobDTO> expiringJobs = expiring.stream().map(job -> {
+        List<ExpiringJobResponse> expiringJobs = expiring.stream().map(job -> {
             long daysLeft = ChronoUnit.DAYS.between(LocalDateTime.now(), job.getExpiredAt());
             String expireStr = daysLeft > 0 ? "Còn " + daysLeft + " ngày" : "Hết hạn hôm nay";
             return dashboardMapper.toExpiringJobDTO(job, expireStr);

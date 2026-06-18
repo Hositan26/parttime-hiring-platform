@@ -12,12 +12,12 @@ import jakarta.validation.Valid;
 import java.security.Principal;
 
 import tanhs.fudn.parttime_hiring_plaform_project.service.employer.EmployerStoreService;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.store.CreateStoreRequestDTO;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.store.UpdateStoreRequestDTO;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.store.EmployerStoreResponse;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.store.EmployerStoreDetailResponse;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.store.EmployerStoreListResponse;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.response.ApiResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.request.employer.store.CreateStoreRequest;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.request.employer.store.UpdateStoreRequest;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.employer.store.EmployerStoreResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.employer.store.EmployerStoreDetailResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.employer.store.EmployerStoreListResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.common.ApiResponse;
 
 @Slf4j
 @RestController
@@ -42,7 +42,7 @@ public class EmployerStoreController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<EmployerStoreResponse>> createStore(
             Principal principal, 
-            @Valid @RequestBody CreateStoreRequestDTO request) {
+            @Valid @RequestBody CreateStoreRequest request) {
         
         EmployerStoreResponse response = employerStoreService.createStore(principal.getName(), request);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -63,7 +63,7 @@ public class EmployerStoreController {
     public ResponseEntity<ApiResponse<String>> updateStore(
             Principal principal, 
             @PathVariable Integer id, 
-            @Valid @RequestBody UpdateStoreRequestDTO request) {
+            @Valid @RequestBody UpdateStoreRequest request) {
         
         employerStoreService.updateStore(principal.getName(), id, request);
         return ResponseEntity.ok(ApiResponse.success("Đã cập nhật thông tin cửa hàng thành công"));

@@ -7,11 +7,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.store.CreateStoreRequestDTO;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.store.EmployerStoreResponse;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.store.EmployerStoreDetailResponse;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.store.EmployerStoreListResponse;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.store.UpdateStoreRequestDTO;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.request.employer.store.CreateStoreRequest;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.employer.store.EmployerStoreResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.employer.store.EmployerStoreDetailResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.employer.store.EmployerStoreListResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.request.employer.store.UpdateStoreRequest;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.employer.Employer;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.employer.Store;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
@@ -105,7 +105,7 @@ public class EmployerStoreService {
     }
 
     @Transactional
-    public void updateStore(String username, Integer storeId, UpdateStoreRequestDTO request) {
+    public void updateStore(String username, Integer storeId, UpdateStoreRequest request) {
         log.info("Cập nhật cửa hàng ID: {} bởi username: {}", storeId, username);
         Employer employer = getEmployerByUsername(username);
         
@@ -129,7 +129,7 @@ public class EmployerStoreService {
     }
 
     @Transactional
-    public EmployerStoreResponse createStore(String username, CreateStoreRequestDTO request) {
+    public EmployerStoreResponse createStore(String username, CreateStoreRequest request) {
         log.info("Tạo cửa hàng mới bởi username: {}", username);
         Employer employer = getEmployerByUsername(username);
                 

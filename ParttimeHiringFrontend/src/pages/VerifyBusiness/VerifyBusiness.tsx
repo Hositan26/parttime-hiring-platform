@@ -1,35 +1,96 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { MainLayout } from '../../components/Layout/MainLayout';
 import styles from './VerifyBusiness.module.css';
 import {
-  ShieldCheck, Building2, Phone, Globe, Mail, MapPin,
-  FileText, Link as LinkIcon, Send, CheckCircle2, Lock,
+  ShieldCheck, Store, Phone, Globe, Mail, MapPin,
+  FileText, Send, CheckCircle2, Lock,
   FileCheck2, Clock, AlertCircle, HeadphonesIcon, Info,
-  Edit, Check, ArrowRight
+  Check, ArrowRight, UploadCloud, X, User
 } from 'lucide-react';
 
 export const VerifyBusiness: React.FC = () => {
   const [formData, setFormData] = useState({
-    companyName: '',
+    storeName: '',
+    representativeName: '',
     email: '',
     phone: '',
     address: '',
-    website: '',
+    websiteFanpageUrl: '',
     taxCode: '',
-    licenseLink: '',
-    storeImageLink: '',
-    storeVideoLink: '',
     otp: ''
+  });
+
+  const [fileData, setFileData] = useState<{
+    storeFrontImage: File | null;
+    idCardFront: File | null;
+    idCardBack: File | null;
+    businessLicense: File | null;
+  }>({
+    storeFrontImage: null,
+    idCardFront: null,
+    idCardBack: null,
+    businessLicense: null,
+  });
+
+  const [previewUrls, setPreviewUrls] = useState({
+    storeFrontImage: '',
+    idCardFront: '',
+    idCardBack: '',
+    businessLicense: '',
   });
 
   const [otpSent, setOtpSent] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [submittedAt] = useState(new Date());
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submittedAt, setSubmittedAt] = useState<Date | null>(null);
+  const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
   const topRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const res = await fetch('http://localhost:8088/parttime_hiring_platform/api/users/employer-verifications/my-status', {
+          credentials: 'include'
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.hasRequest) {
+            if (data.status === 'PENDING' || data.status === 'APPROVED') {
+              setIsSubmitted(true);
+            }
+            setVerificationStatus(data.status);
+            if (data.submittedAt) {
+              setSubmittedAt(new Date(data.submittedAt));
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Error fetching status", e);
+      }
+    };
+    fetchStatus();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: keyof typeof fileData) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File quá lớn! Vui lòng chọn ảnh dưới 5MB để đảm bảo tốc độ tải.');
+        return;
+      }
+      setFileData((prev) => ({ ...prev, [fieldName]: file }));
+      setPreviewUrls((prev) => ({ ...prev, [fieldName]: URL.createObjectURL(file) }));
+    }
+  };
+
+  const removeFile = (fieldName: keyof typeof fileData) => {
+    setFileData((prev) => ({ ...prev, [fieldName]: null }));
+    setPreviewUrls((prev) => ({ ...prev, [fieldName]: '' }));
   };
 
   const handleSendOtp = () => {
@@ -42,10 +103,96 @@ export const VerifyBusiness: React.FC = () => {
     setOtpVerified(true);
   };
 
-  const handleSubmit = () => {
-    if (!otpVerified) return alert('Vui lòng xác minh email trước khi gửi hồ sơ');
-    setIsSubmitted(true);
-    topRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const handleSubmit = async () => {
+    if (!otpVerified) return alert('Vui lòng xác minh email bằng OTP trước khi gửi hồ sơ');
+    if (!fileData.storeFrontImage || !fileData.idCardFront || !fileData.idCardBack) {
+      return alert('Vui lòng tải lên đầy đủ các tài liệu bắt buộc (Ảnh mặt tiền, CCCD mặt trước & mặt sau).');
+    }
+
+    setIsSubmitting(true);
+    try {
+      const form = new FormData();
+      form.append('storeName', formData.storeName);
+      form.append('representativeName', formData.representativeName);
+      form.append('email', formData.email);
+      form.append('phone', formData.phone);
+      form.append('address', formData.address);
+      if (formData.taxCode) form.append('taxCode', formData.taxCode);
+      if (formData.websiteFanpageUrl) form.append('websiteFanpageUrl', formData.websiteFanpageUrl);
+      
+      form.append('storeFrontImage', fileData.storeFrontImage);
+      form.append('idCardFront', fileData.idCardFront);
+      form.append('idCardBack', fileData.idCardBack);
+      if (fileData.businessLicense) {
+        form.append('businessLicense', fileData.businessLicense);
+      }
+
+      const response = await fetch('http://localhost:8088/parttime_hiring_platform/api/users/employer-verifications', {
+        method: 'POST',
+        credentials: 'include',
+        body: form,
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || 'Gửi thất bại');
+      }
+
+      setSubmittedAt(new Date());
+      setVerificationStatus('PENDING');
+      setIsSubmitted(true);
+      topRef.current?.scrollIntoView({ behavior: 'smooth' });
+    } catch (error: any) {
+      alert(`Lỗi: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const renderDropZone = (
+    label: string, 
+    fieldName: keyof typeof fileData, 
+    required: boolean, 
+    icon: React.ReactNode, 
+    hint: string
+  ) => {
+    const preview = previewUrls[fieldName];
+    return (
+      <div className={styles.fileRow}>
+        <div className={styles.fileLabel}>
+          {icon}
+          {label} {required && <span className={styles.required}>*</span>}
+        </div>
+        
+        {!preview ? (
+          <div className={styles.dropZone}>
+            <input 
+              type="file" 
+              accept="image/*" 
+              className={styles.fileInputHidden} 
+              onChange={(e) => handleFileChange(e, fieldName)}
+              id={`upload-${fieldName}`}
+            />
+            <label htmlFor={`upload-${fieldName}`} className={styles.dropZoneLabel}>
+              <UploadCloud size={28} className={styles.uploadIcon} />
+              <div className={styles.uploadText}>
+                <strong>Nhấn để tải ảnh lên</strong> hoặc kéo thả vào đây
+              </div>
+              <div className={styles.uploadHint}>{hint} (Tối đa 5MB)</div>
+            </label>
+          </div>
+        ) : (
+          <div className={styles.dropZonePreview}>
+            <img src={preview} alt="Preview" className={styles.previewImage} />
+            <div className={styles.previewOverlay}>
+              <button className={styles.removeBtn} onClick={() => removeFile(fieldName)}>
+                <X size={18} /> Xóa ảnh
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
 
   const renderForm = () => (
@@ -56,30 +203,39 @@ export const VerifyBusiness: React.FC = () => {
           <ShieldCheck size={28} />
         </div>
         <div className={styles.headerText}>
-          <h2>Xác minh doanh nghiệp</h2>
-          <p>Hoàn tất hồ sơ để mở khóa chức năng đăng tuyển và tăng độ tin cậy với ứng viên.</p>
+          <h2>Xác minh cửa hàng</h2>
+          <p>Hoàn tất hồ sơ để mở khóa chức năng đăng tuyển và nhận Tick Xanh uy tín.</p>
         </div>
       </div>
 
       {/* 1. Thông tin doanh nghiệp */}
       <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>1. Thông tin doanh nghiệp</h3>
+        <h3 className={styles.sectionTitle}>1. Thông tin liên hệ cơ bản</h3>
         <div className={styles.grid2}>
           <div className={styles.inputGroup}>
-            <label>Tên công ty <span className={styles.required}>*</span></label>
+            <label>Tên cửa hàng <span className={styles.required}>*</span></label>
             <div className={styles.inputWrapper}>
-              <Building2 size={18} className={styles.inputIcon} />
-              <input type="text" name="companyName" className={styles.input}
-                placeholder="Ví dụ: Obt - Milktea & Coffee"
-                value={formData.companyName} onChange={handleChange} />
+              <Store size={18} className={styles.inputIcon} />
+              <input type="text" name="storeName" className={styles.input}
+                placeholder="Ví dụ: Cà phê The Local"
+                value={formData.storeName} onChange={handleChange} />
             </div>
           </div>
           <div className={styles.inputGroup}>
-            <label>Email công ty <span className={styles.required}>*</span></label>
+            <label>Họ tên chủ cửa hàng <span className={styles.required}>*</span></label>
+            <div className={styles.inputWrapper}>
+              <User size={18} className={styles.inputIcon} />
+              <input type="text" name="representativeName" className={styles.input}
+                placeholder="Nguyễn Văn A"
+                value={formData.representativeName} onChange={handleChange} />
+            </div>
+          </div>
+          <div className={styles.inputGroup}>
+            <label>Email liên hệ <span className={styles.required}>*</span></label>
             <div className={styles.inputWrapper}>
               <Mail size={18} className={styles.inputIcon} />
               <input type="email" name="email" className={styles.input}
-                placeholder="contact@obtcoffee.vn"
+                placeholder="contact@cuahang.vn"
                 value={formData.email} onChange={handleChange} />
             </div>
           </div>
@@ -92,8 +248,8 @@ export const VerifyBusiness: React.FC = () => {
                 value={formData.phone} onChange={handleChange} />
             </div>
           </div>
-          <div className={styles.inputGroup}>
-            <label>Địa chỉ công ty <span className={styles.required}>*</span></label>
+          <div className={styles.inputGroup} style={{ gridColumn: '1 / -1' }}>
+            <label>Địa chỉ cửa hàng <span className={styles.required}>*</span></label>
             <div className={styles.inputWrapper}>
               <MapPin size={18} className={styles.inputIcon} />
               <input type="text" name="address" className={styles.input}
@@ -101,87 +257,55 @@ export const VerifyBusiness: React.FC = () => {
                 value={formData.address} onChange={handleChange} />
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* 2. Hồ sơ xác minh bắt buộc */}
+      <div className={styles.section}>
+        <h3 className={styles.sectionTitle}>2. Hồ sơ định danh (Bắt buộc)</h3>
+        <p className={styles.helperText} style={{ marginBottom: '20px', marginLeft: 0 }}>
+          <Info size={14} /> Chụp ảnh rõ nét, không bị lóa sáng hay mất góc để được duyệt nhanh nhất.
+        </p>
+
+        {renderDropZone('Ảnh mặt tiền cửa hàng', 'storeFrontImage', true, <Store size={18} color="#10b981" />, 'Chụp rõ bảng hiệu')}
+        {renderDropZone('Ảnh CCCD (Mặt trước)', 'idCardFront', true, <User size={18} color="#10b981" />, 'Thấy rõ mặt và số CCCD')}
+        {renderDropZone('Ảnh CCCD (Mặt sau)', 'idCardBack', true, <User size={18} color="#10b981" />, 'Rõ nét vân tay')}
+      </div>
+
+      {/* 3. Hồ sơ bổ sung */}
+      <div className={styles.section}>
+        <h3 className={styles.sectionTitle}>
+          3. Thông tin bổ sung 
+          <span className={styles.optionalBadge}>Khuyến khích</span>
+        </h3>
+
+        {renderDropZone('Giấy phép kinh doanh', 'businessLicense', false, <FileText size={18} color="#3b82f6" />, 'Bản gốc hoặc bản sao công chứng')}
+
+        <div className={styles.grid2} style={{ marginTop: '20px' }}>
           <div className={styles.inputGroup}>
-            <label>Website</label>
-            <div className={styles.inputWrapper}>
-              <Globe size={18} className={styles.inputIcon} />
-              <input type="text" name="website" className={styles.input}
-                placeholder="https://www.obtcoffee.vn"
-                value={formData.website} onChange={handleChange} />
-            </div>
-          </div>
-          <div className={styles.inputGroup}>
-            <label>Mã số thuế <span className={styles.required}>*</span></label>
+            <label>Mã số thuế</label>
             <div className={styles.inputWrapper}>
               <FileText size={18} className={styles.inputIcon} />
               <input type="text" name="taxCode" className={styles.input}
-                placeholder="0402045678"
+                placeholder="Ví dụ: 0402045678"
                 value={formData.taxCode} onChange={handleChange} />
+            </div>
+          </div>
+          <div className={styles.inputGroup}>
+            <label>Website / Fanpage</label>
+            <div className={styles.inputWrapper}>
+              <Globe size={18} className={styles.inputIcon} />
+              <input type="text" name="websiteFanpageUrl" className={styles.input}
+                placeholder="https://facebook.com/cuahang"
+                value={formData.websiteFanpageUrl} onChange={handleChange} />
             </div>
           </div>
         </div>
       </div>
 
-      {/* 2. Hồ sơ xác minh */}
+      {/* 4. Xác minh email */}
       <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>2. Hồ sơ xác minh</h3>
-
-        <div className={styles.fileRow}>
-          <div className={styles.fileLabel}>
-            <FileText size={18} color="#10b981" />
-            Giấy phép kinh doanh <span className={styles.required}>*</span>
-          </div>
-          <div className={styles.fileInputWrapper}>
-            <LinkIcon size={18} className={styles.inputIcon} />
-            <input type="text" name="licenseLink" className={styles.input}
-              placeholder="https://drive.google.com/file/d/1AbcDEF..."
-              value={formData.licenseLink} onChange={handleChange} />
-          </div>
-          <button className={styles.checkLinkBtn}>
-            <LinkIcon size={15} /> Kiểm tra link
-          </button>
-        </div>
-
-        <div className={styles.fileRow}>
-          <div className={styles.fileLabel}>
-            <Building2 size={18} color="#10b981" />
-            Ảnh cửa hàng / văn phòng <span className={styles.required}>*</span>
-          </div>
-          <div className={styles.fileInputWrapper}>
-            <LinkIcon size={18} className={styles.inputIcon} />
-            <input type="text" name="storeImageLink" className={styles.input}
-              placeholder="https://drive.google.com/drive/folders/1Xyz..."
-              value={formData.storeImageLink} onChange={handleChange} />
-          </div>
-          <button className={styles.checkLinkBtn}>
-            <LinkIcon size={15} /> Kiểm tra link
-          </button>
-        </div>
-
-        <div className={styles.fileRow}>
-          <div className={styles.fileLabel}>
-            <FileText size={18} color="#10b981" />
-            Video cửa hàng / văn phòng
-          </div>
-          <div className={styles.fileInputWrapper}>
-            <LinkIcon size={18} className={styles.inputIcon} />
-            <input type="text" name="storeVideoLink" className={styles.input}
-              placeholder="https://drive.google.com/file/d/1Video123..."
-              value={formData.storeVideoLink} onChange={handleChange} />
-          </div>
-          <button className={styles.checkLinkBtn}>
-            <LinkIcon size={15} /> Kiểm tra link
-          </button>
-        </div>
-
-        <p className={styles.helperText}>
-          <Info size={14} /> Vui lòng đảm bảo link Google Drive ở chế độ "Bất kỳ ai có liên kết đều có thể xem".
-        </p>
-      </div>
-
-      {/* 3. Xác minh email */}
-      <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>3. Xác minh email bằng OTP</h3>
+        <h3 className={styles.sectionTitle}>4. Xác minh email bằng OTP</h3>
         <div className={styles.otpRow}>
           {!otpSent ? (
             <button className={styles.sendOtpBtn} onClick={handleSendOtp}>
@@ -189,7 +313,7 @@ export const VerifyBusiness: React.FC = () => {
             </button>
           ) : (
             <button className={`${styles.sendOtpBtn} ${styles.sent}`} disabled>
-              <CheckCircle2 size={16} /> Email đã được gửi OTP
+              <CheckCircle2 size={16} /> Đã gửi mã OTP
             </button>
           )}
 
@@ -208,22 +332,22 @@ export const VerifyBusiness: React.FC = () => {
 
           <button className={styles.confirmOtpBtn}
             onClick={handleVerifyOtp} disabled={otpVerified}>
-            Xác nhận OTP
+            Xác nhận
           </button>
         </div>
 
         {otpVerified && (
           <div className={styles.successBanner}>
             <CheckCircle2 size={20} />
-            Xác nhận thành công! Email doanh nghiệp đã được xác minh.
+            Tuyệt vời! Email của bạn đã được xác minh.
           </div>
         )}
       </div>
 
       {/* Submit */}
       <div className={styles.submitAction}>
-        <button className={styles.submitBtn} onClick={handleSubmit}>
-          <Send size={18} /> Gửi hồ sơ xác minh
+        <button className={styles.submitBtn} onClick={handleSubmit} disabled={isSubmitting}>
+          <Send size={18} /> {isSubmitting ? 'Đang tải ảnh và gửi...' : 'Gửi hồ sơ xác minh'}
         </button>
         <span className={styles.submitHint}>
           <Lock size={14} /> Sau khi gửi, hồ sơ sẽ được admin kiểm tra trong vòng 24h.
@@ -234,7 +358,7 @@ export const VerifyBusiness: React.FC = () => {
         <AlertCircle size={22} color="#2563eb" style={{ flexShrink: 0, marginTop: 2 }} />
         <div>
           <strong>📌 Lưu ý quan trọng</strong>
-          <span>Sau khi gửi hồ sơ, bạn không thể chỉnh sửa thông tin. Nếu cần thay đổi, vui lòng liên hệ admin.</span>
+          <span>Mọi thông tin tải lên đều được mã hóa bảo mật. Nếu cần thay đổi sau khi gửi, vui lòng liên hệ admin.</span>
         </div>
       </div>
     </div>
@@ -242,138 +366,36 @@ export const VerifyBusiness: React.FC = () => {
 
   const renderSuccess = () => (
     <div className={styles.mainCard}>
-      {/* Success Banner */}
       <div className={styles.successMainCard}>
         <div className={styles.successIconLarge}>
           <Check size={32} strokeWidth={3} />
         </div>
         <div>
-          <h2>Hồ sơ xác minh đã được gửi thành công!</h2>
-          <p>Cảm ơn bạn đã hoàn tất thông tin. Chúng tôi sẽ kiểm tra và phản hồi trong vòng 24h.</p>
+          <h2>Hồ sơ đã được gửi thành công!</h2>
+          <p>Cảm ơn bạn đã hợp tác. Chúng tôi sẽ đối chiếu thông tin và phản hồi sớm nhất.</p>
         </div>
       </div>
 
-      {/* 1. Read-only Info */}
-      <div className={styles.section}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 className={styles.sectionTitle}>1. Thông tin doanh nghiệp</h3>
-          <button className={styles.editBtn}><Edit size={14} /> Chỉnh sửa</button>
-        </div>
-        <div className={styles.grid2}>
-          <div className={styles.inputGroup}>
-            <label><Building2 size={14} /> Tên công ty</label>
-            <div className={styles.infoReadonly}>{formData.companyName || 'Obt - Milktea & Coffee'}</div>
-          </div>
-          <div className={styles.inputGroup}>
-            <label><Mail size={14} /> Email công ty</label>
-            <div className={styles.infoReadonly}>{formData.email || 'contact@obtcoffee.vn'}</div>
-          </div>
-          <div className={styles.inputGroup}>
-            <label><Phone size={14} /> Số điện thoại</label>
-            <div className={styles.infoReadonly}>{formData.phone || '0914 768 239'}</div>
-          </div>
-          <div className={styles.inputGroup}>
-            <label><MapPin size={14} /> Địa chỉ công ty</label>
-            <div className={styles.infoReadonly}>{formData.address || '35 Cao Thắng, Hải Châu, Đà Nẵng'}</div>
-          </div>
-          <div className={styles.inputGroup}>
-            <label><Globe size={14} /> Website</label>
-            <div className={styles.infoReadonly}>{formData.website || 'https://www.obtcoffee.vn'}</div>
-          </div>
-          <div className={styles.inputGroup}>
-            <label><FileText size={14} /> Mã số thuế</label>
-            <div className={styles.infoReadonly}>{formData.taxCode || '0402045678'}</div>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Links read-only */}
-      <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>2. Hồ sơ xác minh</h3>
-        <div className={styles.fileRow}>
-          <div className={styles.fileLabel}><FileText size={18} color="#10b981" /> Giấy phép kinh doanh</div>
-          <div className={styles.fileInputWrapper}>
-            <span style={{ color: '#2563eb', fontSize: '14px', textDecoration: 'underline', cursor: 'pointer' }}>
-              {formData.licenseLink || 'https://drive.google.com/file/d/1AbcDEF...'}
-            </span>
-          </div>
-          <button className={styles.checkedBtn}><CheckCircle2 size={14} /> Đã kiểm tra</button>
-        </div>
-        <div className={styles.fileRow}>
-          <div className={styles.fileLabel}><Building2 size={18} color="#10b981" /> Ảnh cửa hàng / văn phòng</div>
-          <div className={styles.fileInputWrapper}>
-            <span style={{ color: '#2563eb', fontSize: '14px', textDecoration: 'underline', cursor: 'pointer' }}>
-              {formData.storeImageLink || 'https://drive.google.com/drive/folders/1Xyz...'}
-            </span>
-          </div>
-          <button className={styles.checkedBtn}><CheckCircle2 size={14} /> Đã kiểm tra</button>
-        </div>
-        <div className={styles.fileRow}>
-          <div className={styles.fileLabel}><FileText size={18} color="#10b981" /> Video cửa hàng / văn phòng</div>
-          <div className={styles.fileInputWrapper}>
-            <span style={{ color: '#2563eb', fontSize: '14px', textDecoration: 'underline', cursor: 'pointer' }}>
-              {formData.storeVideoLink || 'https://drive.google.com/file/d/1Video123...'}
-            </span>
-          </div>
-          <button className={styles.checkedBtn}><CheckCircle2 size={14} /> Đã kiểm tra</button>
-        </div>
-      </div>
-
-      {/* 3. Email verification status */}
-      <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>3. Xác minh email bằng OTP</h3>
-        <div className={styles.grid2}>
-          <div className={styles.inputGroup}>
-            <label><Mail size={14} /> Email công ty</label>
-            <div className={styles.infoReadonly}>{formData.email || 'contact@obtcoffee.vn'}</div>
-          </div>
-          <div className={styles.inputGroup}>
-            <label>Trạng thái xác minh</label>
-            <div style={{
-              color: '#059669', fontWeight: 700, display: 'flex', alignItems: 'center',
-              gap: '8px', fontSize: '14px', marginTop: '4px',
-              padding: '10px 14px', background: 'rgba(16, 185, 129, 0.06)',
-              borderRadius: '10px', border: '1px solid rgba(16, 185, 129, 0.15)'
-            }}>
-              <CheckCircle2 size={18} /> Email đã được xác minh
-            </div>
-          </div>
-          <div className={styles.inputGroup}>
-            <label>Xác minh lúc</label>
-            <div className={styles.infoReadonly}>
-              {submittedAt.toLocaleDateString('vi-VN')} {submittedAt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 4. Status tracking */}
       <div className={styles.statusCard}>
-        <h3 className={styles.sectionTitle} style={{ color: '#b45309' }}>4. Trạng thái hồ sơ</h3>
+        <h3 className={styles.sectionTitle} style={{ color: '#b45309' }}>Trạng thái hiện tại</h3>
         <div className={styles.statusGrid}>
           <div className={styles.statusItem}>
-            <label>Trạng thái hiện tại</label>
+            <label>Trạng thái</label>
             <div className={styles.statusBadge}>
-              <Clock size={16} /> PENDING - Chờ duyệt
+              <Clock size={16} /> {verificationStatus === 'APPROVED' ? 'APPROVED - Đã duyệt' : 'PENDING - Đang chờ duyệt'}
             </div>
           </div>
           <div className={styles.statusItem}>
-            <label>Ngày gửi hồ sơ</label>
+            <label>Thời gian gửi</label>
             <div className={styles.statusValue}>
               <Clock size={16} color="#92400e" />
-              {submittedAt.toLocaleDateString('vi-VN')} {submittedAt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
-            </div>
-          </div>
-          <div className={styles.statusItem}>
-            <label>Dự kiến phản hồi</label>
-            <div className={styles.statusValue}>
-              <Clock size={16} color="#92400e" /> Trong vòng 24h
+              {submittedAt ? `${submittedAt.toLocaleDateString('vi-VN')} ${submittedAt.toLocaleTimeString('vi-VN')}` : 'Đang tải...'}
             </div>
           </div>
         </div>
         <div className={styles.statusNotice}>
           <Info size={16} />
-          Hồ sơ của bạn đang được đội ngũ của chúng tôi kiểm tra. Vui lòng chờ trong giây lát!
+          Hệ thống sẽ gửi email thông báo kết quả cho bạn. Xin vui lòng chờ!
         </div>
       </div>
     </div>
@@ -390,68 +412,58 @@ export const VerifyBusiness: React.FC = () => {
           <div className={styles.sidebar}>
             {/* Trust Card */}
             <div className={styles.trustCard}>
-              <h3><ShieldCheck size={22} /> Tăng độ tin cậy tuyển dụng</h3>
-              <p>Doanh nghiệp xác minh sẽ được ưu tiên hiển thị và ứng viên tin tưởng hơn.</p>
+              <h3><ShieldCheck size={22} /> Ưu tiên tuyển dụng</h3>
+              <p>Cửa hàng có tick xanh sẽ được thuật toán ưu tiên hiển thị lên trang chủ ứng viên.</p>
               <div className={styles.trustFeatures}>
                 <div className={styles.feature}>
                   <Clock size={26} className={styles.featureIcon} />
                   <strong>24h</strong>
-                  <span>Kiểm tra thủ công</span>
+                  <span>Xét duyệt nhanh</span>
                 </div>
                 <div className={styles.feature}>
                   <ShieldCheck size={26} className={styles.featureIcon} />
                   <strong>100%</strong>
-                  <span>Bảo mật hồ sơ</span>
+                  <span>Mã hóa bảo mật</span>
                 </div>
                 <div className={styles.feature}>
                   <CheckCircle2 size={26} className={styles.featureIcon} />
-                  <strong>2 bước</strong>
-                  <span>Xác minh đơn giản</span>
+                  <strong>Tick xanh</strong>
+                  <span>Hồ sơ uy tín</span>
                 </div>
               </div>
             </div>
 
             {/* Guide Card */}
             <div className={styles.guideCard}>
-              <h3><FileCheck2 size={22} /> Chuẩn bị hồ sơ đúng cách</h3>
+              <h3><FileCheck2 size={22} /> Mẹo tải ảnh thành công</h3>
               <div className={styles.step}>
                 <div className={styles.stepNumber}>01</div>
                 <div className={styles.stepContent}>
-                  <h4>Điền đúng thông tin doanh nghiệp</h4>
-                  <p>Vui lòng cung cấp thông tin chính xác và đầy đủ để hồ sơ được duyệt nhanh hơn.</p>
+                  <h4>Đủ ánh sáng</h4>
+                  <p>Hãy đảm bảo chụp ảnh ở nơi có ánh sáng tốt, chữ không bị bóng lóa.</p>
                 </div>
               </div>
               <div className={styles.step}>
                 <div className={styles.stepNumber}>02</div>
                 <div className={styles.stepContent}>
-                  <h4>Dán đúng link tài liệu Google Drive</h4>
-                  <p>Đảm bảo link ở chế độ "Anyone with the link" để chúng tôi có thể truy cập.</p>
+                  <h4>Rõ nét và góc cạnh</h4>
+                  <p>Ảnh CCCD cần chụp vuông vức, không bị mất góc hay che khuất.</p>
                 </div>
               </div>
               <div className={styles.step}>
                 <div className={styles.stepNumber}>03</div>
                 <div className={styles.stepContent}>
-                  <h4>Xác thực email bằng OTP</h4>
-                  <p>Sau khi gửi OTP, bạn cần nhập đúng mã để xác minh email doanh nghiệp.</p>
+                  <h4>Dung lượng chuẩn</h4>
+                  <p>Hệ thống hỗ trợ file dưới 5MB để tối ưu tốc độ. Vui lòng không nén quá mức.</p>
                 </div>
               </div>
-            </div>
-
-            {/* Tips Card */}
-            <div className={styles.tipsCard}>
-              <h3><Info size={22} /> Mẹo để tránh lỗi</h3>
-              <ul>
-                <li>Không dùng link Drive bị giới hạn quyền truy cập.</li>
-                <li>Kiểm tra mục Spam / Promotions nếu không thấy email OTP.</li>
-                <li>Dùng email doanh nghiệp để tăng độ uy tín và tỷ lệ duyệt hồ sơ.</li>
-              </ul>
             </div>
 
             {/* Support Card */}
             <div className={styles.supportCard}>
               <h3><HeadphonesIcon size={22} /> Cần hỗ trợ?</h3>
-              <p>Liên hệ với chúng tôi nếu bạn gặp khó khăn trong quá trình xác minh doanh nghiệp.</p>
-              <button className={styles.supportBtn}>Liên hệ hỗ trợ <ArrowRight size={16} /></button>
+              <p>Liên hệ ngay bộ phận CSKH nếu bạn không thể tải ảnh lên.</p>
+              <button className={styles.supportBtn}>Chat với CSKH <ArrowRight size={16} /></button>
             </div>
           </div>
         </div>

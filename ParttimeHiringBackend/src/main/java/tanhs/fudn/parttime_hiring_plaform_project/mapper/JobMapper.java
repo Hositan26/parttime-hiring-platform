@@ -2,10 +2,10 @@ package tanhs.fudn.parttime_hiring_plaform_project.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.response.CategoryResponse;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.response.JobPostDetailResponse;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.response.JobPostResponse;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.response.ShiftResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.job.CategoryResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.job.JobPostDetailResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.job.JobPostResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.job.ShiftResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.job.JobCategory;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.job.JobPost;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.job.WorkShift;
@@ -43,7 +43,7 @@ public interface JobMapper {
     @Mapping(target = "fullAddress", expression = "java(formatFullAddress(job))")
     @Mapping(target = "wage", expression = "java(formatSalaryDetail(job))")
     @Mapping(target = "headcount", source = "vacancyCount")
-    @Mapping(target = "gender", expression = "java(job.getGenderRequirement() != null ? job.getGenderRequirement() : \"ANY\")")
+    @Mapping(target = "gender", expression = "java(job.getGenderRequirement() != null ? job.getGenderRequirement().name() : \"ANY\")")
     @Mapping(target = "ageRange", expression = "java((job.getMinAge() != null ? job.getMinAge() : \"18\") + \" - \" + (job.getMaxAge() != null ? job.getMaxAge() : \"25\") + \" tuổi\")")
     @Mapping(target = "description", source = "jobDescription")
     @Mapping(target = "postedDate", expression = "java(job.getPublishedAt() != null ? job.getPublishedAt().toLocalDate().toString() : \"\")")
