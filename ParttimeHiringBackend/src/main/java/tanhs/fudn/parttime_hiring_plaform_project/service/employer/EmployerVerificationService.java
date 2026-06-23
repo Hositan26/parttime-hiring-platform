@@ -13,30 +13,37 @@ import tanhs.fudn.parttime_hiring_plaform_project.mapper.EmployerVerificationMap
 import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.UserRepository;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.employer.EmployerVerificationRepository;
 import tanhs.fudn.parttime_hiring_plaform_project.service.common.CloudinaryService;
+import tanhs.fudn.parttime_hiring_plaform_project.service.user.UserEmailVerificationService;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 
 import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EmployerVerificationService {
 
-    private final EmployerVerificationRepository verificationRepository;
-    private final UserRepository userRepository;
-    private final CloudinaryService cloudinaryService;
-    private final EmployerVerificationMapper verificationMapper;
+    EmployerVerificationRepository verificationRepository;
+    UserRepository userRepository;
+    CloudinaryService cloudinaryService;
+    UserEmailVerificationService emailVerificationService;
+    EmployerVerificationMapper verificationMapper;
 
     private static final String FOLDER_NAME = "parttime_hiring/employer_verifications";
 
     @Transactional
     public void submitVerification(VerifyBusinessRequest request, String username) throws IOException {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
-        // Check if user already has a pending verification
-        verificationRepository.findByUserIdAndVerificationStatus(user.getId(), VerificationStatus.PENDING)
-                .ifPresent(v -> {
-                    throw new RuntimeException("Bạn đã có một đơn xác minh đang chờ duyệt.");
-                });
+        // Validate OTP first
+        emailVerificationService.verifyOtp(request.getEmail(), request.getOtpCode());
+
+        // Kiểm tra xem đã có đơn PENDING nào chưa
+        if (verificationRepository.findByUserIdAndVerificationStatus(user.getId(), VerificationStatus.PENDING).isPresent()) {
+            throw new RuntimeException("Bạn đã có một đơn xác minh đang chờ duyệt.");
+        }
 
         // Upload files
         CloudinaryResponse storeFrontRes = cloudinaryService.uploadFile(request.getStoreFrontImage(), FOLDER_NAME);

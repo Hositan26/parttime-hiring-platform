@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MainLayout } from '../../components/Layout/MainLayout';
+import { sendOtp } from '../../services/email.service';
 import styles from './VerifyBusiness.module.css';
 import {
   ShieldCheck, Store, Phone, Globe, Mail, MapPin,
@@ -20,24 +21,14 @@ export const VerifyBusiness: React.FC = () => {
     otp: ''
   });
 
-  const [fileData, setFileData] = useState<{
-    storeFrontImage: File | null;
-    idCardFront: File | null;
-    idCardBack: File | null;
-    businessLicense: File | null;
-  }>({
+  const [fileData, setFileData] = useState<{ [key: string]: File | null }>({
     storeFrontImage: null,
     idCardFront: null,
     idCardBack: null,
     businessLicense: null,
   });
 
-  const [previewUrls, setPreviewUrls] = useState({
-    storeFrontImage: '',
-    idCardFront: '',
-    idCardBack: '',
-    businessLicense: '',
-  });
+  const [previewUrls, setPreviewUrls] = useState<{ [key: string]: string }>({});
 
   const [otpSent, setOtpSent] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
@@ -45,6 +36,15 @@ export const VerifyBusiness: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedAt, setSubmittedAt] = useState<Date | null>(null);
   const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState<string | null>(null);
+
+  // Thêm state cho OTP countdown và thông báo
+  const [countdown, setCountdown] = useState(0);
+  const [otpSuccessMsg, setOtpSuccessMsg] = useState('');
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [fileProgress, setFileProgress] = useState<Record<string, number>>({});
+  
   const topRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -72,6 +72,14 @@ export const VerifyBusiness: React.FC = () => {
     fetchStatus();
   }, []);
 
+  // Timer cho OTP countdown
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [countdown]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -83,19 +91,48 @@ export const VerifyBusiness: React.FC = () => {
         alert('File quá lớn! Vui lòng chọn ảnh dưới 5MB để đảm bảo tốc độ tải.');
         return;
       }
-      setFileData((prev) => ({ ...prev, [fieldName]: file }));
-      setPreviewUrls((prev) => ({ ...prev, [fieldName]: URL.createObjectURL(file) }));
+
+      // Giả lập tiến trình tải ảnh lên giao diện
+      setFileProgress((prev) => ({ ...prev, [fieldName]: 0 }));
+      
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 25;
+        if (progress <= 100) {
+          setFileProgress((prev) => ({ ...prev, [fieldName]: progress }));
+        }
+        if (progress >= 100) {
+          clearInterval(interval);
+          setFileData((prev) => ({ ...prev, [fieldName]: file }));
+          setPreviewUrls((prev) => ({ ...prev, [fieldName]: URL.createObjectURL(file) }));
+        }
+      }, 150);
     }
   };
 
   const removeFile = (fieldName: keyof typeof fileData) => {
     setFileData((prev) => ({ ...prev, [fieldName]: null }));
     setPreviewUrls((prev) => ({ ...prev, [fieldName]: '' }));
+    setFileProgress((prev) => ({ ...prev, [fieldName]: 0 }));
   };
 
-  const handleSendOtp = () => {
+  const handleSendOtp = async () => {
     if (!formData.email) return alert('Vui lòng nhập email công ty trước!');
-    setOtpSent(true);
+    
+    setIsSendingOtp(true);
+    try {
+      await sendOtp(formData.email);
+      setOtpSuccessMsg('Gửi mã OTP thành công! Vui lòng kiểm tra email (kể cả hòm thư rác).');
+      setOtpSent(true);
+      setCountdown(60);
+      
+      // Tự ẩn thông báo sau 5s
+      setTimeout(() => setOtpSuccessMsg(''), 5000);
+    } catch (err: any) {
+      alert(`Lỗi gửi OTP: ${err.message}`);
+    } finally {
+      setIsSendingOtp(false);
+    }
   };
 
   const handleVerifyOtp = () => {
@@ -110,6 +147,7 @@ export const VerifyBusiness: React.FC = () => {
     }
 
     setIsSubmitting(true);
+    setUploadProgress(0);
     try {
       const form = new FormData();
       form.append('storeName', formData.storeName);
@@ -117,6 +155,7 @@ export const VerifyBusiness: React.FC = () => {
       form.append('email', formData.email);
       form.append('phone', formData.phone);
       form.append('address', formData.address);
+      form.append('otpCode', formData.otp);
       if (formData.taxCode) form.append('taxCode', formData.taxCode);
       if (formData.websiteFanpageUrl) form.append('websiteFanpageUrl', formData.websiteFanpageUrl);
       
@@ -127,16 +166,33 @@ export const VerifyBusiness: React.FC = () => {
         form.append('businessLicense', fileData.businessLicense);
       }
 
-      const response = await fetch('http://localhost:8088/parttime_hiring_platform/api/users/employer-verifications', {
-        method: 'POST',
-        credentials: 'include',
-        body: form,
-      });
+      await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'http://localhost:8088/parttime_hiring_platform/api/users/employer-verifications', true);
+        xhr.withCredentials = true;
 
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.message || 'Gửi thất bại');
-      }
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const percentComplete = Math.round((e.loaded / e.total) * 100);
+            // Limit to 95% during upload, the last 5% is for server processing (Cloudinary upload)
+            setUploadProgress(percentComplete < 100 ? percentComplete : 95);
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            setUploadProgress(100);
+            resolve(JSON.parse(xhr.responseText));
+          } else {
+            let errMsg = 'Gửi thất bại';
+            try { errMsg = JSON.parse(xhr.responseText).message || errMsg; } catch(e){}
+            reject(new Error(errMsg));
+          }
+        };
+
+        xhr.onerror = () => reject(new Error('Lỗi kết nối mạng'));
+        xhr.send(form);
+      });
 
       setSubmittedAt(new Date());
       setVerificationStatus('PENDING');
@@ -157,6 +213,8 @@ export const VerifyBusiness: React.FC = () => {
     hint: string
   ) => {
     const preview = previewUrls[fieldName];
+    const isUploading = fileProgress[fieldName] !== undefined && fileProgress[fieldName] > 0 && fileProgress[fieldName] < 100;
+
     return (
       <div className={styles.fileRow}>
         <div className={styles.fileLabel}>
@@ -164,7 +222,29 @@ export const VerifyBusiness: React.FC = () => {
           {label} {required && <span className={styles.required}>*</span>}
         </div>
         
-        {!preview ? (
+        {isUploading ? (
+          <div className={styles.dropZoneUploading}>
+             <div className={styles.uploadingHeader}>
+               <span className={styles.uploadingTitle}>Đang tải ảnh lên...</span>
+               <span className={styles.uploadingPercent}>{fileProgress[fieldName]}%</span>
+             </div>
+             <div className={styles.progressBarBg}>
+               <div className={styles.progressBarFill} style={{ width: `${fileProgress[fieldName]}%` }}></div>
+             </div>
+          </div>
+        ) : preview ? (
+          <div className={styles.dropZonePreview}>
+            <img src={preview} alt="Preview" className={styles.previewImage} />
+            <div className={styles.previewOverlay}>
+              <button className={styles.removeBtn} onClick={() => removeFile(fieldName)}>
+                <X size={18} /> Xóa ảnh
+              </button>
+            </div>
+            <div className={styles.successBadge}>
+              <CheckCircle2 size={14} /> Đã tải lên thành công
+            </div>
+          </div>
+        ) : (
           <div className={styles.dropZone}>
             <input 
               type="file" 
@@ -180,15 +260,6 @@ export const VerifyBusiness: React.FC = () => {
               </div>
               <div className={styles.uploadHint}>{hint} (Tối đa 5MB)</div>
             </label>
-          </div>
-        ) : (
-          <div className={styles.dropZonePreview}>
-            <img src={preview} alt="Preview" className={styles.previewImage} />
-            <div className={styles.previewOverlay}>
-              <button className={styles.removeBtn} onClick={() => removeFile(fieldName)}>
-                <X size={18} /> Xóa ảnh
-              </button>
-            </div>
           </div>
         )}
       </div>
@@ -306,14 +377,25 @@ export const VerifyBusiness: React.FC = () => {
       {/* 4. Xác minh email */}
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>4. Xác minh email bằng OTP</h3>
+        
+        {otpSuccessMsg && (
+          <div className={styles.successBanner} style={{ marginBottom: '16px' }}>
+            <CheckCircle2 size={18} /> {otpSuccessMsg}
+          </div>
+        )}
+
         <div className={styles.otpRow}>
-          {!otpSent ? (
-            <button className={styles.sendOtpBtn} onClick={handleSendOtp}>
-              <Send size={16} /> Gửi OTP đến email
+          {(!otpSent || countdown === 0) ? (
+            <button className={styles.sendOtpBtn} onClick={handleSendOtp} disabled={isSendingOtp}>
+              {isSendingOtp ? (
+                <><div className={styles.spinner}></div> Đang gửi...</>
+              ) : (
+                <><Send size={16} /> Gửi {otpSent ? 'lại ' : ''}OTP đến email</>
+              )}
             </button>
           ) : (
             <button className={`${styles.sendOtpBtn} ${styles.sent}`} disabled>
-              <CheckCircle2 size={16} /> Đã gửi mã OTP
+              <CheckCircle2 size={16} /> Đã gửi mã OTP ({countdown}s)
             </button>
           )}
 
@@ -322,10 +404,10 @@ export const VerifyBusiness: React.FC = () => {
               type="text" maxLength={6} name="otp"
               className={styles.input}
               style={{
-                width: '140px', letterSpacing: '10px', textAlign: 'center',
+                width: '180px', letterSpacing: '10px', textAlign: 'center',
                 fontWeight: 800, fontSize: '18px', padding: '12px 14px'
               }}
-              placeholder="• • • • • •"
+              placeholder="••••••"
               value={formData.otp} onChange={handleChange}
             />
           </div>
@@ -346,12 +428,26 @@ export const VerifyBusiness: React.FC = () => {
 
       {/* Submit */}
       <div className={styles.submitAction}>
-        <button className={styles.submitBtn} onClick={handleSubmit} disabled={isSubmitting}>
-          <Send size={18} /> {isSubmitting ? 'Đang tải ảnh và gửi...' : 'Gửi hồ sơ xác minh'}
-        </button>
-        <span className={styles.submitHint}>
+        {isSubmitting ? (
+          <div className={styles.progressWrapper}>
+            <div className={styles.progressHeader}>
+              <span className={styles.progressText}>
+                {uploadProgress < 100 ? 'Đang tải lên tài liệu...' : 'Đang xử lý dữ liệu...'}
+              </span>
+              <span className={styles.progressPercent}>{uploadProgress}%</span>
+            </div>
+            <div className={styles.progressBarBg}>
+              <div className={styles.progressBarFill} style={{ width: `${uploadProgress}%` }}></div>
+            </div>
+          </div>
+        ) : (
+          <button className={styles.submitBtn} onClick={handleSubmit}>
+            <CheckCircle2 size={20} /> Gửi Hồ Sơ Xác Minh
+          </button>
+        )}
+        <div className={styles.submitHint}>
           <Lock size={14} /> Sau khi gửi, hồ sơ sẽ được admin kiểm tra trong vòng 24h.
-        </span>
+        </div>
       </div>
 
       <div className={styles.warningBox}>

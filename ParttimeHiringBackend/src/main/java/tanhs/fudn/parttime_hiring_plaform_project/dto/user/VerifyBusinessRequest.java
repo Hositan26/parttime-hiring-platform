@@ -19,6 +19,9 @@ public class VerifyBusinessRequest {
     @Email(message = "Email không hợp lệ")
     private String email;
 
+    @NotBlank(message = "Mã xác thực OTP không được để trống")
+    private String otpCode;
+
     @NotBlank(message = "Số điện thoại không được để trống")
     private String phone;
 

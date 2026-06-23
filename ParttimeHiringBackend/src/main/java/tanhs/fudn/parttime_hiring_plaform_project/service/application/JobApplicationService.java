@@ -36,15 +36,15 @@ public class JobApplicationService {
 
     @Transactional
     public void applyForJob(JobApplicationRequest request, String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User applicant = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng."));
 
         JobPost jobPost = jobPostRepository.findById(request.getJobPostId())
                 .orElseThrow(() -> new RuntimeException("Công việc không tồn tại hoặc đã bị xóa."));
 
         // Anti-spam: Check if the user has already applied for this job
         boolean alreadyApplied = applicationRepository.existsByJobPost_JobPostIdAndApplicant_Id(
-                jobPost.getJobPostId(), user.getId()
+                jobPost.getJobPostId(), applicant.getId()
         );
 
         if (alreadyApplied) {
@@ -53,7 +53,7 @@ public class JobApplicationService {
 
         JobApplication application = JobApplication.builder()
                 .jobPost(jobPost)
-                .applicant(user)
+                .applicant(applicant)
                 .contactPhone(request.getContactPhone())
                 .note(request.getNote())
                 .status(ApplicationStatus.PENDING)

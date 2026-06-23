@@ -280,6 +280,47 @@
   opacity: 1;
 }
 
+.successBadge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(16, 185, 129, 0.9);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: blur(4px);
+  z-index: 1;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.dropZoneUploading {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+  background: white;
+}
+
+.uploadingHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.uploadingTitle {
+  color: #334155;
+}
+
+.uploadingPercent {
+  color: #10b981;
+}
+
 .removeBtn {
   background: #ef4444;
   color: white;
@@ -676,3 +717,53 @@
 .statusBadge { background: #fef3c7; color: #d97706; padding: 8px 12px; border-radius: 8px; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
 .statusValue { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 14px; color: #0f172a; }
 .statusNotice { background: #f8fafc; padding: 12px; border-radius: 8px; font-size: 13px; color: #475569; display: flex; align-items: center; gap: 8px; }
+
+/* Custom Spinner */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(16, 185, 129, 0.3);
+  border-top-color: #10b981;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Progress Bar */
+.progressWrapper {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.progressHeader {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.progressPercent {
+  color: #10b981;
+}
+
+.progressBarBg {
+  width: 100%;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, #34d399, #10b981);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
