@@ -513,5 +513,216 @@
 
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(10px); }
+}
+
+/* Tabs System */
+.rightColumn {
+  display: flex;
+  flex-direction: column;
+}
+
+.tabsContainer {
+  display: flex;
+  gap: 16px;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 24px;
+}
+
+.tabBtn {
+  background: none;
+  border: none;
+  padding: 12px 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.tabBtn:hover {
+  color: #333;
+}
+
+.activeTab {
+  color: #00A651;
+}
+
+.activeTab::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: #00A651;
+  border-radius: 3px 3px 0 0;
+}
+
+.tabContent {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Employees List */
+.employeesCard {
+  background: white;
+  border-radius: 12px;
+  padding: 0;
+}
+
+.filterPillsWrapper {
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 8px; /* For scrollbar */
+  margin-bottom: 16px;
+}
+
+.filterPillsWrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.filterPillsWrapper::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.filterPillsWrapper::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+.filterPillsWrapper::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
+}
+
+.filterPills {
+  display: flex;
+  gap: 12px;
+  min-width: max-content;
+}
+
+.filterPill {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid #e0e0e0;
+  background: white;
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.filterPill:hover {
+  background: #f5f5f5;
+}
+
+.activePill {
+  background: #00A651;
+  color: white;
+  border-color: #00A651;
+}
+
+.activePill:hover {
+  background: #008f45;
+}
+
+.employeeList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.employeeItem {
+  border: 1px solid #f0f0f0;
+  border-radius: 12px;
+  padding: 16px;
+  background: #fafafa;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.employeeItem:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  transform: translateY(-2px);
+  background: white;
+}
+
+.employeeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.employeeAvatarBox {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.employeeAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.employeeAvatarFallback {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00A651, #00c853);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.employeeInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.employeeName {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.employeeJob {
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  color: #666;
+}
+
+.employeeActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.empStatusBadge {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.statusUpcoming { background: #e3f2fd; color: #1976d2; }
+.statusWorking { background: #e8f5e9; color: #2e7d32; }
+.statusCompleted { background: #f3e5f5; color: #7b1fa2; }
+.statusQuit { background: #fff8e1; color: #f57f17; }
+.statusTerminated { background: #ffebee; color: #c62828; }
+.statusDefault { background: #f5f5f5; color: #757575; }

@@ -84,6 +84,32 @@ export const getStoreDetail = async (storeId: string | number): Promise<Employer
   return data.result;
 };
 
+export interface EmployeeResponseDTO {
+  employmentId: number;
+  userId: number;
+  displayName: string;
+  email: string;
+  avatarUrl: string;
+  jobTitle: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+}
+
+export const getStoreEmployees = async (storeId: string | number): Promise<EmployeeResponseDTO[]> => {
+  const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/v1/employer/stores/${storeId}/employees`, {
+    credentials: 'include'
+  });
+  
+  if (!response.ok) {
+    const errData = await response.json().catch(() => ({}));
+    throw new Error(errData.message || 'Failed to fetch store employees');
+  }
+  
+  const data: ApiResponse<EmployeeResponseDTO[]> = await response.json();
+  return data.result;
+};
+
 export interface UpdateStoreRequestDTO {
   name: string;
   phone: string;

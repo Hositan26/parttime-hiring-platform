@@ -19,6 +19,10 @@ public class JobPostImage {
     @Column(name = "image_id")
     private Integer imageId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "job_post_id", nullable = false)
+    private JobPost jobPost;
+
     @Column(name = "image_url", nullable = false, length = 500)
     private String imageUrl;
 

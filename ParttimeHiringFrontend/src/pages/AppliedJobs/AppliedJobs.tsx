@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { MainLayout } from '../../components/Layout/MainLayout';
 import { getMyApplications, type JobApplicationResponse } from '../../services/application.service';
-import { Clock, MapPin, Building2, Briefcase } from 'lucide-react';
+import { Clock, Building2, Briefcase } from 'lucide-react';
 import styles from './AppliedJobs.module.css';
 
 export const AppliedJobs: React.FC = () => {

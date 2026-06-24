@@ -1,29 +1,33 @@
-/* Premium Jobs CSS */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 .jobsPage {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-  animation: fadeInUp 0.5s ease forwards;
-  font-family: 'Inter', 'Segoe UI', sans-serif;
+  padding: 48px;
+  background-color: #F8FAFC;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  color: #0F172A;
 }
 
+/* HEADER */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 48px;
 }
 
 .title {
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: #111827;
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 8px 0;
   letter-spacing: -0.02em;
-  margin-bottom: 6px;
 }
 
 .subtitle {
-  color: #6B7280;
-  font-size: 0.95rem;
+  color: #64748B;
+  font-size: 1.1rem;
+  margin: 0;
   font-weight: 400;
 }
 
@@ -37,122 +41,118 @@
   align-items: center;
   gap: 8px;
   padding: 12px 24px;
-  border: none;
-  background: linear-gradient(135deg, var(--primary), #059669);
+  background-color: #00B14F;
   color: white;
-  border-radius: 12px;
+  border: none;
+  border-radius: 8px;
   font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 10px 25px -5px rgba(0, 177, 79, 0.3);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 177, 79, 0.15);
 }
 
 .btnPrimary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 30px -5px rgba(0, 177, 79, 0.4);
+  background-color: #009944;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 177, 79, 0.2);
 }
 
+/* STATS GRID */
 .statsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  margin-bottom: 48px;
 }
 
 .statCard {
-  background-color: #FFFFFF;
-  border-radius: 20px;
-  padding: 28px;
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 32px;
   display: flex;
   align-items: center;
-  gap: 20px;
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0,0,0,0.02);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.statCard::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 100px;
-  height: 100px;
-  background: radial-gradient(circle, rgba(0,177,79,0.05) 0%, transparent 70%);
-  border-radius: 50%;
-  transform: translate(30%, -30%);
+  gap: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  border: 1px solid #F1F5F9;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .statCard:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
 }
 
 .statIcon {
-  width: 64px;
-  height: 64px;
-  border-radius: 16px;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
 }
 
 .statInfo {
-  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .statLabel {
-  font-size: 0.9rem;
-  color: #6B7280;
-  margin-bottom: 6px;
+  font-size: 0.875rem;
+  color: #64748B;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  margin-bottom: 8px;
 }
 
 .statValue {
   font-size: 2.25rem;
-  font-weight: 800;
-  color: #111827;
+  font-weight: 700;
+  color: #0F172A;
   line-height: 1;
 }
 
+.statSub {
+  font-size: 0.875rem;
+  color: #94A3B8;
+  margin-top: 8px;
+  font-weight: 400;
+}
+
+/* TABLE SECTION */
 .tableSection {
-  background-color: #FFFFFF;
-  border-radius: 20px;
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0,0,0,0.02);
-  overflow: hidden;
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  border: 1px solid #F1F5F9;
 }
 
 .tableToolbar {
-  padding: 24px 32px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
-  border-bottom: 1px solid #F3F4F6;
-  background-color: #FAFAFA;
+  gap: 24px;
+  margin-bottom: 32px;
 }
 
 .searchBox {
   display: flex;
   align-items: center;
   gap: 12px;
-  background-color: #FFFFFF;
-  border: 1px solid #E5E7EB;
-  border-radius: 12px;
-  padding: 12px 20px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 10px 16px;
   width: 320px;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+  transition: all 0.2s;
 }
 
 .searchBox:focus-within {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 4px rgba(0, 177, 79, 0.1);
+  border-color: #00B14F;
+  box-shadow: 0 0 0 3px rgba(0, 177, 79, 0.2);
+  background: #FFFFFF;
 }
 
 .searchBox input {
@@ -161,11 +161,12 @@
   outline: none;
   width: 100%;
   font-size: 0.95rem;
-  color: #111827;
+  font-family: 'Inter', sans-serif;
+  color: #0F172A;
 }
 
 .searchBox input::placeholder {
-  color: #9CA3AF;
+  color: #94A3B8;
 }
 
 .filtersGroup {
@@ -174,264 +175,569 @@
 }
 
 .select {
-  padding: 12px 20px;
-  border: 1px solid #E5E7EB;
-  border-radius: 12px;
+  padding: 10px 40px 10px 16px;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
   background-color: #FFFFFF;
-  font-size: 0.95rem;
+  color: #334155;
   font-weight: 500;
-  color: #374151;
-  outline: none;
-  min-width: 160px;
+  font-size: 0.95rem;
+  font-family: 'Inter', sans-serif;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
   transition: all 0.2s;
 }
 
 .select:hover {
-  border-color: #D1D5DB;
+  border-color: #CBD5E1;
 }
 
+.select:focus {
+  outline: none;
+  border-color: #00B14F;
+  box-shadow: 0 0 0 3px rgba(0, 177, 79, 0.1);
+}
+
+/* TABLE */
 .table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
+  border-collapse: collapse;
 }
 
 .table th {
   text-align: left;
-  padding: 20px 32px;
+  padding: 16px 24px;
+  color: #64748B;
   font-size: 0.75rem;
-  font-weight: 700;
-  color: #6B7280;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  background-color: #FFFFFF;
-  border-bottom: 1px solid #E5E7EB;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #E2E8F0;
+  background-color: #F8FAFC;
 }
 
-.table td {
-  padding: 20px 32px;
-  border-bottom: 1px solid #F3F4F6;
-  vertical-align: middle;
-  transition: background-color 0.2s;
+.table th:first-child {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
 }
 
-.table tr:last-child td {
+.table th:last-child {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.table tbody tr {
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.table tbody tr:last-child {
   border-bottom: none;
 }
 
-.table tr:hover td {
-  background-color: #F9FAFB;
+.table tbody tr:hover {
+  background-color: #F8FAFC;
 }
 
+.table td {
+  padding: 24px;
+  vertical-align: middle;
+}
+
+/* JOB INFO */
 .jobInfo {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.jobLogo {
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
-  object-fit: contain;
-  background-color: #FFFFFF;
-  border: 1px solid #E5E7EB;
-  padding: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-}
-
-.jobTitle {
-  font-weight: 700;
-  font-size: 1.05rem;
-  color: #111827;
-  margin-bottom: 6px;
-}
-
-.jobId {
-  font-size: 0.85rem;
-  color: #6B7280;
-}
-
-.storeInfoText {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.storeName {
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: #111827;
-}
-
-.storeAddress {
-  font-size: 0.85rem;
-  color: #6B7280;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.salaryText {
-  font-weight: 700;
-  color: var(--primary);
-  font-size: 1.05rem;
-}
-
-.tagsWrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.tag {
-  display: inline-flex;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  white-space: nowrap;
-  width: fit-content;
-}
-
-.tagType { background-color: rgba(0, 177, 79, 0.1); color: var(--primary); }
-.tagShift { background-color: #EEF2FF; color: #4F46E5; }
-
-.applicantsCol {
-  text-align: center;
-}
-
-.applicantsCount {
-  font-weight: 800;
-  font-size: 1.15rem;
-  color: #111827;
-}
-
-.applicantsText {
-  font-size: 0.8rem;
-  color: #6B7280;
-  font-weight: 500;
-}
-
-.deadlineCol {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.deadlineDate {
-  font-size: 0.9rem;
-  color: #111827;
-  font-weight: 600;
-}
-
-.deadlineLeft {
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.leftWarning { color: #D97706; }
-.leftDanger { color: #DC2626; }
-
-.statusBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 16px;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.statusActive { background-color: rgba(0, 177, 79, 0.1); color: var(--primary); }
-.statusClosed { background-color: #F3F4F6; color: #6B7280; }
-
-.actionBtn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border: 1px solid #E5E7EB;
-  background-color: #FFFFFF;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #374151;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-
-.actionBtn:hover {
-  background-color: #F9FAFB;
-  border-color: #D1D5DB;
-  color: #111827;
-}
-
-.actionsCell {
   display: flex;
   align-items: center;
   gap: 16px;
 }
 
-.moreBtn {
-  background: none;
-  border: none;
-  color: #9CA3AF;
-  cursor: pointer;
-  padding: 6px;
+.jobLogo {
+  width: 48px;
+  height: 48px;
   border-radius: 8px;
+  object-fit: contain;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  padding: 6px;
+}
+
+.jobTitle {
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: #0F172A;
+  margin-bottom: 4px;
+}
+
+.jobId {
+  font-size: 0.75rem;
+  color: #64748B; /* Slate-500 per prompt */
+  font-weight: 400;
+}
+
+/* STORE INFO */
+.storeInfoText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 240px;
+}
+
+.storeName {
+  font-weight: 600;
+  color: #1E293B;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.storeAddress {
+  font-size: 0.8rem;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.salaryText {
+  font-weight: 600;
+  color: #00B14F;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+/* TAGS */
+.tags {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.tagCategory {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #EFF6FF;
+  color: #2563EB;
+  border: 1px solid #BFDBFE;
+}
+
+.tagCategoryPlus {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #F1F5F9;
+  color: #475569;
+}
+
+.tagShift {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #FDF4FF;
+  color: #C026D3;
+  border: 1px solid #FBCFE8;
+}
+
+.tagShiftPlus {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #F1F5F9;
+  color: #475569;
+}
+
+/* APPLICANTS */
+.applicantCount {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.countNumber {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.countLabel {
+  font-size: 0.7rem;
+  color: #64748B;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+/* DEADLINE */
+.deadlineDate {
+  font-weight: 500;
+  color: #1E293B; /* Slate-800 */
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}
+
+.deadlineLeft {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.leftWarning { color: #D97706; }
+.leftDanger { color: #DC2626; }
+
+/* STATUS */
+.statusBadge {
+  padding: 6px 12px;
+  border-radius: 9999px; /* Pill shape */
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.statusActive {
+  background-color: #ECFDF5;
+  color: #047857;
+}
+
+.statusClosed {
+  background-color: #F1F5F9;
+  color: #475569;
+}
+
+.statusExpired {
+  background-color: #FEF2F2;
+  color: #B91C1C;
+}
+
+/* ACTIONS */
+.actionsCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btnAction {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  color: #334155;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
   transition: all 0.2s;
 }
 
-.moreBtn:hover {
-  background-color: #F3F4F6;
-  color: #4B5563;
+.btnAction:hover {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+  color: #0F172A;
 }
 
+.btnIcon {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #64748B;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btnIcon:hover {
+  background: #F1F5F9;
+  color: #0F172A;
+}
+
+/* PAGINATION */
 .pagination {
-  padding: 24px 32px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #FFFFFF;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #E2E8F0;
+}
+
+.pageInfo {
+  color: #64748B;
   font-size: 0.95rem;
-  color: #6B7280;
-  font-weight: 500;
+}
+
+.pageInfo b {
+  color: #0F172A;
+  font-weight: 600;
 }
 
 .pageControls {
   display: flex;
-  gap: 12px;
+  gap: 8px;
 }
 
 .pageBtn {
-  width: 40px;
-  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #E5E7EB;
-  background-color: #FFFFFF;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pageBtn:hover:not(:disabled) {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+}
+
+.pageBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #F8FAFC;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 0;
+  color: #64748B;
+}
+
+.emptyStateIcon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #F1F5F9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  color: #94A3B8;
+}
+
+.emptyStateTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin-bottom: 8px;
+}
+
+.emptyStateDesc {
+  font-size: 0.95rem;
+}
+
+/* MODAL & TOAST */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modalContent {
+  background: #FFFFFF;
   border-radius: 12px;
-  color: #374151;
+  padding: 32px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.modalIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #FEF2F2;
+  color: #DC2626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.modalTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin-bottom: 8px;
+}
+
+.modalDesc {
+  font-size: 0.95rem;
+  color: #64748B;
+  margin-bottom: 24px;
+}
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btnCancel {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  color: #475569;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnCancel:hover {
+  background: #F8FAFC;
+}
+
+.btnDelete {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  background: #DC2626;
+  color: #FFFFFF;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnDelete:hover {
+  background: #B91C1C;
+}
+
+.toast {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  background: #334155;
+  color: #FFFFFF;
+  padding: 16px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 1001;
+  animation: slideIn 0.3s ease-out;
+}
+
+.toastError {
+  background: #DC2626;
+}
+
+.toastSuccess {
+  background: #00B14F;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.statusSelect {
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  appearance: none;
+  text-align: center;
+  outline: none;
+}
+
+.statusSelect:hover {
+  filter: brightness(0.95);
+}
+
+/* CUSTOM DROPDOWN FOR STATUS */
+.customSelectWrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.clickableBadge {
   cursor: pointer;
   transition: all 0.2s ease;
-  font-weight: 600;
 }
 
-.pageBtn:hover:not(.active) {
-  background-color: #F9FAFB;
-  border-color: #D1D5DB;
+.clickableBadge:hover {
+  filter: brightness(0.95);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-.pageBtn.active {
-  background-color: var(--primary);
-  color: #FFFFFF;
-  border-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(0, 177, 79, 0.2);
+.customOptions {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 8px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  padding: 8px;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 120px;
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translate(-50%, -4px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.customOption {
+  display: flex;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.customOption:hover {
+  background: #F8FAFC;
 }

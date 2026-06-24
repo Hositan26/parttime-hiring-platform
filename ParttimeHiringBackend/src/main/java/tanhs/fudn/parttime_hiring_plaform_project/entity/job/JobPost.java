@@ -104,7 +104,6 @@ public class JobPost {
     )
     private List<JobCategory> categories;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "job_post_id")
+    @OneToMany(mappedBy = "jobPost", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<JobPostImage> images;
 }

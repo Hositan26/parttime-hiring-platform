@@ -11,9 +11,11 @@ import tanhs.fudn.parttime_hiring_plaform_project.entity.job.JobPost;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.job.WorkShift;
 
 import java.math.BigDecimal;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.JobStatus;
 
 public class JobPostSpecification {
     public static Specification<JobPost> filterJobs(
@@ -82,6 +84,23 @@ public class JobPostSpecification {
             if (shiftId != null) {
                 Join<JobPost, WorkShift> shiftJoin = root.join("shifts", JoinType.INNER);
                 predicates.add(criteriaBuilder.equal(shiftJoin.get("shiftId"), shiftId));
+            }
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    public static Specification<JobPost> filterEmployerJobs(Integer employerId, Integer storeId, JobStatus status) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(criteriaBuilder.equal(root.get("employer").get("employerId"), employerId));
+
+            if (storeId != null) {
+                predicates.add(criteriaBuilder.equal(root.get("store").get("storeId"), storeId));
+            }
+
+            if (status != null) {
+                predicates.add(criteriaBuilder.equal(root.get("status"), status));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

@@ -77,7 +77,7 @@ export const CreateStoreModal: React.FC<CreateStoreModalProps> = ({ onClose, onS
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
               <div className={styles.formGroup}>
                 <label>Tỉnh/Thành phố</label>
                 <input
@@ -100,7 +100,7 @@ export const CreateStoreModal: React.FC<CreateStoreModalProps> = ({ onClose, onS
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
               <div className={styles.formGroup}>
                 <label>Phường/Xã</label>
                 <input

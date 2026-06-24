@@ -36,7 +36,6 @@ export const VerifyBusiness: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedAt, setSubmittedAt] = useState<Date | null>(null);
   const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
-  const [rejectionReason, setRejectionReason] = useState<string | null>(null);
 
   // Thêm state cho OTP countdown và thông báo
   const [countdown, setCountdown] = useState(0);

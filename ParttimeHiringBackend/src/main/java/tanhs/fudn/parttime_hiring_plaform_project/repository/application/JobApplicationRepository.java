@@ -35,4 +35,6 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
     boolean existsByJobPost_JobPostIdAndApplicant_Id(Integer jobPostId, Long applicantId);
 
     List<JobApplication> findByApplicant_IdOrderByAppliedAtDesc(Long applicantId);
+    
+    List<JobApplication> findByJobPost_JobPostIdOrderByAppliedAtDesc(Integer jobPostId);
 }

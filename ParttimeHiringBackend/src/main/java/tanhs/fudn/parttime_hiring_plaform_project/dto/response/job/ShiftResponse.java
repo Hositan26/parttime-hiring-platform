@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
+import java.time.LocalTime;
 
 @Data
 @Builder
@@ -11,4 +12,6 @@ import lombok.experimental.FieldDefaults;
 public class ShiftResponse {
     Integer id;
     String name;
+    LocalTime startTime;
+    LocalTime endTime;
 }

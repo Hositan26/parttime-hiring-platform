@@ -1,24 +1,159 @@
-import React, { useState } from 'react';
-import { Plus, Briefcase, PlayCircle, StopCircle, Search, Eye, MoreVertical, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Plus, Briefcase, PlayCircle, StopCircle, Search, Eye, MapPin, ChevronLeft, ChevronRight, Trash2, AlertCircle, CheckCircle } from 'lucide-react';
 import { CreateJobModal } from './CreateJobModal';
 import { JobDetailDrawer } from './JobDetailDrawer';
 import styles from './Jobs.module.css';
+import { getEmployerJobs, getEmployerStores, updateJobStatus, deleteEmployerJob, type EmployerJobListDTO } from '../../../services/employerJobApi';
 
-const dummyJobs = [
-  { id: 'JB0001', title: 'Nhân viên thu ngân', store: 'Obt - Milktea & Coffee', address: 'Cao Thắng, Hải Châu, Đà Nẵng', logo: 'https://cdn-icons-png.flaticon.com/512/3268/3268832.png', posted: '02/06/2025', salary: '6 - 8 triệu', type: 'PART-TIME', shift: 'Ca chiều', applicants: 12, deadline: '15/06/2025', daysLeft: 'Còn 5 ngày', status: 'OPEN' },
-  { id: 'JB0002', title: 'Nhân viên pha chế', store: 'Obt - Milktea & Coffee', address: 'Cao Thắng, Hải Châu, Đà Nẵng', logo: 'https://cdn-icons-png.flaticon.com/512/3268/3268832.png', posted: '01/06/2025', salary: '7 - 10 triệu', type: 'PART-TIME', shift: 'Ca tối', applicants: 8, deadline: '20/06/2025', daysLeft: 'Còn 10 ngày', status: 'OPEN' },
-  { id: 'JB0003', title: 'Nhân viên bán hàng', store: 'Sport1 Lottemart Đà Nẵng', address: 'Lotte Mart, Hải Châu, Đà Nẵng', logo: 'https://cdn-icons-png.flaticon.com/512/3268/3268832.png', posted: '25/05/2025', salary: '5 - 7 triệu', type: 'PART-TIME', shift: 'Ca linh hoạt', applicants: 5, deadline: '10/06/2025', daysLeft: 'Còn 0 ngày', status: 'OPEN' },
-  { id: 'JB0004', title: 'Phụ bếp', store: 'MixFood', address: 'Nguyễn Duy Hiệu, Sơn Trà, Đà Nẵng', logo: 'https://cdn-icons-png.flaticon.com/512/3268/3268832.png', posted: '20/05/2025', salary: '6 - 9 triệu', type: 'PART-TIME', shift: 'Ca sáng', applicants: 9, deadline: '05/06/2025', daysLeft: 'Đã hết hạn', status: 'CLOSED' },
-  { id: 'JB0005', title: 'Nhân viên phục vụ', store: 'Nhà hàng Cơm Niêu Má Hai', address: 'Hòa Cường Nam, Hải Châu, Đà Nẵng', logo: 'https://cdn-icons-png.flaticon.com/512/3268/3268832.png', posted: '18/05/2025', salary: '6 - 8 triệu', type: 'PART-TIME', shift: 'Ca tối', applicants: 7, deadline: '12/06/2025', daysLeft: 'Còn 2 ngày', status: 'OPEN' },
-];
+const StatusDropdown: React.FC<{ status: string, onChange: (val: string) => void }> = ({ status, onChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className={styles.customSelectWrapper} ref={dropdownRef}>
+      <div 
+        className={`${styles.statusBadge} ${status === 'ACTIVE' ? styles.statusActive : styles.statusClosed} ${styles.clickableBadge}`}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        {status === 'ACTIVE' ? 'ĐANG MỞ' : 'ĐÃ ĐÓNG'}
+      </div>
+      {isOpen && (
+        <div className={styles.customOptions}>
+          <div 
+            className={styles.customOption}
+            onClick={() => { onChange('ACTIVE'); setIsOpen(false); }}
+          >
+            <span className={`${styles.statusBadge} ${styles.statusActive}`}>ĐANG MỞ</span>
+          </div>
+          <div 
+            className={styles.customOption}
+            onClick={() => { onChange('CLOSED'); setIsOpen(false); }}
+          >
+            <span className={`${styles.statusBadge} ${styles.statusClosed}`}>ĐÃ ĐÓNG</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const formatSalaryDisplay = (salaryStr: string) => {
+  if (!salaryStr || salaryStr === 'Thỏa thuận') return 'Thỏa thuận';
+  if (salaryStr.includes('-')) {
+    const parts = salaryStr.split('-').map(s => s.trim());
+    const min = Number(parts[0]);
+    const max = Number(parts[1]);
+    if (!isNaN(min) && !isNaN(max)) {
+      return `${Intl.NumberFormat('vi-VN').format(min)} - ${Intl.NumberFormat('vi-VN').format(max)}`;
+    }
+  } else {
+    const val = Number(salaryStr);
+    if (!isNaN(val)) return Intl.NumberFormat('vi-VN').format(val);
+  }
+  return salaryStr;
+};
 
 export const Jobs: React.FC = () => {
   const [isCreatingJob, setIsCreatingJob] = useState(false);
-  const [selectedJob, setSelectedJob] = useState<any>(null);
+  const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
+  const [jobs, setJobs] = useState<EmployerJobListDTO[]>([]);
+  const [stores, setStores] = useState<any[]>([]);
+  const [totalJobs, setTotalJobs] = useState(0);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  const totalJobs = dummyJobs.length;
-  const activeJobs = dummyJobs.filter(j => j.status === 'OPEN').length;
-  const closedJobs = dummyJobs.filter(j => j.status === 'CLOSED').length;
+  // New states for Delete and Toast
+  const [deletingJobId, setDeletingJobId] = useState<number | null>(null);
+  const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+
+  // Filters
+  const [selectedStoreId, setSelectedStoreId] = useState<string>('');
+  const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const fetchStores = async () => {
+    try {
+      const data = await getEmployerStores();
+      setStores(data?.stores || []);
+    } catch (error) {
+      console.error('Failed to fetch stores:', error);
+    }
+  };
+
+  const fetchJobs = async () => {
+    try {
+      setLoading(true);
+      const storeIdParam = selectedStoreId ? parseInt(selectedStoreId) : undefined;
+      const statusParam = selectedStatus ? selectedStatus : undefined;
+      const data = await getEmployerJobs(page, 10, storeIdParam, statusParam);
+      setJobs(data?.content || []);
+      setTotalJobs(data?.totalElements || 0);
+      setTotalPages(data?.totalPages || 0);
+    } catch (error) {
+      console.error('Failed to fetch jobs:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStores();
+  }, []);
+
+  useEffect(() => {
+    fetchJobs();
+  }, [page, selectedStoreId, selectedStatus]);
+
+  const activeJobs = jobs.filter(j => j.status === 'ACTIVE').length;
+  const closedJobs = jobs.filter(j => j.status === 'CLOSED' || j.status === 'EXPIRED').length;
+
+  const formatEmploymentType = (type: string) => {
+    switch (type) {
+      case 'PART_TIME': return 'Bán thời gian';
+      case 'FULL_TIME': return 'Toàn thời gian';
+      default: return type;
+    }
+  };
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleStatusChange = async (jobId: number, newStatus: string) => {
+    try {
+      await updateJobStatus(jobId, newStatus);
+      showToast('Cập nhật trạng thái thành công', 'success');
+      fetchJobs();
+    } catch (error: any) {
+      showToast(error.message || 'Lỗi khi cập nhật trạng thái', 'error');
+      fetchJobs(); // reload original status
+    }
+  };
+
+  const confirmDeleteJob = async () => {
+    if (!deletingJobId) return;
+    try {
+      await deleteEmployerJob(deletingJobId);
+      showToast('Đã xóa tin tuyển dụng', 'success');
+      setDeletingJobId(null);
+      fetchJobs();
+    } catch (error: any) {
+      setDeletingJobId(null);
+      showToast(error.message || 'Không thể xóa tin tuyển dụng này', 'error');
+    }
+  };
 
   return (
     <div className={styles.jobsPage}>
@@ -36,7 +171,7 @@ export const Jobs: React.FC = () => {
 
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
-          <div className={styles.statIcon} style={{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)' }}>
+          <div className={styles.statIcon} style={{ backgroundColor: '#ECFDF5', color: '#00B14F' }}>
             <Briefcase size={24} />
           </div>
           <div className={styles.statInfo}>
@@ -45,6 +180,7 @@ export const Jobs: React.FC = () => {
             <div className={styles.statSub}>Tất cả tin tuyển dụng</div>
           </div>
         </div>
+
         <div className={styles.statCard}>
           <div className={styles.statIcon} style={{ backgroundColor: '#E0F2FE', color: '#0284C7' }}>
             <PlayCircle size={24} />
@@ -52,6 +188,7 @@ export const Jobs: React.FC = () => {
           <div className={styles.statInfo}>
             <div className={styles.statLabel}>Đang hoạt động</div>
             <div className={styles.statValue}>{activeJobs}</div>
+            <div className={styles.statSub}>Tin đang được public</div>
           </div>
         </div>
 
@@ -60,8 +197,9 @@ export const Jobs: React.FC = () => {
             <StopCircle size={24} />
           </div>
           <div className={styles.statInfo}>
-            <div className={styles.statLabel}>Đã đóng</div>
+            <div className={styles.statLabel}>Đã đóng / Hết hạn</div>
             <div className={styles.statValue}>{closedJobs}</div>
+            <div className={styles.statSub}>Tin đã dừng tuyển</div>
           </div>
         </div>
       </div>
@@ -70,14 +208,28 @@ export const Jobs: React.FC = () => {
         <div className={styles.tableToolbar}>
           <div className={styles.searchBox}>
             <Search size={18} color="var(--text-light)" />
-            <input type="text" placeholder="Tìm kiếm job theo tiêu đề..." />
+            <input type="text" placeholder="Tìm kiếm job theo tiêu đề..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
           </div>
           <div className={styles.filtersGroup}>
-            <select className={styles.select}>
-              <option>Tất cả store</option>
+            <select 
+              className={styles.select} 
+              value={selectedStoreId} 
+              onChange={e => { setSelectedStoreId(e.target.value); setPage(0); }}
+            >
+              <option value="">Tất cả store</option>
+              {stores.map(store => (
+                <option key={store.storeId} value={store.storeId}>{store.name}</option>
+              ))}
             </select>
-            <select className={styles.select}>
-              <option>Tất cả trạng thái</option>
+            <select 
+              className={styles.select}
+              value={selectedStatus}
+              onChange={e => { setSelectedStatus(e.target.value); setPage(0); }}
+            >
+              <option value="">Tất cả trạng thái</option>
+              <option value="ACTIVE">Đang hoạt động</option>
+              <option value="INACTIVE">Đã đóng</option>
+              <option value="EXPIRED">Đã hết hạn</option>
             </select>
           </div>
         </div>
@@ -88,7 +240,8 @@ export const Jobs: React.FC = () => {
               <th>JOB</th>
               <th>STORE</th>
               <th>LƯƠNG</th>
-              <th>LOẠI VIỆC</th>
+              <th>DANH MỤC</th>
+              <th>CA LÀM</th>
               <th style={{textAlign: 'center'}}>ỨNG TUYỂN</th>
               <th>HẠN NỘP</th>
               <th>TRẠNG THÁI</th>
@@ -96,11 +249,27 @@ export const Jobs: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {dummyJobs.map((job, idx) => (
-              <tr key={idx}>
+            {loading ? (
+              <tr>
+                <td colSpan={8} style={{ textAlign: 'center', padding: '40px 0' }}>Đang tải dữ liệu...</td>
+              </tr>
+            ) : jobs.length === 0 ? (
+              <tr>
+                <td colSpan={8} style={{ padding: 0 }}>
+                  <div className={styles.emptyState}>
+                    <div className={styles.emptyStateIcon}>
+                      <Briefcase size={40} />
+                    </div>
+                    <div className={styles.emptyStateTitle}>Chưa có tin tuyển dụng nào</div>
+                    <div className={styles.emptyStateDesc}>Hãy tạo tin tuyển dụng đầu tiên của bạn để thu hút nhân tài.</div>
+                  </div>
+                </td>
+              </tr>
+            ) : jobs.map((job) => (
+              <tr key={job.id}>
                 <td>
                   <div className={styles.jobInfo}>
-                    <img src={job.logo} alt="logo" className={styles.jobLogo} />
+                    <img src={job.logo || 'https://cdn-icons-png.flaticon.com/512/3268/3268832.png'} alt="logo" className={styles.jobLogo} />
                     <div>
                       <div className={styles.jobTitle}>{job.title}</div>
                       <div className={styles.jobId}>ID: {job.id} • Đăng: {job.posted}</div>
@@ -109,45 +278,75 @@ export const Jobs: React.FC = () => {
                 </td>
                 <td>
                   <div className={styles.storeInfoText}>
-                    <div className={styles.storeName}>{job.store}</div>
-                    <div className={styles.storeAddress}>
-                      <MapPin size={12} /> {job.address}
+                    <div className={styles.storeName} title={job.store}>{job.store}</div>
+                    <div className={styles.storeAddress} title={job.address}>
+                      <MapPin size={12} style={{ flexShrink: 0 }} /> {job.address}
                     </div>
                   </div>
                 </td>
                 <td>
-                  <div className={styles.salaryText}>{job.salary}</div>
+                  <div className={styles.salaryText}>{formatSalaryDisplay(job.salary)} VND/giờ</div>
                 </td>
                 <td>
-                  <div className={styles.tagsWrapper}>
-                    <span className={`${styles.tag} ${styles.tagType}`}>{job.type}</span>
-                    <span className={`${styles.tag} ${styles.tagShift}`}>{job.shift}</span>
+                  <div className={styles.tags}>
+                    {job.categoriesList && job.categoriesList.length > 0 ? (
+                      <>
+                        {job.categoriesList.slice(0, 2).map((cat, idx) => (
+                          <span key={`cat-${idx}`} className={styles.tagCategory}>{cat}</span>
+                        ))}
+                        {job.categoriesList.length > 2 && (
+                          <span className={styles.tagCategoryPlus}>+{job.categoriesList.length - 2}</span>
+                        )}
+                      </>
+                    ) : (
+                      <span className={styles.tagCategory}>{formatEmploymentType(job.type)}</span>
+                    )}
                   </div>
                 </td>
-                <td className={styles.applicantsCol}>
-                  <div className={styles.applicantsCount}>{job.applicants}</div>
-                  <div className={styles.applicantsText}>ứng viên</div>
+                <td>
+                  <div className={styles.tags}>
+                    {job.shiftsList && job.shiftsList.length > 0 ? (
+                      <>
+                        {job.shiftsList.slice(0, 2).map((shift, idx) => (
+                          <span key={`shift-${idx}`} className={styles.tagShift}>{shift}</span>
+                        ))}
+                        {job.shiftsList.length > 2 && (
+                          <span className={styles.tagShiftPlus}>+{job.shiftsList.length - 2}</span>
+                        )}
+                      </>
+                    ) : (
+                      <span className={styles.tagShift}>{job.shift}</span>
+                    )}
+                  </div>
                 </td>
                 <td>
-                  <div className={styles.deadlineCol}>
-                    <div className={styles.deadlineDate}>{job.deadline}</div>
-                    <div className={`${styles.deadlineLeft} ${job.daysLeft.includes('hết hạn') ? styles.leftDanger : styles.leftWarning}`}>
+                  <div className={styles.applicantCount}>
+                    <span className={styles.countNumber}>{job.applicants}</span>
+                    <span className={styles.countLabel}>ỨNG VIÊN</span>
+                  </div>
+                </td>
+                <td>
+                  <div className={styles.deadlineDate}>{job.deadline || 'Không thời hạn'}</div>
+                  {job.daysLeft !== 'Không thời hạn' && (
+                    <div className={`${styles.deadlineLeft} ${(job.daysLeft?.includes('hết hạn') || job.daysLeft?.includes('Đã đóng')) ? styles.leftDanger : styles.leftWarning}`}>
                       {job.daysLeft}
                     </div>
-                  </div>
+                  )}
                 </td>
                 <td>
-                  <span className={`${styles.statusBadge} ${job.status === 'OPEN' ? styles.statusActive : styles.statusClosed}`}>
-                    {job.status}
-                  </span>
+                  {job.status === 'EXPIRED' || job.daysLeft === 'Đã hết hạn' ? (
+                    <div className={`${styles.statusBadge} ${styles.statusExpired}`}>HẾT HẠN</div>
+                  ) : (
+                    <StatusDropdown status={job.status} onChange={(val) => handleStatusChange(job.id, val)} />
+                  )}
                 </td>
                 <td>
                   <div className={styles.actionsCell}>
-                    <button className={styles.actionBtn} onClick={() => setSelectedJob(job)}>
-                      <Eye size={14} /> Xem
+                    <button className={styles.btnAction} onClick={() => setSelectedJobId(job.id)}>
+                      <Eye size={16} /> Xem
                     </button>
-                    <button className={styles.moreBtn}>
-                      <MoreVertical size={18} />
+                    <button className={styles.btnIcon} onClick={() => setDeletingJobId(job.id)} style={{ color: '#DC2626' }}>
+                      <Trash2 size={18} color="currentColor" />
                     </button>
                   </div>
                 </td>
@@ -156,26 +355,75 @@ export const Jobs: React.FC = () => {
           </tbody>
         </table>
 
-        <div className={styles.pagination}>
-          <div>Hiển thị 1 - {totalJobs} trong số {totalJobs} job</div>
-          {totalJobs > 5 && (
-            <div className={styles.pageControls}>
-              <button className={styles.pageBtn}><ChevronLeft size={16} /></button>
-              <button className={`${styles.pageBtn} ${styles.active}`}>1</button>
-              <button className={styles.pageBtn}>2</button>
-              <button className={styles.pageBtn}>3</button>
-              <button className={styles.pageBtn}><ChevronRight size={16} /></button>
+        {totalPages > 1 && (
+          <div className={styles.pagination}>
+            <div className={styles.pageInfo}>
+              Hiển thị trang <b>{page + 1}</b> trên <b>{totalPages}</b>
             </div>
-          )}
-        </div>
+            <div className={styles.pageControls}>
+              <button 
+                className={styles.pageBtn} 
+                disabled={page === 0}
+                onClick={() => setPage(p => Math.max(0, p - 1))}
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <button 
+                className={styles.pageBtn} 
+                disabled={page >= totalPages - 1}
+                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-      
+
       {isCreatingJob && (
-        <CreateJobModal onClose={() => setIsCreatingJob(false)} />
+        <CreateJobModal 
+          onClose={() => {
+            setIsCreatingJob(false);
+            fetchJobs();
+          }} 
+        />
       )}
 
-      {selectedJob && (
-        <JobDetailDrawer job={selectedJob} onClose={() => setSelectedJob(null)} />
+      {selectedJobId && (
+        <JobDetailDrawer 
+          jobId={selectedJobId} 
+          onClose={() => {
+            setSelectedJobId(null);
+            fetchJobs();
+          }} 
+        />
+      )}
+
+      {/* DELETE CONFIRM MODAL */}
+      {deletingJobId && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <div className={styles.modalIcon}>
+              <AlertCircle size={32} />
+            </div>
+            <h3 className={styles.modalTitle}>Xóa tin tuyển dụng</h3>
+            <p className={styles.modalDesc}>
+              Bạn có chắc chắn muốn xóa tin tuyển dụng này không? Hành động này không thể hoàn tác.
+            </p>
+            <div className={styles.modalActions}>
+              <button className={styles.btnCancel} onClick={() => setDeletingJobId(null)}>Hủy bỏ</button>
+              <button className={styles.btnDelete} onClick={confirmDeleteJob}>Xác nhận xóa</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TOAST NOTIFICATION */}
+      {toast && (
+        <div className={`${styles.toast} ${toast.type === 'success' ? styles.toastSuccess : styles.toastError}`}>
+          {toast.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+          <span>{toast.message}</span>
+        </div>
       )}
     </div>
   );

@@ -22,7 +22,11 @@ import tanhs.fudn.parttime_hiring_plaform_project.repository.employer.EmployerRe
 import tanhs.fudn.parttime_hiring_plaform_project.repository.employer.StoreRepository;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.UserRepository;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.job.JobPostRepository;
-
+import tanhs.fudn.parttime_hiring_plaform_project.repository.employment.EmploymentRecordRepository;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.review.StoreReviewRepository;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.employer.store.EmployeeResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.employment.EmploymentRecord;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.review.StoreReview;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,6 +43,7 @@ public class EmployerStoreService {
     JobPostRepository jobPostRepository;
     JobApplicationRepository jobApplicationRepository;
     StoreMapper storeMapper;
+    EmploymentRecordRepository employmentRecordRepository;
 
     private Employer getEmployerByUsername(String username) {
         User user = userRepository.findByUsername(username)
@@ -125,6 +130,9 @@ public class EmployerStoreService {
         store.setStreetAddress(request.getAddress());
         store.setDescription(request.getDescription());
         
+        // Khi cập nhật thông tin, tự động chuyển về trạng thái chờ phê duyệt
+        store.setIsActive(false);
+        
         storeRepository.save(store);
     }
 
@@ -191,5 +199,33 @@ public class EmployerStoreService {
         }).collect(Collectors.toList());
         
         return storeMapper.toEmployerStoreDetailResponse(store, employer.getPhoneContact(), jobDTOs);
+    }
+
+    @Transactional(readOnly = true)
+    public List<EmployeeResponse> getStoreEmployees(String username, Integer storeId) {
+        log.info("Lấy danh sách nhân sự cửa hàng ID: {} bởi username: {}", storeId, username);
+        Employer employer = getEmployerByUsername(username);
+
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
+
+        if (!store.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
+            throw new RuntimeException("Bạn không có quyền xem nhân sự của cửa hàng này.");
+        }
+
+        List<EmploymentRecord> records = employmentRecordRepository.findByStoreIdWithDetails(storeId);
+        
+        return records.stream().map(record -> EmployeeResponse.builder()
+                    .employmentId(record.getEmploymentRecordId())
+                    .userId(record.getUser().getId() != null ? record.getUser().getId().intValue() : null)
+                    .displayName(record.getUser().getDisplayName())
+                    .email(record.getUser().getEmail())
+                    .avatarUrl(record.getUser().getAvatarUrl())
+                    .jobTitle(record.getJobPost() != null ? record.getJobPost().getTitle() : null)
+                    .status(record.getWorkStatus())
+                    .startDate(record.getStartDate())
+                    .endDate(record.getEndDate())
+                    .build()
+        ).collect(Collectors.toList());
     }
 }

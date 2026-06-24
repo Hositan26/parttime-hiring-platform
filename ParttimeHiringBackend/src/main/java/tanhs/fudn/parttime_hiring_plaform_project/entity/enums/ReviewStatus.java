@@ -1,7 +1,7 @@
 package tanhs.fudn.parttime_hiring_plaform_project.entity.enums;
 
-public enum JobStatus {
-    ACTIVE,
-    CLOSED,
-    EXPIRED
+public enum ReviewStatus {
+    VISIBLE,
+    HIDDEN,
+    REPORTED
 }

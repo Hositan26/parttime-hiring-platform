@@ -17,6 +17,8 @@ import tanhs.fudn.parttime_hiring_plaform_project.dto.request.employer.store.Upd
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.employer.store.EmployerStoreResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.employer.store.EmployerStoreDetailResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.employer.store.EmployerStoreListResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.employer.store.EmployeeResponse;
+import java.util.List;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.common.ApiResponse;
 
 @Slf4j
@@ -86,6 +88,16 @@ public class EmployerStoreController {
             @PathVariable Integer id) {
         
         EmployerStoreResponse response = employerStoreService.toggleStoreStatus(principal.getName(), id);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @GetMapping("/{id}/employees")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<List<EmployeeResponse>>> getStoreEmployees(
+            Principal principal, 
+            @PathVariable Integer id) {
+        
+        List<EmployeeResponse> response = employerStoreService.getStoreEmployees(principal.getName(), id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }
