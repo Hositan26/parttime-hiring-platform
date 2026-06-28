@@ -62,7 +62,10 @@ public class JobPostService {
 
     @Transactional(readOnly = true)
     public List<JobPostResponse> getAllJobs() {
-        return jobPostRepository.findAll().stream()
+        Specification<JobPost> spec = JobPostSpecification.filterJobs(
+                null, null, null, null, null, null, null, null, null, null
+        );
+        return jobPostRepository.findAll(spec).stream()
                 .map(jobMapper::toJobPostResponse)
                 .collect(Collectors.toList());
     }

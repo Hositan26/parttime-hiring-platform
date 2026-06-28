@@ -21,5 +21,6 @@ public class JobApplicationResponse {
     private String contactPhone;
     private String note;
     private String status;
+    private String jobStatus;
     private LocalDateTime appliedAt;
 }

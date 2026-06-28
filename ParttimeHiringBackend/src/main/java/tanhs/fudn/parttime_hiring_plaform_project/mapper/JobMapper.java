@@ -33,6 +33,7 @@ public interface JobMapper {
     @Mapping(target = "shifts", expression = "java(getShiftNames(job))")
     @Mapping(target = "headcount", source = "vacancyCount")
     @Mapping(target = "date", expression = "java(formatDateShort(job))")
+    @Mapping(target = "status", expression = "java(job.getStatus() != null ? job.getStatus().name() : \"\")")
     JobPostResponse toJobPostResponse(JobPost job);
 
     @Mapping(target = "id", source = "jobPostId")
@@ -51,6 +52,7 @@ public interface JobMapper {
     @Mapping(target = "shifts", expression = "java(getShiftNames(job))")
     @Mapping(target = "categories", expression = "java(getCategoryNames(job))")
     @Mapping(target = "images", expression = "java(getImageUrls(job))")
+    @Mapping(target = "status", expression = "java(job.getStatus() != null ? job.getStatus().name() : \"\")")
     JobPostDetailResponse toJobPostDetailResponse(JobPost job);
 
     default String formatStoreShort(JobPost job) {

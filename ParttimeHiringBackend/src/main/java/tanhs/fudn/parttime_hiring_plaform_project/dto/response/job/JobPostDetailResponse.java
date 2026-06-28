@@ -23,6 +23,7 @@ public class JobPostDetailResponse {
     private String postedDate;
     private String expiredDate;
     private String description;
+    private String status;
     private String requirements;
     private String benefits;
     private String phoneContact;

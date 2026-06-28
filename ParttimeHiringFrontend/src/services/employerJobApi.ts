@@ -15,7 +15,12 @@ export interface EmployerJobApplicantDTO {
   name: string;
   avatar: string;
   cvUrl: string;
+  email: string;
+  phone: string;
   appliedDate: string;
+  appliedTime: string;
+  note: string;
+  jobTitle: string;
   status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
 }
 

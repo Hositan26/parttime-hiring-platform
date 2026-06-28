@@ -9,6 +9,7 @@ export interface Job {
   shifts: string[];
   headcount: number;
   date: string;
+  status?: string;
 }
 
 export const getJobs = async (): Promise<Job[]> => {
@@ -72,6 +73,7 @@ export interface JobDetail {
   postedDate: string;
   expiredDate: string;
   description: string;
+  status?: string;
   requirements: string;
   benefits: string;
   phoneContact: string;

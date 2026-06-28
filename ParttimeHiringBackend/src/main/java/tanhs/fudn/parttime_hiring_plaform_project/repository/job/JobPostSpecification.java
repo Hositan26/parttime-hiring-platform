@@ -32,8 +32,8 @@ public class JobPostSpecification {
                     criteriaBuilder.greaterThanOrEqualTo(root.get("expiredAt"), LocalDateTime.now())
             ));
 
-            // Status should be ACTIVE/ACCEPTED (optional, but good practice if you have a status field)
-            // predicates.add(criteriaBuilder.equal(root.get("status"), "ACCEPTED"));
+            // Status should be ACTIVE
+            predicates.add(criteriaBuilder.equal(root.get("status"), JobStatus.ACTIVE));
 
             // Title
             if (StringUtils.hasText(title)) {

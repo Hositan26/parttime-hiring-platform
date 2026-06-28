@@ -84,7 +84,9 @@ export const JobDetail: React.FC = () => {
             {/* Header */}
             <div className={styles.headerCard}>
               <div className={styles.tags}>
-                <span className={`${styles.tag} ${styles.status}`}>Đang tuyển</span>
+                <span className={`${styles.tag} ${styles.status} ${(job.status === 'EXPIRED' || job.status === 'CLOSED' || job.status === 'PAUSED') ? styles.statusInactive : ''}`}>
+                  {job.status === 'EXPIRED' ? 'HẾT HẠN' : job.status === 'CLOSED' ? 'ĐÃ ĐÓNG' : job.status === 'PAUSED' ? 'ĐÃ TẠM DỪNG' : 'ĐANG TUYỂN'}
+                </span>
                 {job.categories && job.categories.map((cat, index) => (
                   <span key={index} className={`${styles.tag} ${styles.category}`}>
                     {cat}
@@ -101,8 +103,12 @@ export const JobDetail: React.FC = () => {
                   <Users size={16} /> {job.company}
                 </span>
               </div>
-              <button className={styles.applyBtn} onClick={handleOpenModal}>
-                Ứng tuyển ngay
+              <button 
+                className={`${styles.applyBtn} ${(job.status === 'EXPIRED' || job.status === 'CLOSED' || job.status === 'PAUSED') ? styles.applyBtnDisabled : ''}`} 
+                onClick={handleOpenModal}
+                disabled={job.status === 'EXPIRED' || job.status === 'CLOSED' || job.status === 'PAUSED'}
+              >
+                {(job.status === 'EXPIRED' || job.status === 'CLOSED' || job.status === 'PAUSED') ? 'Không thể ứng tuyển' : 'Ứng tuyển ngay'}
               </button>
             </div>
 

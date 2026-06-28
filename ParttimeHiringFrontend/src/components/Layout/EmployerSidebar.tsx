@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Store, Briefcase, FileText, User, Home, LogOut } from 'lucide-react';
+import { LayoutDashboard, Store, Briefcase, FileText, User, Home, LogOut, Users } from 'lucide-react';
 import styles from './EmployerLayout.module.css';
 
 export const EmployerSidebar: React.FC = () => {
@@ -10,6 +10,7 @@ export const EmployerSidebar: React.FC = () => {
     { name: 'Cửa hàng', path: '/employer/stores', icon: <Store className={styles.navItemIcon} /> },
     { name: 'Tin tuyển dụng', path: '/employer/jobs', icon: <Briefcase className={styles.navItemIcon} /> },
     { name: 'Đơn ứng tuyển', path: '/employer/applications', icon: <FileText className={styles.navItemIcon} /> },
+    { name: 'Nhân sự', path: '/employer/employees', icon: <Users className={styles.navItemIcon} /> },
     { name: 'Hồ sơ', path: '/employer/profile', icon: <User className={styles.navItemIcon} /> },
   ];
 

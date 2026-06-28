@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { X, FileText, Users, DollarSign, Calendar, MapPin, Clock, Briefcase, User, Star, Edit, Save, Trash, MessageSquare, Image as ImageIcon, AlertCircle, CheckCircle } from 'lucide-react';
 import styles from './JobDetailDrawer.module.css';
 import { getEmployerJobDetail, getJobApplicants, getJobComments, uploadJobImage, deleteJobImage, updateEmployerJob, type EmployerJobDetailDTO, type EmployerJobApplicantDTO, type EmployerJobCommentDTO } from '../../../services/employerJobApi';
+import { updateApplicationStatus } from '../../../services/application.service';
+import { ProfileModal } from '../../../components/ProfileModal/ProfileModal';
 import { getCategories, getShifts } from '../../../services/job.service';
 
 interface JobDetailDrawerProps {
@@ -14,6 +16,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({ jobId, onClose
   const [job, setJob] = useState<EmployerJobDetailDTO | null>(null);
   const [applicants, setApplicants] = useState<EmployerJobApplicantDTO[]>([]);
   const [comments, setComments] = useState<EmployerJobCommentDTO[]>([]);
+  const [selectedProfile, setSelectedProfile] = useState<EmployerJobApplicantDTO | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [isEditing, setIsEditing] = useState(false);
@@ -141,6 +144,24 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({ jobId, onClose
       fetchDetail();
     } catch (e) {
       alert('Xóa ảnh thất bại!');
+    }
+  };
+
+  const handleUpdateApplicantStatus = async (applicationId: number, status: string) => {
+    if (status === 'ACCEPTED') {
+      const isConfirmed = window.confirm('Bạn có chắc chắn muốn duyệt ứng viên này? Hệ thống sẽ tạo hồ sơ nhân sự chính thức.');
+      if (!isConfirmed) return;
+    }
+    try {
+      await updateApplicationStatus(applicationId, status);
+      // Refresh applicant list
+      if (jobId) {
+        const apps = await getJobApplicants(jobId);
+        setApplicants(apps);
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Có lỗi xảy ra khi cập nhật trạng thái.');
     }
   };
 
@@ -604,10 +625,10 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({ jobId, onClose
                           </div>
                         </div>
                         <div className={styles.applicantActions}>
-                          <button className={styles.viewCvBtn} onClick={() => window.open(app.cvUrl, '_blank')}><FileText size={16} /> Xem CV</button>
+                          <button className={styles.viewCvBtn} onClick={() => setSelectedProfile(app)}><FileText size={16} /> Xem hồ sơ</button>
                           <div className={styles.applicantActionGroup}>
-                            <button className={styles.btnApprove} onClick={() => alert('Đang phát triển tính năng cập nhật trạng thái')}><CheckCircle size={16} /> Duyệt</button>
-                            <button className={styles.btnReject} onClick={() => alert('Đang phát triển tính năng cập nhật trạng thái')}><X size={16} /> Từ chối</button>
+                            <button className={styles.btnApprove} onClick={() => handleUpdateApplicantStatus(app.applicationId, 'ACCEPTED')}><CheckCircle size={16} /> Duyệt</button>
+                            <button className={styles.btnReject} onClick={() => handleUpdateApplicantStatus(app.applicationId, 'REJECTED')}><X size={16} /> Từ chối</button>
                           </div>
                         </div>
                       </div>
@@ -652,6 +673,23 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({ jobId, onClose
           )}
         </div>
       </div>
+
+      {/* Profile Modal */}
+      <ProfileModal 
+        isOpen={!!selectedProfile} 
+        onClose={() => setSelectedProfile(null)} 
+        profile={selectedProfile ? {
+          applicantName: selectedProfile.name,
+          applicantAvatar: selectedProfile.avatar,
+          applicantEmail: selectedProfile.email,
+          applicantPhone: selectedProfile.phone,
+          jobTitle: selectedProfile.jobTitle,
+          appliedDate: selectedProfile.appliedDate,
+          appliedTime: selectedProfile.appliedTime,
+          status: selectedProfile.status,
+          note: selectedProfile.note
+        } : null}
+      />
     </div>
   );
 };

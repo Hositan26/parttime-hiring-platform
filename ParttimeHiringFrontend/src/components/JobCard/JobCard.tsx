@@ -13,20 +13,37 @@ interface JobCardProps {
   shifts: string[];
   headcount: number;
   date: string;
+  status?: string;
 }
 
 export const JobCard: React.FC<JobCardProps> = ({
-  id, title, store, location, salary, shifts, headcount, date
+  id, title, store, location, salary, shifts, headcount, date, status
 }) => {
   const navigate = useNavigate();
 
+  const getStatusText = () => {
+    if (status === 'EXPIRED') return 'HẾT HẠN';
+    if (status === 'CLOSED') return 'ĐÃ ĐÓNG';
+    if (status === 'PAUSED') return 'ĐÃ TẠM DỪNG';
+    return 'ĐANG TUYỂN'; // Fallback for ACTIVE or missing
+  };
+
+  const isClosedOrExpired = status === 'EXPIRED' || status === 'CLOSED' || status === 'PAUSED';
+
+  const handleCardClick = () => {
+    navigate(`/jobs/${id}`);
+  };
+
   return (
-    <div className={styles.card}>
+    <div 
+      className={`${styles.card} ${isClosedOrExpired ? styles.cardInactive : ''}`}
+      onClick={handleCardClick}
+    >
       <div className={styles.header}>
         <div className={styles.iconWrapper}>
           <Coffee size={20} className={styles.iconPrimary} />
         </div>
-        <div className={styles.statusBadge}>ĐANG TUYỂN</div>
+        <div className={`${styles.statusBadge} ${isClosedOrExpired ? styles.statusBadgeInactive : ''}`}>{getStatusText()}</div>
         <button className={styles.favoriteBtn}>
           <Heart size={18} />
         </button>

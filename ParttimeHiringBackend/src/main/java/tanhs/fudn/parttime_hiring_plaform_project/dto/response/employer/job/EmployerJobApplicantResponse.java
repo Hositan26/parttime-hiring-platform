@@ -12,6 +12,11 @@ public class EmployerJobApplicantResponse {
     private String name;
     private String avatar;
     private String cvUrl;
+    private String email;
+    private String phone;
     private String appliedDate;
+    private String appliedTime;
+    private String note;
+    private String jobTitle;
     private ApplicationStatus status;
 }

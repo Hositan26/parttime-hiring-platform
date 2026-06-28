@@ -86,9 +86,7 @@
 }
 
 .headerCard:hover, .contentCard:hover {
-  box-shadow:
-    0 8px 30px rgba(0, 0, 0, 0.06),
-    0 2px 6px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 /* ---- Tags ---- */
@@ -203,6 +201,18 @@
   transform: translateY(-1px);
 }
 
+.applyBtnDisabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+  box-shadow: none;
+  color: #64748b;
+}
+
+.applyBtnDisabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
 /* ---- Info Grid Section ---- */
 .infoGrid {
   display: grid;
@@ -261,13 +271,18 @@
   font-size: 13px;
   color: #64748b;
   margin-bottom: 4px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .infoValue {
   font-weight: 700;
   color: #0f172a;
   font-size: 15px;
+}
+
+.statusInactive {
+  background-color: #fef2f2;
+  color: #ef4444;
 }
 
 /* ---- Content Section ---- */

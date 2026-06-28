@@ -15,6 +15,7 @@ import { Stores as EmployerStores } from './pages/Employer/Stores/Stores';
 import { StoreDetail as EmployerStoreDetail } from './pages/Employer/Stores/StoreDetail';
 import { Jobs as EmployerJobs } from './pages/Employer/Jobs/Jobs';
 import { Applications as EmployerApplications } from './pages/Employer/Applications/Applications';
+import EmployerEmployees from './pages/Employer/Employees/Employees';
 import { Profile as EmployerProfile } from './pages/Employer/Profile/Profile';
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
           <Route path="stores/:id" element={<EmployerStoreDetail />} />
           <Route path="jobs" element={<EmployerJobs />} />
           <Route path="applications" element={<EmployerApplications />} />
+          <Route path="employees" element={<EmployerEmployees />} />
           <Route path="profile" element={<EmployerProfile />} />
           {/* Fallback for settings or missing pages */}
           <Route path="*" element={<Navigate to="dashboard" replace />} />

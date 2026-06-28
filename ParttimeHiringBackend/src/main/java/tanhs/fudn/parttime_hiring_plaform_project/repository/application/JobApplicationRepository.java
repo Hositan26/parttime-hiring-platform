@@ -37,4 +37,14 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
     List<JobApplication> findByApplicant_IdOrderByAppliedAtDesc(Long applicantId);
     
     List<JobApplication> findByJobPost_JobPostIdOrderByAppliedAtDesc(Integer jobPostId);
+
+    List<JobApplication> findByJobPost_Employer_EmployerIdOrderByAppliedAtDesc(Integer employerId);
+
+    @Query("SELECT ja FROM JobApplication ja WHERE ja.jobPost.employer.employerId = :employerId " +
+           "AND (:storeId IS NULL OR ja.jobPost.store.storeId = :storeId) " +
+           "AND (:status IS NULL OR ja.status = :status) " +
+           "ORDER BY ja.appliedAt DESC")
+    List<JobApplication> findFilteredApplications(@Param("employerId") Integer employerId,
+                                                  @Param("storeId") Integer storeId,
+                                                  @Param("status") ApplicationStatus status);
 }

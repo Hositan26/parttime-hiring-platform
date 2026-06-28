@@ -106,7 +106,12 @@ public interface EmployerJobMapper {
     @Mapping(target = "name", source = "application.applicant.displayName")
     @Mapping(target = "avatar", source = "application.applicant.avatarUrl")
     @Mapping(target = "cvUrl", ignore = true)
-    @Mapping(target = "appliedDate", expression = "java(mapDate(application.getAppliedAt()))")
+    @Mapping(target = "email", source = "application.applicant.email")
+    @Mapping(target = "phone", source = "application.contactPhone")
+    @Mapping(target = "appliedDate", expression = "java(application.getAppliedAt().toLocalDate().format(java.time.format.DateTimeFormatter.ofPattern(\"dd/MM/yyyy\")))")
+    @Mapping(target = "appliedTime", expression = "java(application.getAppliedAt().toLocalTime().format(java.time.format.DateTimeFormatter.ofPattern(\"HH:mm\")))")
+    @Mapping(target = "note", source = "application.note")
+    @Mapping(target = "jobTitle", source = "application.jobPost.title")
     EmployerJobApplicantResponse toApplicantResponse(JobApplication application);
 
     @Mapping(target = "expiredAt", expression = "java(request.getExpiredAt() != null ? request.getExpiredAt().atTime(23, 59, 59) : null)")

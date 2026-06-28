@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MainLayout } from '../../components/Layout/MainLayout';
 import { getMyApplications, type JobApplicationResponse } from '../../services/application.service';
 import { Clock, Building2, Briefcase } from 'lucide-react';
@@ -7,6 +8,7 @@ import styles from './AppliedJobs.module.css';
 export const AppliedJobs: React.FC = () => {
   const [applications, setApplications] = useState<JobApplicationResponse[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     getMyApplications()
@@ -64,10 +66,21 @@ export const AppliedJobs: React.FC = () => {
         ) : (
           <div className={styles.jobList}>
             {applications.map(app => (
-              <div key={app.applicationId} className={styles.jobCard}>
+              <div 
+                key={app.applicationId} 
+                className={`${styles.jobCard} ${(app.jobStatus === 'EXPIRED' || app.jobStatus === 'CLOSED' || app.jobStatus === 'PAUSED') ? styles.jobCardInactive : ''}`}
+                onClick={() => navigate(`/jobs/${app.jobPostId}`)}
+              >
                 <div className={styles.jobHeader}>
                   <div className={styles.jobInfo}>
-                    <h3 className={styles.jobTitle}>{app.jobTitle}</h3>
+                    <h3 className={styles.jobTitle}>
+                      {app.jobTitle}
+                      {(app.jobStatus === 'EXPIRED' || app.jobStatus === 'CLOSED' || app.jobStatus === 'PAUSED') && (
+                        <span className={styles.jobStatusBadge}>
+                          {app.jobStatus === 'EXPIRED' ? 'HẾT HẠN' : app.jobStatus === 'CLOSED' ? 'ĐÃ ĐÓNG' : 'TẠM DỪNG'}
+                        </span>
+                      )}
+                    </h3>
                     <div className={styles.companyInfo}>
                       <Building2 size={16} /> <span>{app.companyName}</span>
                     </div>

@@ -109,12 +109,24 @@
   padding: 1.5rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+  cursor: pointer;
 }
 
 .jobCard:hover {
   border-color: rgba(16, 185, 129, 0.3);
   box-shadow: 0 10px 25px rgba(16, 185, 129, 0.08);
   transform: translateY(-2px);
+}
+
+.jobCardInactive {
+  opacity: 0.6;
+  filter: grayscale(100%);
+}
+
+.jobCardInactive:hover {
+  transform: none;
+  border-color: var(--border-color);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
 }
 
 .jobHeader {
@@ -135,7 +147,20 @@
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--text-dark);
-  margin: 0 0 0.5rem 0;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.jobStatusBadge {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: #ef4444;
+  color: white;
+  font-weight: 600;
 }
 
 .companyInfo {

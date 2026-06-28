@@ -16,4 +16,5 @@ public class JobPostResponse {
     private List<String> shifts;
     private Integer headcount;
     private String date;
+    private String status;
 }
