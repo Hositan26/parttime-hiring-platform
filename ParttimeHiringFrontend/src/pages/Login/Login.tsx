@@ -21,7 +21,20 @@ export const Login: React.FC = () => {
     try {
       await login(username, password);
       // Backend automatically sets HttpOnly cookie for session token
-      navigate('/jobs'); // Chuyển hướng
+      
+      // Fetch user profile to check roles
+      const { getMe } = await import('../../services/auth.service');
+      const user = await getMe();
+      
+      const hasRole = (roleName: string) => user?.roles?.some((r: string) => r === roleName || r === `ROLE_${roleName}`);
+
+      if (hasRole('ADMIN')) {
+        navigate('/admin/verifications');
+      } else if (hasRole('EMPLOYER')) {
+        navigate('/employer/dashboard');
+      } else {
+        navigate('/jobs');
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {

@@ -11,4 +11,6 @@ public interface EmployerVerificationRepository extends JpaRepository<EmployerVe
     Optional<EmployerVerification> findByUserIdAndVerificationStatus(Long userId, tanhs.fudn.parttime_hiring_plaform_project.entity.enums.VerificationStatus status);
     
     Optional<EmployerVerification> findFirstByUserIdOrderByVerificationIdDesc(Long userId);
+    
+    org.springframework.data.domain.Page<EmployerVerification> findByVerificationStatus(tanhs.fudn.parttime_hiring_plaform_project.entity.enums.VerificationStatus status, org.springframework.data.domain.Pageable pageable);
 }

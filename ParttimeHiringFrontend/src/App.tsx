@@ -18,6 +18,16 @@ import { Applications as EmployerApplications } from './pages/Employer/Applicati
 import EmployerEmployees from './pages/Employer/Employees/Employees';
 import { Profile as EmployerProfile } from './pages/Employer/Profile/Profile';
 
+import { AdminRoute } from './components/ProtectedRoute/AdminRoute';
+import { AdminLayout } from './components/Layout/AdminLayout';
+import { AdminVerifications } from './pages/Admin/Verifications/AdminVerifications';
+import { AdminUsers } from './pages/Admin/Users/AdminUsers';
+import { AdminEmployers } from './pages/Admin/Employers/AdminEmployers';
+import { AdminCategories } from './pages/Admin/Categories/AdminCategories';
+import { AdminShifts } from './pages/Admin/Shifts/AdminShifts';
+import { AdminReviews } from './pages/Admin/Reviews/AdminReviews';
+import { AdminDashboard } from './pages/Admin/Dashboard/AdminDashboard';
+
 function App() {
   return (
     <Router>
@@ -44,6 +54,21 @@ function App() {
           <Route path="profile" element={<EmployerProfile />} />
           {/* Fallback for settings or missing pages */}
           <Route path="*" element={<Navigate to="dashboard" replace />} />
+        </Route>
+
+        {/* Admin Routes */}
+        <Route path="/admin" element={<AdminRoute />}>
+          <Route element={<AdminLayout />}>
+            <Route index element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="verifications" element={<AdminVerifications />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="employers" element={<AdminEmployers />} />
+            <Route path="categories" element={<AdminCategories />} />
+            <Route path="shifts" element={<AdminShifts />} />
+            <Route path="reviews" element={<AdminReviews />} />
+            <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+          </Route>
         </Route>
         
         {/* Redirect root to /login */}

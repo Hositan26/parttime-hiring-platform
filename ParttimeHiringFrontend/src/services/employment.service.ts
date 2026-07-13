@@ -21,7 +21,7 @@ export interface EmployerEmploymentResponse {
 }
 
 export const getEmployments = async (storeId?: number): Promise<EmployerEmploymentResponse[]> => {
-  const token = localStorage.getItem('token');
+
   const url = storeId 
     ? `${API_URL}/employer/employments?storeId=${storeId}` 
     : `${API_URL}/employer/employments`;

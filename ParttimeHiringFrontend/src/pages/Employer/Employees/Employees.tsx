@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Users, CheckCircle2, XCircle, Eye, MapPin, Search, ChevronLeft, ChevronRight, X, LogOut, UserMinus } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Users, CheckCircle2, XCircle, Eye, MapPin, Search, X, UserMinus } from 'lucide-react';
 import styles from './Employees.module.css';
 import { getEmployments, updateEmploymentStatus, type EmployerEmploymentResponse } from '../../../services/employment.service';
 import { getEmployerStores } from '../../../services/storeApi';
