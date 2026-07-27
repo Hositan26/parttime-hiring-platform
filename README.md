@@ -100,219 +100,233 @@ A full-stack recruitment platform that connects job seekers with employers for p
 * One User → Many Applications
 
 <details>
-<summary><b>Click to view full Database Schema (DBML)</b></summary>
+<summary><b>Click to view visual Database ER Diagram</b></summary>
 
-You can copy the code below and paste it into [dbdiagram.io](https://dbdiagram.io/d) to instantly generate an Entity Relationship Diagram (ERD).
+```mermaid
+erDiagram
+    users {
+        int user_id PK
+        varchar username UK
+        varchar password
+        varchar display_name
+        varchar email UK
+        varchar avatar_url
+        date dob
+    }
 
-```dbml
-// ==========================================
-// THỰC THỂ NGƯỜI DÙNG & PHÂN QUYỀN
-// ==========================================
-Table users {
-  user_id int [primary key, increment]
-  username varchar [unique]
-  password varchar
-  display_name varchar [not null]
-  email varchar [unique]
-  avatar_url varchar
-  dob date
-}
+    user_oauth_accounts {
+        int oauth_id PK
+        int user_id FK
+        varchar provider
+        varchar provider_account_id
+        datetime created_at
+    }
 
-Table user_oauth_accounts {
-  oauth_id int [primary key, increment]
-  user_id int [not null, ref: > users.user_id]
-  provider varchar [not null]
-  provider_account_id varchar [not null]
-  created_at datetime [not null]
-}
+    roles {
+        varchar role_name PK
+        varchar description
+    }
 
-Table roles {
-  role_name varchar [primary key]
-  description varchar
-}
+    permissions {
+        varchar permission_name PK
+        varchar description
+    }
 
-Table permissions {
-  permission_name varchar [primary key]
-  description varchar
-}
+    user_roles {
+        int user_id FK
+        varchar role_name FK
+    }
 
-Table user_roles {
-  user_id int [ref: > users.user_id]
-  role_name varchar [ref: > roles.role_name]
-}
+    role_permissions {
+        varchar role_name FK
+        varchar permission_name FK
+    }
 
-Table role_permissions {
-  role_name varchar [ref: > roles.role_name]
-  permission_name varchar [ref: > permissions.permission_name]
-}
+    invalidated_tokens {
+        varchar jti PK
+        datetime expiry_time
+    }
 
-Table invalidated_tokens {
-  jti varchar [primary key]
-  expiry_time datetime [not null]
-}
+    email_verification_otps {
+        bigint id PK
+        varchar email
+        varchar otp_code
+        datetime expiration_time
+        boolean is_used
+    }
 
-Table email_verification_otps {
-  id bigint [primary key, increment]
-  email varchar [not null]
-  otp_code varchar(6) [not null]
-  expiration_time datetime [not null]
-  is_used boolean [default: false]
-}
+    employers {
+        int employer_id PK
+        int user_id FK
+        varchar company_name
+        varchar business_type
+        varchar email_contact
+        varchar phone_contact
+        text description
+        varchar website
+        varchar tax_code
+        varchar representative_name
+        varchar status
+        datetime created_at
+        datetime updated_at
+    }
 
-// ==========================================
-// THỰC THỂ NHÀ TUYỂN DỤNG & CỬA HÀNG
-// ==========================================
-Table employers {
-  employer_id int [primary key, increment]
-  user_id int [unique, not null, ref: - users.user_id]
-  company_name varchar [not null]
-  business_type varchar
-  email_contact varchar
-  phone_contact varchar
-  description text
-  website varchar
-  tax_code varchar
-  representative_name varchar
-  status enum_employer_status [not null, note: 'PENDING, APPROVED, REJECTED']
-  created_at datetime
-  updated_at datetime
-}
+    employer_verifications {
+        int verification_id PK
+        int user_id FK
+        int admin_id FK
+        varchar contact_email
+        varchar phone_contact
+        varchar address
+        varchar company_name
+        varchar representative_name
+        varchar store_front_image_url
+        varchar store_front_image_public_id
+        varchar tax_code
+        varchar business_license_url
+        varchar business_license_public_id
+        varchar website_fanpage_url
+        varchar id_card_front_url
+        varchar id_card_front_public_id
+        varchar id_card_back_url
+        varchar id_card_back_public_id
+        varchar verification_status
+        text rejection_reason
+        datetime submitted_at
+        datetime verified_at
+    }
 
-Table employer_verifications {
-  verification_id int [primary key, increment]
-  user_id int [not null, ref: > users.user_id]
-  admin_id int [ref: > users.user_id]
-  contact_email varchar [not null]
-  phone_contact varchar [not null]
-  address varchar [not null]
-  company_name varchar [not null]
-  representative_name varchar [not null]
-  store_front_image_url varchar [not null]
-  store_front_image_public_id varchar
-  tax_code varchar
-  business_license_url varchar
-  business_license_public_id varchar
-  website_fanpage_url varchar
-  id_card_front_url varchar [not null]
-  id_card_front_public_id varchar
-  id_card_back_url varchar [not null]
-  id_card_back_public_id varchar
-  verification_status enum_verification_status [not null, default: 'PENDING']
-  rejection_reason text
-  submitted_at datetime [not null]
-  verified_at datetime
-}
+    stores {
+        int store_id PK
+        int employer_id FK
+        varchar store_name
+        varchar phone_contact
+        text description
+        varchar city
+        varchar district
+        varchar ward
+        varchar street_address
+        boolean is_active
+        datetime created_at
+        datetime updated_at
+    }
 
-Table stores {
-  store_id int [primary key, increment]
-  employer_id int [not null, ref: > employers.employer_id]
-  store_name varchar [not null]
-  phone_contact varchar
-  description text
-  city varchar [not null]
-  district varchar
-  ward varchar
-  street_address varchar
-  is_active boolean [not null, default: true]
-  created_at datetime
-  updated_at datetime
-}
+    store_reviews {
+        int review_id PK
+        int store_id FK
+        int reviewer_user_id FK
+        int employment_record_id FK
+        int rating
+        text comment
+        varchar status
+        datetime created_at
+        datetime updated_at
+    }
 
-Table store_reviews {
-  review_id int [primary key, increment]
-  store_id int [not null, ref: > stores.store_id]
-  reviewer_user_id int [not null, ref: > users.user_id]
-  employment_record_id int [unique, not null, ref: - employment_records.employment_record_id]
-  rating int [not null]
-  comment text
-  status enum_review_status [not null, note: 'PENDING, APPROVED, REJECTED']
-  created_at datetime
-  updated_at datetime
-}
+    job_posts {
+        int job_post_id PK
+        int employer_id FK
+        int store_id FK
+        varchar title
+        text job_description
+        text requirements
+        text benefits
+        decimal hourly_wage_min
+        decimal hourly_wage_max
+        varchar currency
+        int vacancy_count
+        int min_age
+        int max_age
+        varchar gender_requirement
+        varchar employment_type
+        varchar status
+        datetime published_at
+        datetime expired_at
+        datetime created_at
+        datetime updated_at
+    }
 
-// ==========================================
-// THỰC THỂ CÔNG VIỆC (JOB)
-// ==========================================
-Table job_posts {
-  job_post_id int [primary key, increment]
-  employer_id int [not null, ref: > employers.employer_id]
-  store_id int [not null, ref: > stores.store_id]
-  title varchar [not null]
-  job_description text [not null]
-  requirements text
-  benefits text
-  hourly_wage_min decimal [not null]
-  hourly_wage_max decimal
-  currency varchar [not null, default: 'VND']
-  vacancy_count int [not null, default: 1]
-  min_age int
-  max_age int
-  gender_requirement enum_gender_req [not null, note: 'ANY, MALE, FEMALE']
-  employment_type enum_emp_type [not null, note: 'PART_TIME, FULL_TIME, TEMPORARY']
-  status enum_job_status [not null, note: 'DRAFT, ACTIVE, CLOSED, EXPIRED']
-  published_at datetime
-  expired_at datetime
-  created_at datetime
-  updated_at datetime
-}
+    job_post_images {
+        int image_id PK
+        int job_post_id FK
+        varchar image_url
+    }
 
-Table job_post_images {
-  image_id int [primary key, increment]
-  job_post_id int [not null, ref: > job_posts.job_post_id]
-  image_url varchar [not null]
-}
+    job_categories {
+        int category_id PK
+        varchar category_name UK
+        varchar slug UK
+    }
 
-Table job_categories {
-  category_id int [primary key, increment]
-  category_name varchar [unique, not null]
-  slug varchar [unique, not null]
-}
+    job_post_categories {
+        int job_post_id FK
+        int category_id FK
+    }
 
-Table job_post_categories {
-  job_post_id int [not null, ref: > job_posts.job_post_id]
-  category_id int [not null, ref: > job_categories.category_id]
-}
+    work_shifts {
+        int shift_id PK
+        varchar shift_name UK
+        time start_time
+        time end_time
+    }
 
-Table work_shifts {
-  shift_id int [primary key, increment]
-  shift_name varchar [unique, not null]
-  start_time time
-  end_time time
-}
+    job_post_shifts {
+        int job_post_id FK
+        int shift_id FK
+    }
 
-Table job_post_shifts {
-  job_post_id int [not null, ref: > job_posts.job_post_id]
-  shift_id int [not null, ref: > work_shifts.shift_id]
-}
+    job_applications {
+        int application_id PK
+        int job_post_id FK
+        int applicant_user_id FK
+        varchar contact_phone
+        text cover_letter
+        varchar status
+        datetime applied_at
+        datetime updated_at
+    }
 
-// ==========================================
-// THỰC THỂ ỨNG TUYỂN & HỒ SƠ VIỆC LÀM
-// ==========================================
-Table job_applications {
-  application_id int [primary key, increment]
-  job_post_id int [not null, ref: > job_posts.job_post_id]
-  applicant_user_id int [not null, ref: > users.user_id]
-  contact_phone varchar
-  cover_letter text
-  status enum_app_status [not null, note: 'PENDING, REVIEWING, ACCEPTED, REJECTED']
-  applied_at datetime [not null]
-  updated_at datetime [not null]
-}
+    employment_records {
+        int employment_record_id PK
+        int user_id FK
+        int store_id FK
+        int job_post_id FK
+        int application_id FK
+        date start_date
+        date end_date
+        varchar work_status
+        int verified_by_employer_id FK
+        datetime verified_at
+        text note
+        datetime created_at
+    }
 
-Table employment_records {
-  employment_record_id int [primary key, increment]
-  user_id int [not null, ref: > users.user_id]
-  store_id int [not null, ref: > stores.store_id]
-  job_post_id int [ref: > job_posts.job_post_id]
-  application_id int [unique, ref: - job_applications.application_id]
-  start_date date
-  end_date date
-  work_status enum_work_status [not null, note: 'WORKING, RESIGNED, FIRED']
-  verified_by_employer_id int [ref: > employers.employer_id]
-  verified_at datetime
-  note text
-  created_at datetime [not null]
-}
+    users ||--o{ user_oauth_accounts : "has"
+    users ||--o{ user_roles : "has"
+    roles ||--o{ user_roles : "assigned to"
+    roles ||--o{ role_permissions : "has"
+    permissions ||--o{ role_permissions : "assigned to"
+    users ||--o| employers : "acts as"
+    users ||--o{ employer_verifications : "submits"
+    users ||--o{ employer_verifications : "verifies"
+    employers ||--o{ stores : "owns"
+    users ||--o{ store_reviews : "writes"
+    stores ||--o{ store_reviews : "receives"
+    employment_records ||--o| store_reviews : "has"
+    employers ||--o{ job_posts : "creates"
+    stores ||--o{ job_posts : "hosts"
+    job_posts ||--o{ job_post_images : "contains"
+    job_posts ||--o{ job_post_categories : "has"
+    job_categories ||--o{ job_post_categories : "assigned to"
+    job_posts ||--o{ job_post_shifts : "has"
+    work_shifts ||--o{ job_post_shifts : "assigned to"
+    job_posts ||--o{ job_applications : "receives"
+    users ||--o{ job_applications : "applies"
+    users ||--o{ employment_records : "works"
+    stores ||--o{ employment_records : "employs"
+    job_posts ||--o{ employment_records : "for"
+    job_applications ||--o| employment_records : "results in"
+    employers ||--o{ employment_records : "verifies"
 ```
 </details>
 * One Employment Record → One Review
