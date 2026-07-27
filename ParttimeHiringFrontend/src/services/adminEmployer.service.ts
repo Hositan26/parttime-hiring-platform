@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/v1/admin/employers';
+const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/admin/employers';
 
 export interface AdminEmployerResponse {
   employerId: number;

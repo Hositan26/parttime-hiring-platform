@@ -8,12 +8,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.admin.user.AdminUserResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.admin.user.AdminUserResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.common.ApiResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminUserService;
 
 @RestController
-@RequestMapping("/api/v1/admin/users")
+@RequestMapping("/api/admin/users")
 @RequiredArgsConstructor
 public class AdminUserController {
 

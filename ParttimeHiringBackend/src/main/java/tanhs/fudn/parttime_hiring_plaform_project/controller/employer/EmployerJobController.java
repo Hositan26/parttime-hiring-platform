@@ -8,7 +8,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.request.employer.job.AddJobImageRequest;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.request.employer.job.CreateEmployerJobRequest;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.request.employer.job.UpdateEmployerJobRequest;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.common.ApiResponse;

@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/v1/admin/verifications';
+const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/admin/verifications';
 
 export interface VerificationListResponse {
   verificationId: number;

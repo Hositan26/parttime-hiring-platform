@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.application.JobApplicationRequest;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.request.application.JobApplicationRequest;
 import tanhs.fudn.parttime_hiring_plaform_project.service.application.JobApplicationService;
 
 import java.util.Map;

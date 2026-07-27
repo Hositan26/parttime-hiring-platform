@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.EmployerProfileResponse;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.employer.EmployerProfileUpdateRequest;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.employer.EmployerProfileResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.request.employer.EmployerProfileUpdateRequest;
 import tanhs.fudn.parttime_hiring_plaform_project.service.employer.EmployerProfileService;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.common.ApiResponse;
 

@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/v1/admin/dashboard';
+const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/admin/dashboard';
 
 export interface AdminDashboardStats {
   totalUsers: number;

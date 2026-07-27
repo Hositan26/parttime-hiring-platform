@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.user.VerifyBusinessRequest;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.request.user.VerifyBusinessRequest;
 import tanhs.fudn.parttime_hiring_plaform_project.service.employer.EmployerVerificationService;
 
 import java.io.IOException;

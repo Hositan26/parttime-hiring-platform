@@ -10,7 +10,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void configurePathMatch(PathMatchConfigurer configurer) {
-        configurer.addPathPrefix("/api/v1/employer", 
+        configurer.addPathPrefix("/api/employer", 
             HandlerTypePredicate.forBasePackage("tanhs.fudn.parttime_hiring_plaform_project.controller.employer"));
     }
 }

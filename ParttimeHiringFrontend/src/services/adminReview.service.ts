@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/v1/admin/reviews';
+const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/admin/reviews';
 
 export interface AdminReviewResponse {
   reviewId: number;

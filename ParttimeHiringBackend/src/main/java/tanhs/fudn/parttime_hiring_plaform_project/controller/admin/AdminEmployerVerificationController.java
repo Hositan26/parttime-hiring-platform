@@ -5,9 +5,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.admin.verification.RejectVerificationRequest;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.admin.verification.VerificationDetailResponse;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.admin.verification.VerificationListResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.request.admin.verification.RejectVerificationRequest;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.admin.verification.VerificationDetailResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.admin.verification.VerificationListResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.common.ApiResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.VerificationStatus;
 import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminEmployerVerificationService;
@@ -15,7 +15,7 @@ import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminEmployerVer
 import java.security.Principal;
 
 @RestController
-@RequestMapping("/api/v1/admin/verifications")
+@RequestMapping("/api/admin/verifications")
 @RequiredArgsConstructor
 public class AdminEmployerVerificationController {
 

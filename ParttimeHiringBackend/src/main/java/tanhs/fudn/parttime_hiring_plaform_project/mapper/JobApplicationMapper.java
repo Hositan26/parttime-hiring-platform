@@ -2,8 +2,8 @@ package tanhs.fudn.parttime_hiring_plaform_project.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.application.JobApplicationResponse;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.application.EmployerApplicationResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.application.JobApplicationResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.application.EmployerApplicationResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.application.JobApplication;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.job.JobPost;
 

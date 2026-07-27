@@ -6,12 +6,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.admin.dashboard.AdminDashboardStats;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.request.admin.dashboard.AdminDashboardStats;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.common.ApiResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminDashboardService;
 
 @RestController
-@RequestMapping("/api/v1/admin/dashboard")
+@RequestMapping("/api/admin/dashboard")
 @RequiredArgsConstructor
 public class AdminDashboardController {
 

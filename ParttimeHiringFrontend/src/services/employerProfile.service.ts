@@ -28,7 +28,7 @@ export interface EmployerProfileUpdateRequest {
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8088/parttime_hiring_platform/api';
-const API_URL = `${API_BASE_URL}/v1/employer/me/profile`;
+const API_URL = `${API_BASE_URL}/employer/me/profile`;
 
 export const getEmployerProfile = async (): Promise<EmployerProfileResponse> => {
   const response = await fetch(API_URL, {

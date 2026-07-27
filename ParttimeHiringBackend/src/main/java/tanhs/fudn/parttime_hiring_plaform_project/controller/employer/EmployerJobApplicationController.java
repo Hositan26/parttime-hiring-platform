@@ -6,8 +6,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.common.ApiResponse;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.application.EmployerApplicationResponse;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.application.UpdateApplicationStatusRequest;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.application.EmployerApplicationResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.request.application.UpdateApplicationStatusRequest;
 import tanhs.fudn.parttime_hiring_plaform_project.service.application.JobApplicationService;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.ApplicationStatus;
 

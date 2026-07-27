@@ -5,12 +5,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.admin.review.AdminReviewResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.admin.review.AdminReviewResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.common.ApiResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminReviewService;
 
 @RestController
-@RequestMapping("/api/v1/admin/reviews")
+@RequestMapping("/api/admin/reviews")
 @RequiredArgsConstructor
 public class AdminReviewController {
 

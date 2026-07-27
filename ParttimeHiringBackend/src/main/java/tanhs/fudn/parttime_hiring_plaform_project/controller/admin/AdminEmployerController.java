@@ -5,7 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import tanhs.fudn.parttime_hiring_plaform_project.dto.admin.employer.AdminEmployerResponse;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.admin.employer.AdminEmployerResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.common.ApiResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.EmployerStatus;
 import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminEmployerService;
@@ -13,7 +13,7 @@ import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminEmployerSer
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/admin/employers")
+@RequestMapping("/api/admin/employers")
 @RequiredArgsConstructor
 public class AdminEmployerController {
 
