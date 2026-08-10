@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ShieldCheck, Users, Briefcase, List, Clock, MessageSquare, LogOut, Search, Bell } from 'lucide-react';
+import { LayoutDashboard, ShieldCheck, Users, Briefcase, List, Clock, MessageSquare, LogOut, Search, Bell, Store } from 'lucide-react';
 import styles from './AdminLayout.module.css';
 
 export const AdminLayout: React.FC = () => {
@@ -11,10 +11,12 @@ export const AdminLayout: React.FC = () => {
     navigate('/login');
   };
 
-  const menuItems = [
+    const menuItems = [
     { path: '/admin/dashboard', icon: <LayoutDashboard size={20} />, label: 'Tổng quan' },
     { path: '/admin/verifications', icon: <ShieldCheck size={20} />, label: 'Duyệt doanh nghiệp' },
     { path: '/admin/employers', icon: <Briefcase size={20} />, label: 'Nhà tuyển dụng' },
+    { path: '/admin/jobs', icon: <List size={20} />, label: 'Tin tuyển dụng' },
+    { path: '/admin/stores', icon: <Store size={20} />, label: 'Cửa hàng/Chi nhánh' },
     { path: '/admin/users', icon: <Users size={20} />, label: 'Người tìm việc' },
     { path: '/admin/categories', icon: <List size={20} />, label: 'Ngành nghề' },
     { path: '/admin/shifts', icon: <Clock size={20} />, label: 'Ca làm việc' },

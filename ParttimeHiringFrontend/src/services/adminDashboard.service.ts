@@ -5,6 +5,8 @@ export interface AdminDashboardStats {
   totalEmployers: number;
   totalJobs: number;
   totalApplications: number;
+  newUsersThisMonth: number;
+  newEmployersThisMonth: number;
 }
 
 export const getDashboardStats = async () => {

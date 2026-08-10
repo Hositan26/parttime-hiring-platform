@@ -20,4 +20,5 @@ public class AdminEmployerResponse {
     private EmployerStatus status;
     private Long userId;
     private String username;
+    private Boolean isActive;
 }

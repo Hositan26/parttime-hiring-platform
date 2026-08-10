@@ -8,6 +8,9 @@ export const AdminCategories: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<AdminCategory | null>(null);
+  const [formData, setFormData] = useState({ categoryName: '', description: '', isActive: true });
 
   const fetchList = async (pageNum: number) => {
     try {
@@ -26,22 +29,30 @@ export const AdminCategories: React.FC = () => {
     fetchList(page);
   }, [page]);
 
-  const handleAdd = async () => {
-    const name = window.prompt('Nhập tên ngành nghề mới:');
-    if (!name) return;
-    try {
-      await createCategory({ categoryName: name, isActive: true, description: '' });
-      fetchList(page);
-    } catch (err: any) {
-      alert(err.message);
-    }
+  const handleAdd = () => {
+    setEditingCategory(null);
+    setFormData({ categoryName: '', description: '', isActive: true });
+    setIsModalOpen(true);
   };
 
-  const handleEdit = async (cat: AdminCategory) => {
-    const name = window.prompt('Sửa tên ngành nghề:', cat.categoryName);
-    if (!name || name === cat.categoryName) return;
+  const handleEdit = (cat: AdminCategory) => {
+    setEditingCategory(cat);
+    setFormData({ categoryName: cat.categoryName, description: cat.description || '', isActive: cat.isActive });
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (!formData.categoryName.trim()) {
+      alert('Vui lòng nhập tên ngành nghề');
+      return;
+    }
     try {
-      await updateCategory(cat.categoryId, { ...cat, categoryName: name });
+      if (editingCategory) {
+        await updateCategory(editingCategory.categoryId, { ...editingCategory, ...formData });
+      } else {
+        await createCategory(formData);
+      }
+      setIsModalOpen(false);
       fetchList(page);
     } catch (err: any) {
       alert(err.message);
@@ -134,6 +145,47 @@ export const AdminCategories: React.FC = () => {
           </>
         )}
       </div>
+
+      {isModalOpen && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent} style={{ width: '400px' }}>
+            <h2 className={styles.modalTitle}>{editingCategory ? 'Sửa ngành nghề' : 'Thêm ngành nghề'}</h2>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Tên ngành nghề (*)</label>
+              <input 
+                type="text" 
+                className={styles.input} 
+                value={formData.categoryName} 
+                onChange={(e) => setFormData({...formData, categoryName: e.target.value})} 
+                placeholder="VD: IT - Phần mềm"
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Mô tả</label>
+              <textarea 
+                className={styles.input} 
+                value={formData.description} 
+                onChange={(e) => setFormData({...formData, description: e.target.value})} 
+                placeholder="Mô tả ngành nghề..."
+                rows={3}
+              />
+            </div>
+            <div className={styles.formGroup} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input 
+                type="checkbox" 
+                id="isActive"
+                checked={formData.isActive}
+                onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
+              />
+              <label htmlFor="isActive" style={{ margin: 0, fontWeight: 500, cursor: 'pointer' }}>Đang hoạt động</label>
+            </div>
+            <div className={styles.modalActions}>
+              <button onClick={() => setIsModalOpen(false)} className={styles.btnCancel}>Hủy</button>
+              <button onClick={handleSave} className={styles.btnConfirm}>Lưu lại</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

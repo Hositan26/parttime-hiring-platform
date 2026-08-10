@@ -43,6 +43,10 @@ public class User {
     @Column(name = "dob")
     private LocalDate dateOfBirth;
 
+    @Column(name = "is_active", nullable = false, columnDefinition = "boolean default true")
+    @Builder.Default
+    private Boolean isActive = true;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
@@ -51,4 +55,8 @@ public class User {
     )
     @Builder.Default
     private Set<Role> roles = new HashSet<>();
+
+    @Column(name = "created_at", updatable = false)
+    @org.hibernate.annotations.CreationTimestamp
+    private java.time.LocalDateTime createdAt;
 }

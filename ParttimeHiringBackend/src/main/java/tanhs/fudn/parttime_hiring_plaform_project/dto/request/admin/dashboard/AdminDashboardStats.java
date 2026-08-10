@@ -14,4 +14,8 @@ public class AdminDashboardStats {
     private long totalEmployers;
     private long totalJobs;
     private long totalApplications;
+    
+    // New stats
+    private long newUsersThisMonth;
+    private long newEmployersThisMonth;
 }

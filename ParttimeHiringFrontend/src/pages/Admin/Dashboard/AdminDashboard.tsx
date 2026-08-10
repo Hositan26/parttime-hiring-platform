@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Briefcase, FileText, Activity } from 'lucide-react';
+import { Users, Briefcase, FileText, Activity, TrendingUp } from 'lucide-react';
 import { getDashboardStats, type AdminDashboardStats } from '../../../services/adminDashboard.service';
 import styles from '../Verifications/AdminVerifications.module.css';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 export const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
@@ -22,6 +23,11 @@ export const AdminDashboard: React.FC = () => {
     fetchStats();
   }, []);
 
+  const chartData = [
+    { name: 'Người tìm việc mới (Tháng này)', uv: stats?.newUsersThisMonth || 0, fill: '#0284c7' },
+    { name: 'Doanh nghiệp mới (Tháng này)', uv: stats?.newEmployersThisMonth || 0, fill: '#ca8a04' }
+  ];
+
   return (
     <div className={styles.pageContainer}>
       <div className={styles.header}>
@@ -41,6 +47,9 @@ export const AdminDashboard: React.FC = () => {
             <div>
               <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>Tổng User</div>
               <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a' }}>{stats.totalUsers}</div>
+              <div style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+                <TrendingUp size={14} /> +{stats.newUsersThisMonth} tháng này
+              </div>
             </div>
           </div>
 
@@ -52,6 +61,9 @@ export const AdminDashboard: React.FC = () => {
             <div>
               <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>Nhà tuyển dụng</div>
               <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a' }}>{stats.totalEmployers}</div>
+              <div style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+                <TrendingUp size={14} /> +{stats.newEmployersThisMonth} tháng này
+              </div>
             </div>
           </div>
 
@@ -80,8 +92,27 @@ export const AdminDashboard: React.FC = () => {
       ) : null}
 
       <div style={{ background: '#fff', padding: '32px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', minHeight: '300px' }}>
-        <h3 style={{ marginBottom: '16px', color: '#334155' }}>Hoạt động gần đây (Mockup)</h3>
-        <p style={{ color: '#94a3b8' }}>Biểu đồ tăng trưởng sẽ được tích hợp ở phiên bản sau.</p>
+        <h3 style={{ marginBottom: '24px', color: '#334155' }}>Thống kê Tăng trưởng Tháng Này</h3>
+        <div style={{ width: '100%', height: 350 }}>
+          <ResponsiveContainer>
+            <BarChart
+              data={chartData}
+              margin={{
+                top: 20,
+                right: 30,
+                left: 20,
+                bottom: 5,
+              }}
+            >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="name" />
+              <YAxis allowDecimals={false} />
+              <Tooltip cursor={{fill: '#f8fafc'}} />
+              <Legend />
+              <Bar dataKey="uv" name="Số lượng đăng ký mới" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );

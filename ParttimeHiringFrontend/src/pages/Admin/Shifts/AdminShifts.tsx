@@ -8,6 +8,9 @@ export const AdminShifts: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingShift, setEditingShift] = useState<AdminShift | null>(null);
+  const [formData, setFormData] = useState({ shiftName: '', startTime: '08:00:00', endTime: '12:00:00', isFlexible: false });
 
   const fetchList = async (pageNum: number) => {
     try {
@@ -26,27 +29,30 @@ export const AdminShifts: React.FC = () => {
     fetchList(page);
   }, [page]);
 
-  const handleAdd = async () => {
-    const name = window.prompt('Nhập tên ca làm việc (VD: Ca Sáng):');
-    if (!name) return;
-    const start = window.prompt('Nhập giờ bắt đầu (VD: 08:00:00):', '08:00:00');
-    if (!start) return;
-    const end = window.prompt('Nhập giờ kết thúc (VD: 12:00:00):', '12:00:00');
-    if (!end) return;
-
-    try {
-      await createShift({ shiftName: name, startTime: start, endTime: end, isFlexible: false });
-      fetchList(page);
-    } catch (err: any) {
-      alert(err.message);
-    }
+  const handleAdd = () => {
+    setEditingShift(null);
+    setFormData({ shiftName: '', startTime: '08:00:00', endTime: '12:00:00', isFlexible: false });
+    setIsModalOpen(true);
   };
 
-  const handleEdit = async (s: AdminShift) => {
-    const name = window.prompt('Sửa tên ca làm việc:', s.shiftName);
-    if (!name) return;
+  const handleEdit = (s: AdminShift) => {
+    setEditingShift(s);
+    setFormData({ shiftName: s.shiftName, startTime: s.startTime, endTime: s.endTime, isFlexible: s.isFlexible });
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (!formData.shiftName.trim()) {
+      alert('Vui lòng nhập tên ca làm việc');
+      return;
+    }
     try {
-      await updateShift(s.shiftId, { ...s, shiftName: name });
+      if (editingShift) {
+        await updateShift(editingShift.shiftId, { ...editingShift, ...formData });
+      } else {
+        await createShift(formData);
+      }
+      setIsModalOpen(false);
       fetchList(page);
     } catch (err: any) {
       alert(err.message);
@@ -139,6 +145,59 @@ export const AdminShifts: React.FC = () => {
           </>
         )}
       </div>
+
+      {isModalOpen && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent} style={{ width: '400px' }}>
+            <h2 className={styles.modalTitle}>{editingShift ? 'Sửa ca làm việc' : 'Thêm ca làm việc'}</h2>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Tên ca làm việc (*)</label>
+              <input 
+                type="text" 
+                className={styles.input} 
+                value={formData.shiftName} 
+                onChange={(e) => setFormData({...formData, shiftName: e.target.value})} 
+                placeholder="VD: Ca Sáng"
+              />
+            </div>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <div className={styles.formGroup} style={{ flex: 1 }}>
+                <label className={styles.label}>Giờ bắt đầu</label>
+                <input 
+                  type="time" 
+                  step="1"
+                  className={styles.input} 
+                  value={formData.startTime} 
+                  onChange={(e) => setFormData({...formData, startTime: e.target.value})} 
+                />
+              </div>
+              <div className={styles.formGroup} style={{ flex: 1 }}>
+                <label className={styles.label}>Giờ kết thúc</label>
+                <input 
+                  type="time" 
+                  step="1"
+                  className={styles.input} 
+                  value={formData.endTime} 
+                  onChange={(e) => setFormData({...formData, endTime: e.target.value})} 
+                />
+              </div>
+            </div>
+            <div className={styles.formGroup} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+              <input 
+                type="checkbox" 
+                id="isFlexible"
+                checked={formData.isFlexible}
+                onChange={(e) => setFormData({...formData, isFlexible: e.target.checked})}
+              />
+              <label htmlFor="isFlexible" style={{ margin: 0, fontWeight: 500, cursor: 'pointer' }}>Thời gian linh hoạt</label>
+            </div>
+            <div className={styles.modalActions}>
+              <button onClick={() => setIsModalOpen(false)} className={styles.btnCancel}>Hủy</button>
+              <button onClick={handleSave} className={styles.btnConfirm}>Lưu lại</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

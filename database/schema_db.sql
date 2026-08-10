@@ -31,11 +31,6 @@ CREATE TABLE role (
     description VARCHAR(255)
 );
 
-CREATE TABLE permission (
-    permission_name VARCHAR(255) PRIMARY KEY,
-    description VARCHAR(255)
-);
-
 CREATE TABLE user_roles (
     user_id INT NOT NULL,
     role_name VARCHAR(255) NOT NULL,
@@ -43,16 +38,6 @@ CREATE TABLE user_roles (
     FOREIGN KEY (user_id) REFERENCES users(user_id)
         ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (role_name) REFERENCES role(role_name)
-        ON DELETE RESTRICT ON UPDATE CASCADE
-);
-
-CREATE TABLE role_permissions (
-    role_name VARCHAR(255) NOT NULL,
-    permission_name VARCHAR(255) NOT NULL,
-    PRIMARY KEY (role_name, permission_name),
-    FOREIGN KEY (role_name) REFERENCES role(role_name)
-        ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (permission_name) REFERENCES permission(permission_name)
         ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
@@ -283,34 +268,3 @@ CREATE TABLE store_reviews (
     CHECK (rating BETWEEN 1 AND 5),
     CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED'))
 );
-
-INSERT INTO permission(permission_name, description) VALUES
-('USER_READ', 'View user information'),
-('USER_UPDATE', 'Update user profile'),
-
-('JOB_VIEW', 'View job posts'),
-('JOB_CREATE', 'Create job posts'),
-('JOB_UPDATE', 'Update job posts'),
-('JOB_DELETE', 'Delete job posts'),
-
-('APPLICATION_CREATE', 'Apply for jobs'),
-('APPLICATION_VIEW', 'View applications'),
-('APPLICATION_UPDATE_STATUS', 'Accept or reject applications'),
-
-('STORE_VIEW', 'View store information'),
-('STORE_CREATE', 'Create stores'),
-('STORE_UPDATE', 'Update store information'),
-
-('CATEGORY_VIEW', 'View job categories'),
-('CATEGORY_MANAGE', 'Manage job categories'),
-
-('SHIFT_VIEW', 'View work shifts'),
-('SHIFT_MANAGE', 'Manage work shifts'),
-
-('REVIEW_CREATE', 'Create reviews'),
-('REVIEW_VIEW', 'View reviews'),
-('REVIEW_MODERATE', 'Moderate reviews'),
-
-('EMPLOYER_APPROVE', 'Approve employers'),
-
-('ROLE_ASSIGN', 'Assign roles to users');

@@ -53,7 +53,8 @@ export const getMe = async () => {
     throw new Error('Failed to fetch user');
   }
 
-  return await response.json();
+  const data = await response.json();
+  return data.result;
 };
 
 /**
@@ -80,5 +81,6 @@ export const updateMe = async (data: {
     throw new Error(errData.message || 'Failed to update user');
   }
 
-  return await response.json();
+  const resData = await response.json();
+  return resData.result;
 };

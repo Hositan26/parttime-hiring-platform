@@ -8,6 +8,7 @@ export interface AdminUserResponse {
   avatarUrl: string;
   dateOfBirth: string;
   roles: string[];
+  isActive: boolean;
 }
 
 export const getUsers = async (page = 0, size = 10) => {
@@ -20,6 +21,26 @@ export const getUsers = async (page = 0, size = 10) => {
     throw new Error('Failed to fetch users');
   }
   
+  const data = await response.json();
+  return data.result;
+};
+
+export const banUser = async (id: number) => {
+  const response = await fetch(`${API_URL}/${id}/ban`, {
+    method: 'PUT',
+    credentials: 'include'
+  });
+  if (!response.ok) throw new Error('Failed to ban user');
+  const data = await response.json();
+  return data.result;
+};
+
+export const unbanUser = async (id: number) => {
+  const response = await fetch(`${API_URL}/${id}/unban`, {
+    method: 'PUT',
+    credentials: 'include'
+  });
+  if (!response.ok) throw new Error('Failed to unban user');
   const data = await response.json();
   return data.result;
 };

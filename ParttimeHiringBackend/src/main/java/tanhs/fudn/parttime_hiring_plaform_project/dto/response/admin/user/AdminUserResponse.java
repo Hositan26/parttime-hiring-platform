@@ -20,4 +20,5 @@ public class AdminUserResponse {
     private String avatarUrl;
     private LocalDate dateOfBirth;
     private List<String> roles;
+    private Boolean isActive;
 }

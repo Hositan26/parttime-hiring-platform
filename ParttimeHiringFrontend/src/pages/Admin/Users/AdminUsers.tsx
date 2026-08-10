@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Search, ChevronLeft, ChevronRight, Mail, Calendar } from 'lucide-react';
-import { getUsers, type AdminUserResponse } from '../../../services/adminUser.service';
+import { getUsers, banUser, unbanUser, type AdminUserResponse } from '../../../services/adminUser.service';
 import styles from '../Verifications/AdminVerifications.module.css';
 
 export const AdminUsers: React.FC = () => {
@@ -25,6 +25,23 @@ export const AdminUsers: React.FC = () => {
   useEffect(() => {
     fetchList(page);
   }, [page]);
+
+  const handleToggleBan = async (user: AdminUserResponse) => {
+    const action = user.isActive ? 'khóa' : 'mở khóa';
+    if (!window.confirm(`Bạn có chắc chắn muốn ${action} tài khoản ${user.username}?`)) return;
+    
+    try {
+      if (user.isActive) {
+        await banUser(user.id);
+      } else {
+        await unbanUser(user.id);
+      }
+      alert(`Đã ${action} thành công!`);
+      fetchList(page);
+    } catch (err: any) {
+      alert(`Lỗi: ${err.message}`);
+    }
+  };
 
   return (
     <div className={styles.pageContainer}>
@@ -58,6 +75,8 @@ export const AdminUsers: React.FC = () => {
                   <th>Email</th>
                   <th>Ngày sinh</th>
                   <th>Vai trò</th>
+                  <th>Trạng thái</th>
+                  <th>Hành động</th>
                 </tr>
               </thead>
               <tbody>
@@ -93,6 +112,30 @@ export const AdminUsers: React.FC = () => {
                           </span>
                         ))}
                       </div>
+                    </td>
+                    <td>
+                      {u.isActive ? (
+                        <span style={{ padding: '4px 8px', backgroundColor: '#dcfce7', color: '#166534', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 500 }}>Hoạt động</span>
+                      ) : (
+                        <span style={{ padding: '4px 8px', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 500 }}>Bị khóa</span>
+                      )}
+                    </td>
+                    <td>
+                      <button 
+                        onClick={() => handleToggleBan(u)}
+                        style={{
+                          padding: '6px 12px',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          backgroundColor: u.isActive ? '#ef4444' : '#10b981',
+                          color: 'white',
+                          fontWeight: 500,
+                          fontSize: '0.85rem'
+                        }}
+                      >
+                        {u.isActive ? 'Khóa' : 'Mở khóa'}
+                      </button>
                     </td>
                   </tr>
                 ))}

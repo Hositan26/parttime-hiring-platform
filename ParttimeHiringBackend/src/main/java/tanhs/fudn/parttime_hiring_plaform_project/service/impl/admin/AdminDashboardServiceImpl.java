@@ -21,11 +21,15 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
     private final EmploymentRecordRepository employmentRecordRepository;
 
     public AdminDashboardStats getStats() {
+        java.time.LocalDateTime firstDayOfMonth = java.time.LocalDate.now().withDayOfMonth(1).atStartOfDay();
+        
         return AdminDashboardStats.builder()
                 .totalUsers(userRepository.count())
                 .totalEmployers(employerRepository.count())
                 .totalJobs(jobPostRepository.count())
                 .totalApplications(employmentRecordRepository.count())
+                .newUsersThisMonth(userRepository.countByCreatedAtAfter(firstDayOfMonth))
+                .newEmployersThisMonth(employerRepository.countByCreatedAtAfter(firstDayOfMonth))
                 .build();
     }
 }

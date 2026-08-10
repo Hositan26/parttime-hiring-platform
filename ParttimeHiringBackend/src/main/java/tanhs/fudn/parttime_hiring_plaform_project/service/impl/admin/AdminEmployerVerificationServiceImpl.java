@@ -1,8 +1,5 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.admin;
 
-import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminEmployerVerificationService;
-
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,14 +16,18 @@ import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.employer.EmployerRepository;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.employer.EmployerVerificationRepository;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.UserRepository;
+import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminEmployerVerificationService;
+import tanhs.fudn.parttime_hiring_plaform_project.service.user.EmailService;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AdminEmployerVerificationServiceImpl implements AdminEmployerVerificationService {
 
     private final EmployerVerificationRepository verificationRepository;
     private final EmployerRepository employerRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
     public Page<VerificationListResponse> getVerifications(VerificationStatus status, int page, int size) {
         Page<EmployerVerification> verifications = verificationRepository.findByVerificationStatus(
@@ -95,6 +96,8 @@ public class AdminEmployerVerificationServiceImpl implements AdminEmployerVerifi
         employer.setRepresentativeName(verification.getRepresentativeName());
         employer.setStatus(EmployerStatus.ACTIVE);
         employerRepository.save(employer);
+        
+        emailService.sendVerificationStatusEmail(verification.getUser().getEmail(), verification.getCompanyName(), true, null);
     }
 
     @Transactional
@@ -121,5 +124,7 @@ public class AdminEmployerVerificationServiceImpl implements AdminEmployerVerifi
             employer.setStatus(EmployerStatus.SUSPENDED);
             employerRepository.save(employer);
         }
+        
+        emailService.sendVerificationStatusEmail(verification.getUser().getEmail(), verification.getCompanyName(), false, reason);
     }
 }

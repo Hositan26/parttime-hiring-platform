@@ -13,6 +13,8 @@ import tanhs.fudn.parttime_hiring_plaform_project.dto.response.admin.user.AdminU
 import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.Role;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.UserRepository;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.stream.Collectors;
 
@@ -33,7 +35,24 @@ public class AdminUserServiceImpl implements AdminUserService {
                 .email(user.getEmail())
                 .avatarUrl(user.getAvatarUrl())
                 .dateOfBirth(user.getDateOfBirth())
+                .isActive(user.getIsActive())
                 .roles(user.getRoles().stream().map(Role::getRoleName).collect(Collectors.toList()))
                 .build());
+    }
+
+    @Override
+    @Transactional
+    public void banUser(Long id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        user.setIsActive(false);
+        userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void unbanUser(Long id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        user.setIsActive(true);
+        userRepository.save(user);
     }
 }

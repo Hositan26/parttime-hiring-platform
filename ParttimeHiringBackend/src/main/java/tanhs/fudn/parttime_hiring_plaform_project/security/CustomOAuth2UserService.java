@@ -44,6 +44,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             throw new OAuth2AuthenticationException("Provider account ID not found from OAuth2 provider");
         }
 
+        if (email == null) {
+            email = providerAccountId + "@" + provider + ".com";
+        }
+        
         // Kiểm tra xem tài khoản OAuth2 này đã liên kết chưa
         Optional<UserOauthAccount> oauthAccountOpt = userOauthAccountRepository
                 .findByProviderAndProviderAccountId(provider, providerAccountId);
@@ -63,7 +67,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 Role userRole = roleRepository.findById("USER")
                         .orElseGet(() -> roleRepository.save(new Role("USER", "Default User Role")));
 
-                String finalUsername = email.contains("@") ? email.split("@")[0] : email;
+                String baseUsername = email.contains("@") ? email.split("@")[0] : email;
+                String finalUsername = baseUsername;
+                int suffix = 1;
+                while (userRepository.existsByUsername(finalUsername)) {
+                    finalUsername = baseUsername + suffix;
+                    suffix++;
+                }
                 
                 user = User.builder()
                         .username(finalUsername)

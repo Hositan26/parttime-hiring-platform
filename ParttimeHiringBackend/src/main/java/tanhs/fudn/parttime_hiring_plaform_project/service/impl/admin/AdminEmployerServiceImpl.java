@@ -28,8 +28,9 @@ public class AdminEmployerServiceImpl implements AdminEmployerService {
         Page<Employer> employers = employerRepository.findAll(pageable);
 
         return employers.map(employer -> {
-            String username = userRepository.findById(employer.getUserId().longValue())
-                    .map(User::getUsername).orElse("N/A");
+            User user = userRepository.findById(employer.getUserId().longValue()).orElse(null);
+            String username = user != null ? user.getUsername() : "N/A";
+            Boolean isActive = user != null ? user.getIsActive() : true;
             return AdminEmployerResponse.builder()
                 .employerId(employer.getEmployerId())
                 .companyName(employer.getCompanyName())
@@ -40,6 +41,7 @@ public class AdminEmployerServiceImpl implements AdminEmployerService {
                 .status(employer.getStatus())
                 .userId(employer.getUserId().longValue())
                 .username(username)
+                .isActive(isActive)
                 .build();
         });
     }
@@ -50,8 +52,9 @@ public class AdminEmployerServiceImpl implements AdminEmployerService {
         employer.setStatus(status);
         employerRepository.save(employer);
         
-        String username = userRepository.findById(employer.getUserId().longValue())
-                .map(User::getUsername).orElse("N/A");
+        User user = userRepository.findById(employer.getUserId().longValue()).orElse(null);
+        String username = user != null ? user.getUsername() : "N/A";
+        Boolean isActive = user != null ? user.getIsActive() : true;
                 
         return AdminEmployerResponse.builder()
                 .employerId(employer.getEmployerId())
@@ -63,6 +66,7 @@ public class AdminEmployerServiceImpl implements AdminEmployerService {
                 .status(employer.getStatus())
                 .userId(employer.getUserId().longValue())
                 .username(username)
+                .isActive(isActive)
                 .build();
     }
 }

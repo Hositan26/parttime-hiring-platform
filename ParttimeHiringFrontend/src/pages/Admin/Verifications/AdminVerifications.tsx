@@ -15,6 +15,7 @@ export const AdminVerifications: React.FC = () => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [detail, setDetail] = useState<VerificationDetailResponse | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [rejectMode, setRejectMode] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [processing, setProcessing] = useState(false);
@@ -23,12 +24,14 @@ export const AdminVerifications: React.FC = () => {
   const fetchList = async (pageNum: number, status: string) => {
     try {
       setLoading(true);
+      setFetchError(null);
       const data = await getVerifications(status, pageNum, 10);
       setVerifications(data.content || []);
       setTotalPages(data.totalPages || 1);
       setLoading(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      setFetchError(error.toString());
       setLoading(false);
     }
   };
@@ -138,7 +141,12 @@ export const AdminVerifications: React.FC = () => {
       </div>
 
       <div className={styles.tableCard}>
-        {loading ? (
+        {fetchError ? (
+          <div className={styles.emptyState}>
+            <XCircle size={48} color="#ef4444" />
+            <p>Lỗi fetch dữ liệu: {fetchError}</p>
+          </div>
+        ) : loading ? (
           <div className={styles.loadingState}>Đang tải dữ liệu...</div>
         ) : verifications.length === 0 ? (
           <div className={styles.emptyState}>

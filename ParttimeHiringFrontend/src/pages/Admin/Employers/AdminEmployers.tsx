@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Briefcase, Search, ChevronLeft, ChevronRight, CheckCircle2, XCircle, Power, PowerOff } from 'lucide-react';
 import { getEmployers, updateEmployerStatus, type AdminEmployerResponse } from '../../../services/adminEmployer.service';
+import { banUser, unbanUser } from '../../../services/adminUser.service';
 import styles from '../Verifications/AdminVerifications.module.css';
 
 export const AdminEmployers: React.FC = () => {
@@ -32,10 +33,27 @@ export const AdminEmployers: React.FC = () => {
     
     try {
       await updateEmployerStatus(employerId, newStatus);
-      alert('Đã cập nhật trạng thái');
+      alert('Đã cập nhật trạng thái doanh nghiệp');
       fetchList(page);
     } catch (error: any) {
       alert(error.message);
+    }
+  };
+
+  const handleToggleUserBan = async (employer: AdminEmployerResponse) => {
+    const action = employer.isActive ? 'khóa' : 'mở khóa';
+    if (!window.confirm(`Bạn có chắc chắn muốn ${action} TÀI KHOẢN ĐĂNG NHẬP của doanh nghiệp này?`)) return;
+    
+    try {
+      if (employer.isActive) {
+        await banUser(employer.userId);
+      } else {
+        await unbanUser(employer.userId);
+      }
+      alert(`Đã ${action} tài khoản thành công!`);
+      fetchList(page);
+    } catch (err: any) {
+      alert(`Lỗi: ${err.message}`);
     }
   };
 
@@ -104,16 +122,41 @@ export const AdminEmployers: React.FC = () => {
                     </td>
                     <td>{getStatusBadge(e.status)}</td>
                     <td style={{ textAlign: 'right' }}>
-                      <button 
-                        onClick={() => handleToggleStatus(e.employerId, e.status)}
-                        style={{
-                          background: 'none', border: 'none', cursor: 'pointer',
-                          color: e.status === 'ACTIVE' ? '#dc2626' : '#10b981'
-                        }}
-                        title={e.status === 'ACTIVE' ? 'Khóa doanh nghiệp' : 'Kích hoạt lại'}
-                      >
-                        {e.status === 'ACTIVE' ? <PowerOff size={20} /> : <Power size={20} />}
-                      </button>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                        <button 
+                          onClick={() => handleToggleStatus(e.employerId, e.status)}
+                          style={{
+                            padding: '6px 12px',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            backgroundColor: e.status === 'ACTIVE' ? '#eab308' : '#10b981',
+                            color: 'white',
+                            fontWeight: 500,
+                            fontSize: '0.8rem'
+                          }}
+                          title="Đổi trạng thái hồ sơ"
+                        >
+                          {e.status === 'ACTIVE' ? 'Tạm ngưng hồ sơ' : 'Kích hoạt hồ sơ'}
+                        </button>
+
+                        <button 
+                          onClick={() => handleToggleUserBan(e)}
+                          style={{
+                            padding: '6px 12px',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            backgroundColor: e.isActive ? '#ef4444' : '#64748b',
+                            color: 'white',
+                            fontWeight: 500,
+                            fontSize: '0.8rem'
+                          }}
+                          title="Khóa/Mở khóa đăng nhập"
+                        >
+                          {e.isActive ? 'Khóa User' : 'Mở khóa User'}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

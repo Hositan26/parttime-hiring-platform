@@ -23,6 +23,8 @@ import { AdminLayout } from './components/Layout/AdminLayout';
 import { AdminVerifications } from './pages/Admin/Verifications/AdminVerifications';
 import { AdminUsers } from './pages/Admin/Users/AdminUsers';
 import { AdminEmployers } from './pages/Admin/Employers/AdminEmployers';
+import { AdminJobPosts } from './pages/Admin/JobPosts/AdminJobPosts';
+import { AdminStores } from './pages/Admin/Stores/AdminStores';
 import { AdminCategories } from './pages/Admin/Categories/AdminCategories';
 import { AdminShifts } from './pages/Admin/Shifts/AdminShifts';
 import { AdminReviews } from './pages/Admin/Reviews/AdminReviews';
@@ -64,6 +66,8 @@ function App() {
             <Route path="verifications" element={<AdminVerifications />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="employers" element={<AdminEmployers />} />
+            <Route path="jobs" element={<AdminJobPosts />} />
+            <Route path="stores" element={<AdminStores />} />
             <Route path="categories" element={<AdminCategories />} />
             <Route path="shifts" element={<AdminShifts />} />
             <Route path="reviews" element={<AdminReviews />} />

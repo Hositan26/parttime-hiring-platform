@@ -46,9 +46,15 @@ public class AuthServiceImpl implements AuthService {
 
     @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request, HttpServletResponse response) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-        );
+        Authentication authentication;
+        try {
+            authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+            );
+        } catch (Exception e) {
+            log.error("Login failed for user: {}", request.getUsername(), e);
+            throw new RuntimeException("Login failed: " + e.getClass().getName() + " - " + e.getMessage());
+        }
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 

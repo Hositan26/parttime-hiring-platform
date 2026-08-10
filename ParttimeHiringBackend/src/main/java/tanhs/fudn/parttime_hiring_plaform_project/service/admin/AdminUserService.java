@@ -6,4 +6,6 @@ import tanhs.fudn.parttime_hiring_plaform_project.dto.response.admin.user.AdminU
 
 public interface AdminUserService {
     Page<AdminUserResponse> getAllUsers(int page, int size);
+    void banUser(Long id);
+    void unbanUser(Long id);
 }

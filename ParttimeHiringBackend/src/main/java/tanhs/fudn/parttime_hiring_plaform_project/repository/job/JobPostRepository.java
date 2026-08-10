@@ -20,6 +20,8 @@ public interface JobPostRepository extends JpaRepository<JobPost, Integer>, JpaS
     
     org.springframework.data.domain.Page<JobPost> findByEmployer_EmployerId(Integer employerId, org.springframework.data.domain.Pageable pageable);
 
+    org.springframework.data.domain.Page<JobPost> findByStatus(tanhs.fudn.parttime_hiring_plaform_project.entity.enums.JobStatus status, org.springframework.data.domain.Pageable pageable);
+
     @Modifying
     @Query("UPDATE JobPost j SET j.status = :status WHERE j.expiredAt < :now AND j.status != :status")
     int updateStatusForExpiredJobs(@Param("now") java.time.LocalDateTime now, @Param("status") tanhs.fudn.parttime_hiring_plaform_project.entity.enums.JobStatus status);
