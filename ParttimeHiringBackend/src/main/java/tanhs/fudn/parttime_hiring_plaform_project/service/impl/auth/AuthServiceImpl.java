@@ -43,6 +43,7 @@ public class AuthServiceImpl implements AuthService {
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
     JwtTokenProvider tokenProvider;
+    tanhs.fudn.parttime_hiring_plaform_project.mapper.AuthMapper authMapper;
 
     @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request, HttpServletResponse response) {
@@ -77,10 +78,11 @@ public class AuthServiceImpl implements AuthService {
                 .build();
     }
 
+    // Registers a validated account with the default user role.
     @Transactional
     public void register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Username đã tồn tại trong hệ thống");
+            throw new tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException("Username is already registered");
         }
 
         Role userRole = roleRepository.findById("USER")
@@ -88,16 +90,27 @@ public class AuthServiceImpl implements AuthService {
 
         LocalDate dob = null;
         if (request.getDateOfBirth() != null && !request.getDateOfBirth().trim().isEmpty()) {
-            dob = LocalDate.parse(request.getDateOfBirth(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            try {
+                dob = LocalDate.parse(request.getDateOfBirth());
+            } catch (java.time.DateTimeException exception) {
+                throw new tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException("Invalid birth date");
+            }
+            if (dob.isAfter(LocalDate.now())) {
+                throw new tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException("Birth date must not be in the future");
+            }
         }
 
-        User user = User.builder()
-                .username(request.getUsername())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .displayName(request.getDisplayName())
-                .dateOfBirth(dob)
-                .roles(Collections.singleton(userRole))
-                .build();
+        User user = authMapper.toUser(request);
+        user.setDisplayName(request.getDisplayName().trim());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRoles(Collections.singleton(userRole));
+        if (request.getEmail() != null && !request.getEmail().isBlank()) {
+            String email = request.getEmail().trim().toLowerCase(java.util.Locale.ROOT);
+            if (userRepository.findByEmail(email).isPresent()) {
+                throw new tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException("Email is already registered");
+            }
+            user.setEmail(email);
+        }
 
         userRepository.save(user);
     }
