@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Login } from './pages/Login/Login';
 import { Register } from './pages/Register/Register';
 import { Jobs } from './pages/Jobs/Jobs';
+import { SavedJobs } from './pages/Jobs/SavedJobs';
 import { JobDetail } from './pages/Jobs/JobDetail';
 import { AppliedJobs } from './pages/AppliedJobs/AppliedJobs';
 import { Profile } from './pages/Profile/Profile';
@@ -46,6 +47,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
         <Route path="/jobs" element={<Jobs />} />
+        <Route path="/saved-jobs" element={<RoleRoute roles={['USER']}><SavedJobs /></RoleRoute>} />
         <Route path="/jobs/:id" element={<JobDetail />} />
         <Route path="/applied-jobs" element={<RoleRoute roles={['USER']}><AppliedJobs /></RoleRoute>} />
         <Route path="/profile" element={<RoleRoute><Profile /></RoleRoute>} />

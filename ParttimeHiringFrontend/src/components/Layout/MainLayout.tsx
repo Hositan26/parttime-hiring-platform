@@ -18,6 +18,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const navLinks = [
     { name: 'Jobs', path: '/jobs' },
+    { name: 'Đã lưu', path: '/saved-jobs' },
     { name: 'Đã ứng tuyển', path: '/applied-jobs' },
     { name: 'Lịch sử làm việc', path: '/employment-history' },
     { name: 'Profile', path: '/profile' },

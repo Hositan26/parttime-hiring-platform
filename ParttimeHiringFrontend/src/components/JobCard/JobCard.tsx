@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Heart, Coffee, MapPin, Users, Clock, Banknote } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../Button/Button';
 import styles from './JobCard.module.css';
+import { apiBase, apiFetch } from '../../services/apiClient';
+import { useAuth } from '../../context/authContext';
 
 interface JobCardProps {
   id: number;
@@ -20,6 +22,21 @@ export const JobCard: React.FC<JobCardProps> = ({
   id, title, store, location, salary, shifts, headcount, date, status
 }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const saveJob = async (event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (!user) { navigate('/login?returnTo=' + encodeURIComponent('/jobs')); return; }
+    setSaving(true); setSaveError('');
+    try {
+      const response = await apiFetch(`${apiBase}/users/saved-jobs/${id}`, { method: 'PUT' });
+      if (!response.ok) throw new Error((await response.json()).message || 'Không thể lưu việc.');
+      setSaved(true);
+    } catch (failure) { setSaveError(failure instanceof Error ? failure.message : 'Không thể lưu việc.'); }
+    finally { setSaving(false); }
+  };
 
   const getStatusText = () => {
     if (status === 'EXPIRED') return 'HẾT HẠN';
@@ -44,12 +61,13 @@ export const JobCard: React.FC<JobCardProps> = ({
           <Coffee size={20} className={styles.iconPrimary} />
         </div>
         <div className={`${styles.statusBadge} ${isClosedOrExpired ? styles.statusBadgeInactive : ''}`}>{getStatusText()}</div>
-        <button className={styles.favoriteBtn}>
-          <Heart size={18} />
+        <button className={styles.favoriteBtn} disabled={saving || saved} onClick={saveJob} aria-label={saved ? 'Đã lưu việc' : 'Lưu việc'}>
+          <Heart size={18} fill={saved ? 'currentColor' : 'none'} />
         </button>
       </div>
       
       <div className={styles.content}>
+        {saveError && <p role="alert">{saveError}</p>}
         <h3 className={styles.title}>{title}</h3>
         <p className={styles.store}>{store}</p>
         
