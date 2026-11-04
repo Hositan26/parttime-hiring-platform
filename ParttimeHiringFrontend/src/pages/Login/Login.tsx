@@ -1,3 +1,4 @@
+import { safeReturnPath } from '../../services/authPolicy';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Lock, Eye, EyeOff, Sparkles } from 'lucide-react';
@@ -28,7 +29,10 @@ export const Login: React.FC = () => {
       
       const hasRole = (roleName: string) => user?.roles?.some((r: string) => r === roleName || r === `ROLE_${roleName}`);
 
-      if (hasRole('ADMIN')) {
+      const returnTo = new URLSearchParams(window.location.search).get('returnTo');
+      if (returnTo) {
+        navigate(safeReturnPath(returnTo), { replace: true });
+      } else if (hasRole('ADMIN')) {
         navigate('/admin/verifications');
       } else if (hasRole('EMPLOYER')) {
         navigate('/employer/dashboard');
@@ -133,3 +137,4 @@ export const Login: React.FC = () => {
     </AuthLayout>
   );
 };
+

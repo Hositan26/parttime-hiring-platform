@@ -1,3 +1,4 @@
+import { apiFetch } from './apiClient';
 const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/admin/reviews';
 
 export interface AdminReviewResponse {
@@ -12,7 +13,7 @@ export interface AdminReviewResponse {
 }
 
 export const getReviews = async (page = 0, size = 10) => {
-  const response = await fetch(`${API_URL}?page=${page}&size=${size}`, {
+  const response = await apiFetch(`${API_URL}?page=${page}&size=${size}`, {
     method: 'GET',
     credentials: 'include'
   });
@@ -22,10 +23,11 @@ export const getReviews = async (page = 0, size = 10) => {
 };
 
 export const deleteReview = async (id: number) => {
-  const response = await fetch(`${API_URL}/${id}`, {
+  const response = await apiFetch(`${API_URL}/${id}`, {
     method: 'DELETE',
     credentials: 'include'
   });
   if (!response.ok) throw new Error('Lỗi xóa đánh giá');
   return await response.json();
 };
+

@@ -1,3 +1,4 @@
+import { apiFetch } from './apiClient';
 const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/admin/employers';
 
 export interface AdminEmployerResponse {
@@ -13,7 +14,7 @@ export interface AdminEmployerResponse {
 }
 
 export const getEmployers = async (page = 0, size = 10) => {
-  const response = await fetch(`${API_URL}?page=${page}&size=${size}`, {
+  const response = await apiFetch(`${API_URL}?page=${page}&size=${size}`, {
     method: 'GET',
     credentials: 'include'
   });
@@ -27,7 +28,7 @@ export const getEmployers = async (page = 0, size = 10) => {
 };
 
 export const updateEmployerStatus = async (id: number, status: string) => {
-  const response = await fetch(`${API_URL}/${id}/status`, {
+  const response = await apiFetch(`${API_URL}/${id}/status`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json'
@@ -43,3 +44,4 @@ export const updateEmployerStatus = async (id: number, status: string) => {
   
   return await response.json();
 };
+

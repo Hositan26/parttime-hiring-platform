@@ -1,3 +1,4 @@
+import { apiFetch } from './apiClient';
 export const JobStatus = {
   PENDING: 'PENDING',
   ACTIVE: 'ACTIVE',
@@ -39,7 +40,7 @@ export const getAdminJobPosts = async (status: JobStatusType, page: number = 0, 
     params.append('status', status);
   }
 
-  const response = await fetch(`${API_URL}?${params.toString()}`, {
+  const response = await apiFetch(`${API_URL}?${params.toString()}`, {
     credentials: 'include'
   });
   
@@ -51,7 +52,7 @@ export const getAdminJobPosts = async (status: JobStatusType, page: number = 0, 
 };
 
 export const updateAdminJobPostStatus = async (jobId: number, status: JobStatusType) => {
-  const response = await fetch(`${API_URL}/${jobId}/status`, {
+  const response = await apiFetch(`${API_URL}/${jobId}/status`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json'
@@ -68,3 +69,4 @@ export const updateAdminJobPostStatus = async (jobId: number, status: JobStatusT
   const data = await response.json();
   return data.result;
 };
+

@@ -1,3 +1,4 @@
+import { apiFetch } from './apiClient';
 const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/admin/dashboard';
 
 export interface AdminDashboardStats {
@@ -10,7 +11,7 @@ export interface AdminDashboardStats {
 }
 
 export const getDashboardStats = async () => {
-  const response = await fetch(`${API_URL}/stats`, {
+  const response = await apiFetch(`${API_URL}/stats`, {
     method: 'GET',
     credentials: 'include'
   });
@@ -18,3 +19,4 @@ export const getDashboardStats = async () => {
   const data = await response.json();
   return data.result;
 };
+

@@ -1,3 +1,4 @@
+import { apiFetch } from './apiClient';
 const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/admin/verifications';
 
 export interface VerificationListResponse {
@@ -31,7 +32,7 @@ export interface VerificationDetailResponse {
 }
 
 export const getVerifications = async (status = 'PENDING', page = 0, size = 10) => {
-  const response = await fetch(`${API_URL}?status=${status}&page=${page}&size=${size}`, {
+  const response = await apiFetch(`${API_URL}?status=${status}&page=${page}&size=${size}`, {
     method: 'GET',
     credentials: 'include'
   });
@@ -45,7 +46,7 @@ export const getVerifications = async (status = 'PENDING', page = 0, size = 10) 
 };
 
 export const getVerificationDetail = async (id: number): Promise<VerificationDetailResponse> => {
-  const response = await fetch(`${API_URL}/${id}`, {
+  const response = await apiFetch(`${API_URL}/${id}`, {
     method: 'GET',
     credentials: 'include'
   });
@@ -59,7 +60,7 @@ export const getVerificationDetail = async (id: number): Promise<VerificationDet
 };
 
 export const approveVerification = async (id: number) => {
-  const response = await fetch(`${API_URL}/${id}/approve`, {
+  const response = await apiFetch(`${API_URL}/${id}/approve`, {
     method: 'POST',
     credentials: 'include'
   });
@@ -73,7 +74,7 @@ export const approveVerification = async (id: number) => {
 };
 
 export const rejectVerification = async (id: number, reason: string) => {
-  const response = await fetch(`${API_URL}/${id}/reject`, {
+  const response = await apiFetch(`${API_URL}/${id}/reject`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -89,3 +90,4 @@ export const rejectVerification = async (id: number, reason: string) => {
   
   return await response.json();
 };
+

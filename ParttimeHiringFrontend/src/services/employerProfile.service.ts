@@ -1,3 +1,4 @@
+import { apiFetch } from './apiClient';
 export interface EmployerProfileResponse {
   employerId: number;
   companyName: string;
@@ -31,7 +32,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8088
 const API_URL = `${API_BASE_URL}/employer/me/profile`;
 
 export const getEmployerProfile = async (): Promise<EmployerProfileResponse> => {
-  const response = await fetch(API_URL, {
+  const response = await apiFetch(API_URL, {
     method: 'GET',
     credentials: 'include'
   });
@@ -43,7 +44,7 @@ export const getEmployerProfile = async (): Promise<EmployerProfileResponse> => 
 };
 
 export const updateEmployerProfile = async (data: EmployerProfileUpdateRequest): Promise<EmployerProfileResponse> => {
-  const response = await fetch(API_URL, {
+  const response = await apiFetch(API_URL, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json'
@@ -57,3 +58,4 @@ export const updateEmployerProfile = async (data: EmployerProfileUpdateRequest):
   const responseData = await response.json();
   return responseData.result;
 };
+

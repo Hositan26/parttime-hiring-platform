@@ -1,10 +1,11 @@
+import { apiFetch } from './apiClient';
 const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/auth';
 
 /**
  * Gọi API Đăng ký tài khoản
  */
 export const register = async (username: string, password: string, displayName?: string, dateOfBirth?: string) => {
-  const response = await fetch(`${API_URL}/register`, {
+  const response = await apiFetch(`${API_URL}/register`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -24,7 +25,7 @@ export const register = async (username: string, password: string, displayName?:
  * Gọi API Đăng nhập và lấy JWT token
  */
 export const login = async (username: string, password: string) => {
-  const response = await fetch(`${API_URL}/login`, {
+  const response = await apiFetch(`${API_URL}/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -44,7 +45,7 @@ export const login = async (username: string, password: string) => {
  * Lấy thông tin user hiện tại
  */
 export const getMe = async () => {
-  const response = await fetch('http://localhost:8088/parttime_hiring_platform/api/users/me', {
+  const response = await apiFetch('http://localhost:8088/parttime_hiring_platform/api/users/me', {
     method: 'GET',
     credentials: 'include'
   });
@@ -67,7 +68,7 @@ export const updateMe = async (data: {
   dateOfBirth?: string;
   currentPassword?: string;
 }) => {
-  const response = await fetch('http://localhost:8088/parttime_hiring_platform/api/users/me', {
+  const response = await apiFetch('http://localhost:8088/parttime_hiring_platform/api/users/me', {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json'
@@ -87,6 +88,7 @@ export const updateMe = async (data: {
 
 // Clears the server-managed authentication cookies.
 export const logout = async () => {
-  const response = await fetch(API_URL + '/logout', { method: 'POST', credentials: 'include' });
+  const response = await apiFetch(API_URL + '/logout', { method: 'POST', credentials: 'include' });
   if (!response.ok) throw new Error('Could not sign out. Please try again.');
 };
+

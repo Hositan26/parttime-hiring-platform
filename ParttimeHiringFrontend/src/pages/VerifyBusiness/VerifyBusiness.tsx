@@ -1,3 +1,4 @@
+import { apiFetch } from '../../services/apiClient';
 import React, { useState, useRef, useEffect } from 'react';
 import { MainLayout } from '../../components/Layout/MainLayout';
 import { sendOtp } from '../../services/email.service';
@@ -49,7 +50,7 @@ export const VerifyBusiness: React.FC = () => {
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const res = await fetch('http://localhost:8088/parttime_hiring_platform/api/users/employer-verifications/my-status', {
+        const res = await apiFetch('http://localhost:8088/parttime_hiring_platform/api/users/employer-verifications/my-status', {
           credentials: 'include'
         });
         if (res.ok) {
@@ -566,3 +567,4 @@ export const VerifyBusiness: React.FC = () => {
     </MainLayout>
   );
 };
+

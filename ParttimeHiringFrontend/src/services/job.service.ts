@@ -1,3 +1,4 @@
+import { apiFetch } from './apiClient';
 const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/jobs';
 
 export interface Job {
@@ -13,7 +14,7 @@ export interface Job {
 }
 
 export const getJobs = async (): Promise<Job[]> => {
-  const response = await fetch(API_URL, {
+  const response = await apiFetch(API_URL, {
     credentials: 'include'
   });
   if (!response.ok) {
@@ -31,7 +32,7 @@ export const searchJobs = async (filters: any): Promise<Job[]> => {
     }
   }
   
-  const response = await fetch(`${API_URL}/search?${params.toString()}`, {
+  const response = await apiFetch(`${API_URL}/search?${params.toString()}`, {
     credentials: 'include'
   });
   if (!response.ok) {
@@ -42,7 +43,7 @@ export const searchJobs = async (filters: any): Promise<Job[]> => {
 };
 
 export const getCategories = async (): Promise<any[]> => {
-  const response = await fetch(`${API_URL}/categories`, {
+  const response = await apiFetch(`${API_URL}/categories`, {
     credentials: 'include'
   });
   if (!response.ok) return [];
@@ -51,7 +52,7 @@ export const getCategories = async (): Promise<any[]> => {
 };
 
 export const getShifts = async (): Promise<any[]> => {
-  const response = await fetch(`${API_URL}/shifts`, {
+  const response = await apiFetch(`${API_URL}/shifts`, {
     credentials: 'include'
   });
   if (!response.ok) return [];
@@ -83,7 +84,7 @@ export interface JobDetail {
 }
 
 export const getJobById = async (id: string | number): Promise<JobDetail> => {
-  const response = await fetch(`${API_URL}/${id}`, {
+  const response = await apiFetch(`${API_URL}/${id}`, {
     credentials: 'include'
   });
   if (!response.ok) {
@@ -92,3 +93,4 @@ export const getJobById = async (id: string | number): Promise<JobDetail> => {
   const data = await response.json();
   return data.result;
 };
+
