@@ -10,6 +10,7 @@ import styles from './Jobs.module.css';
 export const Jobs: React.FC = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   
   const [filters, setFilters] = useState({
     title: '', storeName: '', categoryId: '', shiftId: '',
@@ -33,12 +34,19 @@ export const Jobs: React.FC = () => {
   }, [filters]);
 
   const fetchFilteredJobs = async () => {
+    if ((filters.minWage && Number(filters.minWage) < 0) || (filters.maxWage && Number(filters.maxWage) < 0)
+      || (filters.minWage && filters.maxWage && Number(filters.minWage) > Number(filters.maxWage))) {
+      setError('Mức lương phải không âm và mức tối đa phải lớn hơn hoặc bằng mức tối thiểu.');
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
+      setError('');
       const data = await searchJobs(filters);
       setJobs(data);
     } catch (error) {
-      console.error('Failed to fetch jobs:', error);
+      setError(error instanceof Error ? error.message : 'Không thể tải danh sách việc làm.');
     } finally {
       setLoading(false);
     }
@@ -140,7 +148,7 @@ export const Jobs: React.FC = () => {
           </div>
 
           <div className={styles.jobGrid}>
-            {loading ? (
+            {error ? <p role="alert">{error}</p> : loading ? (
               <p>Đang tải danh sách công việc...</p>
             ) : jobs.length === 0 ? (
               <p>Chưa có công việc nào.</p>

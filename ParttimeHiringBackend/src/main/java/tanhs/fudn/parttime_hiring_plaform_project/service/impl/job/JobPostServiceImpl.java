@@ -25,6 +25,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import tanhs.fudn.parttime_hiring_plaform_project.service.job.JobAvailabilityPolicy;
 import tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -54,10 +55,16 @@ public class JobPostServiceImpl implements JobPostService {
                 .collect(Collectors.toList());
     }
 
+    // Validates filter ranges before querying public recruitment opportunities.
     @Transactional(readOnly = true)
     public List<JobPostResponse> searchJobs(String title, String storeName, Integer categoryId, Integer shiftId,
                                             BigDecimal minWage, BigDecimal maxWage, String city, String district,
                                             String ward, String streetAddress) {
+        if ((minWage != null && minWage.signum() < 0) || (maxWage != null && maxWage.signum() < 0)
+                || (minWage != null && maxWage != null && minWage.compareTo(maxWage) > 0)
+                || (categoryId != null && categoryId <= 0) || (shiftId != null && shiftId <= 0)) {
+            throw new BusinessException("Bộ lọc mức lương hoặc ngành nghề/ca làm không hợp lệ.");
+        }
         Specification<JobPost> spec = JobPostSpecification.filterJobs(
                 title, storeName, categoryId, shiftId, minWage, maxWage, city, district, ward, streetAddress
         );
