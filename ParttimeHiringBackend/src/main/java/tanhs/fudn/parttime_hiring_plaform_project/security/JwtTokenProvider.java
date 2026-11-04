@@ -31,18 +31,9 @@ public class JwtTokenProvider {
         this.issuer = issuer;
     }
 
-    // Issues an access token for an authenticated account.
-    public String generateToken(Authentication authentication) {
-        return generateTokenFromUsername(authentication.getName());
-    }
-
-    // Signs an access token with issuer, lifetime, and unique identifier.
-    public String generateTokenFromUsername(String username) {
-        return issue(username, 0);
-    }
     // Binds access credentials to the current account security version.
     public String generateTokenForUser(tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User user) {
-        return issue(user.getUsername(), user.getAuthVersion());
+        return issue(user.getId().toString(), user.getAuthVersion());
     }
     // Signs versioned access credentials for revocation after security changes.
     private String issue(String username, int version) {
@@ -54,7 +45,7 @@ public class JwtTokenProvider {
     }
 
     // Extracts the account identity only after validating token claims.
-    public String getUsernameFromJWT(String token) {
+    public String getSubject(String token) {
         return parseClaims(token).getSubject();
     }
 
@@ -84,4 +75,5 @@ public class JwtTokenProvider {
         return expirationSeconds;
     }
 }
+
 

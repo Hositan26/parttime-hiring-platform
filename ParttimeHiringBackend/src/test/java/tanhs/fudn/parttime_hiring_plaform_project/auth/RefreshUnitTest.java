@@ -51,7 +51,7 @@ class RefreshUnitTest {
         session.setExpiresAt(Instant.now().plusSeconds(600));
         when(repository.lockByHash(anyString())).thenReturn(Optional.of(session));
         var tokens = mock(JwtTokenProvider.class);
-        when(tokens.generateTokenFromUsername("user")).thenReturn("access");
+        when(tokens.generateTokenForUser(org.mockito.ArgumentMatchers.any())).thenReturn("access");
         var service = new AuthSessionServiceImpl(repository, tokens, mock(tanhs.fudn.parttime_hiring_plaform_project.repository.identity.RevokedAccessTokenRepository.class), new AuthCookieService(false));
         var response = new MockHttpServletResponse();
         service.refresh("valid", response);
@@ -60,4 +60,5 @@ class RefreshUnitTest {
         assertEquals(2, response.getHeaders("Set-Cookie").size());
     }
 }
+
 

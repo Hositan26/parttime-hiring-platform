@@ -10,9 +10,9 @@ class JwtUnitTest {
     @Test
     void validatesSignedClaims() {
         var provider = new JwtTokenProvider(secret, 60, "test");
-        String token = provider.generateTokenFromUsername("candidate");
+        String token = provider.generateTokenForUser(tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User.builder().id(7L).username("candidate").build());
         assertTrue(provider.validateToken(token));
-        assertEquals("candidate", provider.getUsernameFromJWT(token));
+        assertEquals("7", provider.getSubject(token));
         assertNotNull(provider.parseClaims(token).getId());
         assertFalse(new JwtTokenProvider(secret, 60, "another").validateToken(token));
         assertFalse(new JwtTokenProvider("y".repeat(64), 60, "test").validateToken(token));
@@ -27,3 +27,4 @@ class JwtUnitTest {
         assertThrows(IllegalArgumentException.class, () -> new JwtTokenProvider(secret, 0, "test"));
     }
 }
+

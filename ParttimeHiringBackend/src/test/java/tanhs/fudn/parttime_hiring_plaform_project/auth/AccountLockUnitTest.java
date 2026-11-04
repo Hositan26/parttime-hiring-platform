@@ -28,14 +28,15 @@ class AccountLockUnitTest {
     void blocksDisabledAccount() throws Exception {
         var tokens = new JwtTokenProvider("x".repeat(64), 60, "test");
         var users = mock(UserRepository.class);
-        when(users.findByUsername("candidate")).thenReturn(Optional.of(
+        when(users.findById(7L)).thenReturn(Optional.of(
                 User.builder().username("candidate").isActive(false).build()));
         var details = mock(CustomUserDetailsService.class);
         var filter = new JwtAuthenticationFilter(tokens, details, users, mock(RevokedAccessTokenRepository.class));
         var request = new MockHttpServletRequest();
-        request.setCookies(new Cookie("access_token", tokens.generateTokenFromUsername("candidate")));
+        request.setCookies(new Cookie("access_token", tokens.generateTokenForUser(tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User.builder().id(7L).username("candidate").build())));
         filter.doFilter(request, new MockHttpServletResponse(), mock(FilterChain.class));
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         verifyNoInteractions(details);
     }
 }
+

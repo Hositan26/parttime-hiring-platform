@@ -15,7 +15,7 @@ class RevocationUnitTest {
     void revokesAccessOnLogout() {
         var repository = mock(RevokedAccessTokenRepository.class);
         var tokens = new JwtTokenProvider("x".repeat(64), 60, "test");
-        String token = tokens.generateTokenFromUsername("candidate");
+        String token = tokens.generateTokenForUser(tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User.builder().id(7L).username("candidate").build());
         var response = new MockHttpServletResponse();
         var service = new AuthSessionServiceImpl(mock(RefreshSessionRepository.class), tokens,
                 repository, new AuthCookieService(false));
@@ -25,3 +25,4 @@ class RevocationUnitTest {
         assertEquals(2, response.getHeaders("Set-Cookie").size());
     }
 }
+

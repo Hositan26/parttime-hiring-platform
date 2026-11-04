@@ -17,14 +17,14 @@ import java.io.IOException;
 @Component
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private final JwtTokenProvider tokenProvider;
+    private final tanhs.fudn.parttime_hiring_plaform_project.service.auth.AuthSessionService sessions;
     private final UserRepository userRepository;
 
     @Value("${app.oauth2.redirectUri:http://localhost:5173/oauth2/redirect}")
     private String redirectUri;
 
-    public OAuth2AuthenticationSuccessHandler(JwtTokenProvider tokenProvider, UserRepository userRepository) {
-        this.tokenProvider = tokenProvider;
+    public OAuth2AuthenticationSuccessHandler(tanhs.fudn.parttime_hiring_plaform_project.service.auth.AuthSessionService sessions, UserRepository userRepository) {
+        this.sessions = sessions;
         this.userRepository = userRepository;
     }
 
@@ -36,14 +36,14 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found after OAuth2 login"));
 
-        String token = tokenProvider.generateTokenFromUsername(user.getUsername());
+        sessions.start(user, response);
 
-        response.addHeader("Set-Cookie", "access_token=" + token + "; HttpOnly; Path=/; Max-Age=" + (7 * 24 * 60 * 60) + "; SameSite=Lax");
-
+        if (request.getSession(false) != null) request.getSession(false).invalidate();
         String targetUrl = UriComponentsBuilder.fromUriString(redirectUri)
                 .build().toUriString();
 
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }
+
 

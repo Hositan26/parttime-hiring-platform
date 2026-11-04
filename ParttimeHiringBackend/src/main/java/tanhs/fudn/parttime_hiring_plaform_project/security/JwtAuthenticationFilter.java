@@ -31,7 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = readCookie(request, "access_token");
         if (token != null && tokenProvider.validateToken(token)) {
             var claims = tokenProvider.parseClaims(token);
-            var account = users.findByUsername(claims.getSubject());
+            var account = users.findById(Long.valueOf(claims.getSubject()));
             if (account.isPresent() && Boolean.TRUE.equals(account.get().getIsActive()) && !revokedTokens.existsById(claims.getId())
                     && account.get().getAuthVersion().equals(claims.get("version", Integer.class))) {
                 var details = userDetailsService.loadUserByUsername(account.get().getUsername());
@@ -52,4 +52,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
 }
+
 
