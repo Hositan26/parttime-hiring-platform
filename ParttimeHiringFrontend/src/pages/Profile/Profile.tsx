@@ -5,11 +5,13 @@ import { User, Calendar, Briefcase, Search, Mail, Edit2, Save, X } from 'lucide-
 import { Button } from '../../components/Button/Button';
 import styles from './Profile.module.css';
 import { getMe, updateMe } from '../../services/auth.service';
-import { useNavigate } from 'react-router-dom';
 import { apiBase, apiFetch } from '../../services/apiClient';
 
 export const Profile: React.FC = () => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{
+    userId: number; displayName: string; username: string; email?: string; dateOfBirth?: string;
+    avatarUrl?: string; roles: string[]; hasPassword: boolean;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({ 
@@ -23,8 +25,7 @@ export const Profile: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [avatarBusy, setAvatarBusy] = useState(false);
   const [avatarError, setAvatarError] = useState('');
-  const navigate = useNavigate();
-  const today = new Date().toLocaleDateString('en-CA');
+  const [today] = useState(() => new Date().toLocaleDateString('en-CA'));
   const validationError = !editData.displayName.trim() || editData.displayName.length > 100
     ? 'Tên hiển thị phải có từ 1 đến 100 ký tự.'
     : !/^[a-zA-Z0-9_]{3,50}$/.test(editData.username) ? 'Username gồm 3–50 chữ, số hoặc dấu gạch dưới.'
@@ -32,10 +33,6 @@ export const Profile: React.FC = () => {
     : editData.dateOfBirth && editData.dateOfBirth > today ? 'Ngày sinh không được ở tương lai.' : '';
 
   useEffect(() => {
-    fetchUser();
-  }, [navigate]);
-
-  const fetchUser = () => {
     getMe()
       .then(data => {
         setUser(data);
@@ -52,11 +49,11 @@ export const Profile: React.FC = () => {
         console.error(err);
         setLoading(false);
       });
-  };
+  }, []);
 
   const handleSave = async () => {
     if (validationError) { setErrorMsg(validationError); return; }
-    if (user.hasPassword && !editData.currentPassword) {
+    if (user?.hasPassword && !editData.currentPassword) {
       setErrorMsg('Vui lòng nhập mật khẩu xác nhận để lưu thay đổi.');
       return;
     }
@@ -67,9 +64,9 @@ export const Profile: React.FC = () => {
       setUser(updatedUser);
       setIsEditing(false);
       setEditData({ ...editData, currentPassword: '' });
-    } catch (error: any) {
+    } catch (error) {
       console.error('Update failed', error);
-      setErrorMsg(error.message || 'Có lỗi xảy ra khi cập nhật thông tin.');
+      setErrorMsg(error instanceof Error ? error.message : 'Có lỗi xảy ra khi cập nhật thông tin.');
     } finally {
       setSaving(false);
     }
@@ -93,10 +90,10 @@ export const Profile: React.FC = () => {
 
   const handleCancelEdit = () => {
     setEditData({
-      displayName: user.displayName || '',
-      username: user.username || '',
-      email: user.email || '',
-      dateOfBirth: user.dateOfBirth || '',
+      displayName: user?.displayName || '',
+      username: user?.username || '',
+      email: user?.email || '',
+      dateOfBirth: user?.dateOfBirth || '',
       currentPassword: ''
     });
     setErrorMsg('');

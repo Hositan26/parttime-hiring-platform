@@ -38,7 +38,7 @@ export const getJobs = async (): Promise<Job[]> => {
   return data.result;
 };
 
-export const searchJobs = async (filters: any): Promise<Job[]> => {
+export const searchJobs = async (filters: Record<string, string>): Promise<Job[]> => {
   const params = new URLSearchParams();
   for (const key in filters) {
     if (filters[key] !== undefined && filters[key] !== null && filters[key] !== '') {
@@ -56,7 +56,10 @@ export const searchJobs = async (filters: any): Promise<Job[]> => {
   return data.result;
 };
 
-export const getCategories = async (): Promise<any[]> => {
+export interface JobCategory { categoryId: number; categoryName: string; }
+export interface JobShift { shiftId: number; shiftName: string; }
+
+export const getCategories = async (): Promise<JobCategory[]> => {
   const response = await apiFetch(`${API_URL}/categories`, {
     credentials: 'include'
   });
@@ -65,7 +68,7 @@ export const getCategories = async (): Promise<any[]> => {
   return data.result;
 };
 
-export const getShifts = async (): Promise<any[]> => {
+export const getShifts = async (): Promise<JobShift[]> => {
   const response = await apiFetch(`${API_URL}/shifts`, {
     credentials: 'include'
   });

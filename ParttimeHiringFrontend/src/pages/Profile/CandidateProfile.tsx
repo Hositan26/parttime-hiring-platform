@@ -9,7 +9,8 @@ export const CandidateProfile = () => {
   const url = `${apiBase}/candidate-profiles/${shared ? `applications/${applicationId}` : 'me'}`;
   const [fields, setFields] = useState({ summary: '', skills: '', experience: '' });
   const [hasResume, setHasResume] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loadedUrl, setLoadedUrl] = useState('');
+  const loading = loadedUrl !== url;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -20,13 +21,13 @@ export const CandidateProfile = () => {
     setHasResume(Boolean(profile.hasResume)); setName(profile.displayName || '');
   };
   useEffect(() => {
-    let active = true; setLoading(true); setError('');
+    let active = true;
     apiFetch(url).then(async response => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Không thể tải hồ sơ ứng tuyển.');
       if (active) apply(data.result);
     }).catch(failure => { if (active) setError(failure.message); })
-      .finally(() => { if (active) setLoading(false); });
+      .finally(() => { if (active) setLoadedUrl(url); });
     return () => { active = false; };
   }, [url]);
   const save = async (file?: File) => {
@@ -42,7 +43,8 @@ export const CandidateProfile = () => {
         headers: file ? undefined : { 'Content-Type': 'application/json' } });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Không thể lưu hồ sơ.');
-      apply(data.result); setMessage(file ? 'Đã tải lên CV.' : 'Đã lưu hồ sơ.');
+      if (file) setHasResume(Boolean(data.result.hasResume)); else apply(data.result);
+      setMessage(file ? 'Đã tải lên CV.' : 'Đã lưu hồ sơ.');
     } catch (failure) { setError(failure instanceof Error ? failure.message : 'Không thể lưu hồ sơ.'); }
     finally { setBusy(false); }
   };

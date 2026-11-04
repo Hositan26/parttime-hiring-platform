@@ -3,6 +3,7 @@ package tanhs.fudn.parttime_hiring_plaform_project.entity.application;
 import java.time.LocalDateTime;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import jakarta.persistence.Index;
 import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,7 +20,9 @@ import tanhs.fudn.parttime_hiring_plaform_project.entity.job.JobPost;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.InteractionKind;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.InteractionStatus;
 
-@Entity @Table(name = "recruitment_interactions") @Getter @Setter
+@Entity @Table(name = "recruitment_interactions", indexes = {
+        @Index(name = "ix_interaction_application", columnList = "application_id,id"),
+        @Index(name = "ix_interaction_reporter", columnList = "author_id,kind,id")}) @Getter @Setter
 public class RecruitmentInteraction {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

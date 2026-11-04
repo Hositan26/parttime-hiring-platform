@@ -66,7 +66,11 @@ public class RecruitmentInteractionServiceImpl implements RecruitmentInteraction
         var user = account(username);
         var item = interactions.lockById(id).orElseThrow(() -> new ResourceNotFoundException("Interview not found"));
         if (item.getKind() != InteractionKind.INTERVIEW) throw new BusinessException("Not an interview");
-        participant(user, item.getApplication().getApplicationId());
+        var application = participant(user, item.getApplication().getApplicationId());
+        if (application.getStatus() != ApplicationStatus.PENDING && application.getStatus() != ApplicationStatus.ACCEPTED
+                && status != InteractionStatus.CANCELLED) {
+            throw new BusinessException("This application no longer accepts interview decisions");
+        }
         boolean open = item.getStatus() == InteractionStatus.OPEN;
         boolean cancellation = status == InteractionStatus.CANCELLED && (open || item.getStatus() == InteractionStatus.ACCEPTED);
         boolean decision = open && item.getRecipient().getId().equals(user.getId())

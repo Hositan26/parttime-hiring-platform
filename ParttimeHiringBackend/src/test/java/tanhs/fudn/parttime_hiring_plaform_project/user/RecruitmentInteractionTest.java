@@ -50,5 +50,7 @@ class RecruitmentInteractionTest {
         when(users.findByUsername("actor")).thenReturn(Optional.of(employer));
         service.respond("actor", 7L, InteractionStatus.ACCEPTED);
         assertEquals(InteractionStatus.ACCEPTED, item.getStatus());
+        item.setStatus(InteractionStatus.OPEN); application.setStatus(ApplicationStatus.WITHDRAWN);
+        assertThrows(BusinessException.class, () -> service.respond("actor", 7L, InteractionStatus.ACCEPTED));
     }
 }

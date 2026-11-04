@@ -9,12 +9,15 @@ import tanhs.fudn.parttime_hiring_plaform_project.entity.application.JobApplicat
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 
 @Repository
 public interface EmploymentRecordRepository extends JpaRepository<EmploymentRecord, Integer> {
     // Retrieves a bounded history belonging exclusively to one account.
-    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"store", "jobPost"})
-    org.springframework.data.domain.Page<EmploymentRecord> findByUser_Id(Long userId, org.springframework.data.domain.Pageable pageable);
+    @EntityGraph(attributePaths = {"store", "jobPost"})
+    Page<EmploymentRecord> findByUser_Id(Long userId, Pageable pageable);
 
     Optional<EmploymentRecord> findByApplication(JobApplication application);
 

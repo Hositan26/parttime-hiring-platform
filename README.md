@@ -55,14 +55,21 @@ Dữ liệu tuyển dụng được tổ chức theo mối quan hệ **doanh ngh
 
 Chi tiết API và cách kiểm thử: [Authentication / Authorization](docs/AUTHENTICATION.md).
 
+Chức năng người tìm việc, API và hướng dẫn sử dụng: [User features](docs/USER_FEATURES.md).
+
 ### Người tìm việc — User
 
 - Xem và cập nhật hồ sơ cá nhân.
+- Đổi ảnh đại diện và quản lý CV, kỹ năng, kinh nghiệm ứng tuyển.
 - Xem danh sách và thông tin chi tiết công việc.
 - Tìm kiếm theo tên công việc và cửa hàng.
 - Lọc công việc theo ngành nghề, ca làm, mức lương và địa chỉ.
 - Gửi đơn ứng tuyển kèm số điện thoại và lời nhắn.
 - Theo dõi danh sách công việc đã ứng tuyển và kết quả xử lý.
+- Sửa/rút đơn đang chờ, lưu việc yêu thích và xem lịch sử làm việc.
+- Viết đánh giá từ lịch sử làm việc đã xác nhận.
+- Nhận thông báo, trao đổi với doanh nghiệp và phản hồi lịch phỏng vấn.
+- Gửi và theo dõi báo cáo tin tuyển dụng.
 - Xem thông tin đánh giá được hiển thị tại trang chi tiết công việc.
 - Nộp hồ sơ xác minh doanh nghiệp và theo dõi trạng thái xét duyệt.
 

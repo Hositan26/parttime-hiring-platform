@@ -69,7 +69,7 @@ export const VerifyBusiness: React.FC = () => {
             }
           }
         } else { setStatusError('Không thể tải trạng thái hồ sơ. Vui lòng tải lại trang.'); }
-      } catch (e) {
+      } catch {
         setStatusError('Không thể tải trạng thái hồ sơ. Vui lòng tải lại trang.');
       }
     };
@@ -135,8 +135,8 @@ export const VerifyBusiness: React.FC = () => {
       
       // Tự ẩn thông báo sau 5s
       setTimeout(() => setOtpSuccessMsg(''), 5000);
-    } catch (err: any) {
-      alert(`Lỗi gửi OTP: ${err.message}`);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Không thể gửi OTP.');
     } finally {
       setIsSendingOtp(false);
     }
@@ -183,8 +183,8 @@ export const VerifyBusiness: React.FC = () => {
       setVerificationStatus('PENDING');
       setIsSubmitted(true);
       topRef.current?.scrollIntoView({ behavior: 'smooth' });
-    } catch (error: any) {
-      alert(`Lỗi: ${error.message}`);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Không thể gửi hồ sơ.');
     } finally {
       setIsSubmitting(false);
     }

@@ -8,12 +8,15 @@ import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.ApplicationStatus
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
 
 public interface JobApplicationRepository extends JpaRepository<JobApplication, Integer> {
     // Serializes candidate edits, withdrawals, and employer decisions for one application.
-    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select a from JobApplication a where a.applicationId = :id")
-    java.util.Optional<JobApplication> lockById(@Param("id") Integer id);
+    Optional<JobApplication> lockById(@Param("id") Integer id);
     
     @Query("SELECT COUNT(ja) FROM JobApplication ja WHERE ja.jobPost.employer.employerId = :employerId")
     long countByEmployerId(@Param("employerId") Integer employerId);

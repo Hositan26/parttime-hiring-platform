@@ -1,51 +1,30 @@
+import { useApiResource } from '../../../services/usePagedResource';
+import { apiBase } from '../../../services/apiClient';
 import React, { useEffect, useState } from 'react';
 import { Users, Clock, CheckCircle2, XCircle, Eye, MapPin, Search, ChevronLeft, ChevronRight, CheckCircle, X, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Applications.module.css';
-import { getEmployerApplications, updateApplicationStatus, type EmployerApplicationResponse } from '../../../services/application.service';
-import { getEmployerStores } from '../../../services/storeApi';
+import { updateApplicationStatus, type EmployerApplicationResponse } from '../../../services/application.service';
+import { getEmployerStores, type EmployerStoreDTO } from '../../../services/storeApi';
 import { ProfileModal } from '../../../components/ProfileModal/ProfileModal';
 
 export const Applications: React.FC = () => {
   const navigate = useNavigate();
-  const [applications, setApplications] = useState<EmployerApplicationResponse[]>([]);
-  const [stores, setStores] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [stores, setStores] = useState<EmployerStoreDTO[]>([]);
   const [selectedProfile, setSelectedProfile] = useState<EmployerApplicationResponse | null>(null);
   
   const [selectedStoreId, setSelectedStoreId] = useState<number>(0);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
 
+  const [revision, setRevision] = useState(0);
+  const params = new URLSearchParams();
+  if (selectedStoreId) params.set('storeId', String(selectedStoreId));
+  if (selectedStatus !== 'all') params.set('status', selectedStatus);
+  const { data, loading, error } = useApiResource<EmployerApplicationResponse[]>(`${apiBase}/employer/applications?${params}`, revision);
+  const applications = data || [];
   useEffect(() => {
-    fetchStores();
+    getEmployerStores('newest').then(response => setStores(response.stores)).catch(console.error);
   }, []);
-
-  useEffect(() => {
-    fetchApplications();
-  }, [selectedStoreId, selectedStatus]);
-
-  const fetchStores = async () => {
-    try {
-      const response = await getEmployerStores('newest');
-      if (response && response.stores) {
-        setStores(response.stores);
-      }
-    } catch (error) {
-      console.error('Lỗi khi tải danh sách cửa hàng:', error);
-    }
-  };
-
-  const fetchApplications = async () => {
-    try {
-      setLoading(true);
-      const data = await getEmployerApplications(selectedStoreId, selectedStatus);
-      setApplications(data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleUpdateStatus = async (id: number, status: string) => {
     if (status === 'ACCEPTED') {
@@ -54,7 +33,7 @@ export const Applications: React.FC = () => {
     }
     try {
       await updateApplicationStatus(id, status);
-      fetchApplications(); // Refresh data
+      setRevision(value => value + 1);
     } catch (error) {
       console.error(error);
       alert('Có lỗi xảy ra khi cập nhật trạng thái.');
@@ -85,6 +64,7 @@ export const Applications: React.FC = () => {
 
   return (
     <div className={styles.appsPage}>
+      {error && <p role="alert">{error}</p>}
       <div className={styles.header}>
         <div>
           <h1 className={styles.title}>Đơn ứng tuyển</h1>
@@ -253,13 +233,7 @@ export const Applications: React.FC = () => {
                           >
                             <ExternalLink size={16} /> Hồ sơ NS
                           </button>
-                          <button 
-                            className={styles.btnReject} 
-                            onClick={() => handleUpdateStatus(app.applicationId, 'REJECTED')}
-                            title="Hoàn tác thành Từ chối"
-                          >
-                            <X size={16} /> Từ chối
-                          </button>
+
                         </>
                       )}
                       {app.status === 'REJECTED' && (

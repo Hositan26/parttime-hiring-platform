@@ -10,6 +10,7 @@ import tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundExce
 import tanhs.fudn.parttime_hiring_plaform_project.service.application.JobApplicationService;
 
 import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.request.application.JobApplicationRequest;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.application.JobApplicationResponse;
@@ -17,7 +18,6 @@ import tanhs.fudn.parttime_hiring_plaform_project.dto.response.application.Emplo
 import tanhs.fudn.parttime_hiring_plaform_project.entity.application.JobApplication;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.employment.EmploymentRecord;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.ApplicationStatus;
-import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.WorkStatus;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.job.JobPost;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.application.JobApplicationRepository;
@@ -28,12 +28,12 @@ import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.UserReposi
 import tanhs.fudn.parttime_hiring_plaform_project.repository.job.JobPostRepository;
 import tanhs.fudn.parttime_hiring_plaform_project.mapper.JobApplicationMapper;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class JobApplicationServiceImpl implements JobApplicationService {
 
     private final JobApplicationRepository applicationRepository;
@@ -99,7 +99,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
     @Transactional
     public void applyForJob(JobApplicationRequest request, String username) {
         User applicant = userRepository.lockByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng."));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng."));
 
         JobPost jobPost = jobPostRepository.findById(request.getJobPostId())
                 .orElseThrow(() -> new ResourceNotFoundException("Công việc không tồn tại hoặc đã bị xóa."));
@@ -117,13 +117,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
             throw new BusinessException("Bạn đã ứng tuyển công việc này rồi. Vui lòng kiểm tra trong danh sách đã nộp.");
         }
 
-        JobApplication application = JobApplication.builder()
-                .jobPost(jobPost)
-                .applicant(applicant)
-                .contactPhone(request.getContactPhone())
-                .note(request.getNote())
-                .status(ApplicationStatus.PENDING)
-                .build();
+        JobApplication application = applicationMapper.create(request, applicant, jobPost);
 
         applicationRepository.save(application);
     }
@@ -188,16 +182,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         // Logic tạo hoặc xóa EmploymentRecord
         if (status == ApplicationStatus.ACCEPTED && oldStatus != ApplicationStatus.ACCEPTED) {
             // Tạo bản ghi nhân sự mới
-            EmploymentRecord newRecord = EmploymentRecord.builder()
-                    .user(application.getApplicant())
-                    .store(application.getJobPost().getStore())
-                    .jobPost(application.getJobPost())
-                    .application(application)
-                    .startDate(LocalDate.now())
-                    .workStatus(WorkStatus.WORKING)
-                    .verifiedByEmployer(employer)
-                    .verifiedAt(LocalDateTime.now())
-                    .build();
+            EmploymentRecord newRecord = applicationMapper.toEmployment(application, employer);
             employmentRecordRepository.save(newRecord);
         }
     }

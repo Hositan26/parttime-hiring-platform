@@ -5,6 +5,7 @@ import { Briefcase, Bell, LogOut, User as UserIcon } from 'lucide-react';
 import styles from './MainLayout.module.css';
 import { useAuth } from '../../context/authContext';
 import { apiBase } from '../../services/apiClient';
+import { hasAnyRole } from '../../services/authPolicy';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -14,7 +15,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
   const { user } = useAuth();
 
-  const isEmployer = user?.roles?.some((r: any) => r.name === 'ROLE_EMPLOYER' || r === 'ROLE_EMPLOYER' || r === 'EMPLOYER') || user?.roles?.includes('EMPLOYER');
+  const isEmployer = hasAnyRole(user?.roles || [], ['EMPLOYER']);
 
   const navLinks = [
     { name: 'Jobs', path: '/jobs' },

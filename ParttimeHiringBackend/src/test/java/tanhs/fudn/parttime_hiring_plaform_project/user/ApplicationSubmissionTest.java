@@ -1,9 +1,13 @@
 package tanhs.fudn.parttime_hiring_plaform_project.user;
 
 import java.util.Optional;
+import java.util.List;
+import org.mapstruct.factory.Mappers;
+import tanhs.fudn.parttime_hiring_plaform_project.service.user.UserNotificationService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.request.application.JobApplicationRequest;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.request.application.ApplicationUpdateRequest;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.application.JobApplication;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.employer.Employer;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.employer.Store;
@@ -26,6 +30,21 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class ApplicationSubmissionTest {
+    // Edits pending contact details without changing candidate ownership or decision state.
+    @Test
+    void editsOwnedPendingContact() {
+        User user = User.builder().id(1L).build();
+        when(users.findByUsername("candidate")).thenReturn(Optional.of(user));
+        JobApplication application = JobApplication.builder().applicant(user).status(ApplicationStatus.PENDING).build();
+        when(applications.lockById(5)).thenReturn(Optional.of(application));
+        ApplicationUpdateRequest request = new ApplicationUpdateRequest();
+        request.setContactPhone("0901234567"); request.setNote("Weekend availability");
+        service.editApplication(5, request, "candidate");
+        assertEquals("0901234567", application.getContactPhone());
+        assertEquals("Weekend availability", application.getNote());
+        assertEquals(ApplicationStatus.PENDING, application.getStatus());
+        assertSame(user, application.getApplicant());
+    }
     // Rejects withdrawals by other candidates and preserves decided applications.
     @Test
     void protectsWithdrawalOwnershipAndState() {
@@ -48,7 +67,7 @@ class ApplicationSubmissionTest {
     @Test
     void scopesHistoryToCandidate() {
         when(users.findByUsername("candidate")).thenReturn(Optional.of(User.builder().id(1L).build()));
-        when(applications.findByApplicant_IdOrderByAppliedAtDesc(1L)).thenReturn(java.util.List.of());
+        when(applications.findByApplicant_IdOrderByAppliedAtDesc(1L)).thenReturn(List.of());
         assertTrue(service.getMyApplications("candidate").isEmpty());
         verify(applications).findByApplicant_IdOrderByAppliedAtDesc(1L);
         verify(applications, never()).findAll();
@@ -57,8 +76,8 @@ class ApplicationSubmissionTest {
     private final JobPostRepository jobs = mock(JobPostRepository.class);
     private final UserRepository users = mock(UserRepository.class);
     private final JobApplicationServiceImpl service = new JobApplicationServiceImpl(applications, jobs, users,
-            mock(EmployerRepository.class), mock(JobApplicationMapper.class), mock(EmploymentRecordRepository.class),
-            new JobAvailabilityPolicy(), mock(tanhs.fudn.parttime_hiring_plaform_project.service.user.UserNotificationService.class));
+            mock(EmployerRepository.class), Mappers.getMapper(JobApplicationMapper.class), mock(EmploymentRecordRepository.class),
+            new JobAvailabilityPolicy(), mock(UserNotificationService.class));
 
     // Rejects unavailable recruitment before reading or saving applications.
     @Test

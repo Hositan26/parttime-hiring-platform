@@ -1,6 +1,7 @@
 package tanhs.fudn.parttime_hiring_plaform_project.entity.employment;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -64,6 +65,7 @@ public class EmploymentRecord {
     @Column(name = "note", columnDefinition = "TEXT")
     private String note;
 
-    @Column(name = "created_at", nullable = false, updatable = false, insertable = false)
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 }

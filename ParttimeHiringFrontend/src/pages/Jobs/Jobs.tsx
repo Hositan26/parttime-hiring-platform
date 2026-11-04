@@ -4,7 +4,7 @@ import { JobCard } from '../../components/JobCard/JobCard';
 import { Input } from '../../components/Input/Input';
 import { Button } from '../../components/Button/Button';
 import { Filter, RefreshCcw } from 'lucide-react';
-import { searchJobPage, getCategories, getShifts, type Job } from '../../services/job.service';
+import { searchJobPage, getCategories, getShifts, type Job, type JobCategory, type JobShift } from '../../services/job.service';
 import styles from './Jobs.module.css';
 
 export const Jobs: React.FC = () => {
@@ -20,8 +20,8 @@ export const Jobs: React.FC = () => {
     title: '', storeName: '', categoryId: '', shiftId: '',
     minWage: '', maxWage: '', city: '', district: '', ward: '', streetAddress: ''
   });
-  const [categories, setCategories] = useState<any[]>([]);
-  const [shifts, setShifts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<JobCategory[]>([]);
+  const [shifts, setShifts] = useState<JobShift[]>([]);
 
   useEffect(() => {
     Promise.all([getCategories(), getShifts()]).then(([cats, shfs]) => {
@@ -31,34 +31,32 @@ export const Jobs: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchFilteredJobs();
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [filters, page]);
+    let active = true;
+    const timer = setTimeout(async () => {
+      const version = ++requestVersion.current;
+      if ((filters.minWage && Number(filters.minWage) < 0) || (filters.maxWage && Number(filters.maxWage) < 0)
+        || (filters.minWage && filters.maxWage && Number(filters.minWage) > Number(filters.maxWage))) {
+        setError('Mức lương phải không âm và mức tối đa phải lớn hơn hoặc bằng mức tối thiểu.');
+        setLoading(false);
+        return;
+      }
+      try {
+        setLoading(true);
+        setError('');
+        const data = await searchJobPage(filters, page);
+        if (!active || version !== requestVersion.current) return;
+        setJobs(data.content);
+        setTotalPages(data.totalPages);
+        setTotal(data.totalElements);
+      } catch (error) {
+        if (active && version === requestVersion.current) setError(error instanceof Error ? error.message : 'Không thể tải danh sách việc làm.');
+      } finally {
+        if (active && version === requestVersion.current) setLoading(false);
+      }
 
-  const fetchFilteredJobs = async () => {
-    const version = ++requestVersion.current;
-    if ((filters.minWage && Number(filters.minWage) < 0) || (filters.maxWage && Number(filters.maxWage) < 0)
-      || (filters.minWage && filters.maxWage && Number(filters.minWage) > Number(filters.maxWage))) {
-      setError('Mức lương phải không âm và mức tối đa phải lớn hơn hoặc bằng mức tối thiểu.');
-      setLoading(false);
-      return;
-    }
-    try {
-      setLoading(true);
-      setError('');
-      const data = await searchJobPage(filters, page);
-      if (version !== requestVersion.current) return;
-      setJobs(data.content);
-      setTotalPages(data.totalPages);
-      setTotal(data.totalElements);
-    } catch (error) {
-      if (version === requestVersion.current) setError(error instanceof Error ? error.message : 'Không thể tải danh sách việc làm.');
-    } finally {
-      if (version === requestVersion.current) setLoading(false);
-    }
-  };
+    }, 500);
+    return () => { active = false; clearTimeout(timer); };
+  }, [filters, page]);
 
   const handleFilterChange = (field: string, value: string) => {
     requestVersion.current++;
