@@ -112,6 +112,7 @@ export const AppliedJobs: React.FC = () => {
                 </div>
                 
                 <div className={styles.jobFooter}>
+                  <a className="btn-outline" href={`/applications/${app.applicationId}/conversation`} onClick={event => event.stopPropagation()}>Trao đổi / Phỏng vấn</a>
                   <div className={styles.footerItem}>
                     <Clock size={16} className={styles.footerIcon} />
                     <span>Đã nộp: {formatDate(app.appliedAt)}</span>

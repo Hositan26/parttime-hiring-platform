@@ -218,6 +218,7 @@ export const Applications: React.FC = () => {
                   </span>
                 </td>
                 <td>
+                  <a className="btn-outline" href={`/applications/${app.applicationId}/conversation`}>Trao đổi / Phỏng vấn</a>
                   <a className="btn-outline" href={`/candidate-profile/applications/${app.applicationId}`}>Xem CV</a>
                   <button className={styles.viewProfileBtn} onClick={() => setSelectedProfile(app)}>
                     <Eye size={16} /> Xem

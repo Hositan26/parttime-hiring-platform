@@ -5,10 +5,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Login } from './pages/Login/Login';
 import { Register } from './pages/Register/Register';
 import { Jobs } from './pages/Jobs/Jobs';
+import { JobReports } from './pages/Jobs/JobReports';
 import { SavedJobs } from './pages/Jobs/SavedJobs';
 import { JobDetail } from './pages/Jobs/JobDetail';
 import { AppliedJobs } from './pages/AppliedJobs/AppliedJobs';
 import { Profile } from './pages/Profile/Profile';
+import { Conversation } from './pages/Profile/Conversation';
 import { Notifications } from './pages/Profile/Notifications';
 import { CandidateProfile } from './pages/Profile/CandidateProfile';
 import { EmploymentHistory } from './pages/Profile/EmploymentHistory';
@@ -49,10 +51,12 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
         <Route path="/jobs" element={<Jobs />} />
+        <Route path="/job-reports" element={<RoleRoute><JobReports /></RoleRoute>} />
         <Route path="/saved-jobs" element={<RoleRoute roles={['USER']}><SavedJobs /></RoleRoute>} />
         <Route path="/jobs/:id" element={<JobDetail />} />
         <Route path="/applied-jobs" element={<RoleRoute roles={['USER']}><AppliedJobs /></RoleRoute>} />
         <Route path="/profile" element={<RoleRoute><Profile /></RoleRoute>} />
+        <Route path="/applications/:applicationId/conversation" element={<RoleRoute><Conversation /></RoleRoute>} />
         <Route path="/notifications" element={<RoleRoute><Notifications /></RoleRoute>} />
         <Route path="/candidate-profile" element={<RoleRoute><CandidateProfile /></RoleRoute>} />
         <Route path="/candidate-profile/applications/:applicationId" element={<RoleRoute><CandidateProfile /></RoleRoute>} />

@@ -6,6 +6,7 @@ import { PhoneCall, MapPin, Clock, Banknote, Users, CalendarDays, User, ArrowLef
 import { getJobById, type JobDetail as JobDetailType } from '../../services/job.service';
 import { applyForJob } from '../../services/application.service';
 import styles from './JobDetail.module.css';
+import { ReportJob } from './ReportJob';
 
 export const JobDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -73,6 +74,7 @@ export const JobDetail: React.FC = () => {
 
   return (
     <MainLayout>
+      <ReportJob jobId={Number(id)} />
       <div className={styles.container}>
         <Link to="/jobs" className={styles.breadcrumb}>
           <ArrowLeft size={16} /> Quay lại danh sách
