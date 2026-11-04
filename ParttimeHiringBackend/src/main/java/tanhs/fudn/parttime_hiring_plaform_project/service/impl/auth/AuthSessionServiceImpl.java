@@ -22,6 +22,7 @@ import tanhs.fudn.parttime_hiring_plaform_project.service.auth.AuthSessionServic
 public class AuthSessionServiceImpl implements AuthSessionService {
     private final RefreshSessionRepository repository;
     private final JwtTokenProvider tokens;
+    private final tanhs.fudn.parttime_hiring_plaform_project.repository.identity.RevokedAccessTokenRepository revokedTokens;
     private final AuthCookieService cookies;
     @Value("${jwt.refreshable-duration:7200}")
     private long refreshSeconds = 7200;
@@ -49,6 +50,21 @@ public class AuthSessionServiceImpl implements AuthSessionService {
         issue(session.getUser(), session.getFamily(), session.getExpiresAt(), response);
     }
 
+    // Revokes browser credentials while preserving unrelated browser sessions.
+    @Transactional
+    public void logout(String refresh, String access, HttpServletResponse response) {
+        if (refresh != null && !refresh.isBlank()) {
+            repository.lockByHash(TokenDigests.hash(refresh)).ifPresent(session -> repository.revokeFamily(session.getFamily()));
+        }
+        if (access != null && tokens.validateToken(access)) {
+            var claims = tokens.parseClaims(access);
+            var revoked = new tanhs.fudn.parttime_hiring_plaform_project.entity.identity.RevokedAccessToken();
+            revoked.setId(claims.getId());
+            revoked.setExpiresAt(claims.getExpiration().toInstant());
+            revokedTokens.save(revoked);
+        }
+        cookies.clear(response);
+    }
     // Persists a credential digest and sends tokens only through HttpOnly cookies.
     private void issue(User user, String family, Instant expiresAt, HttpServletResponse response) {
         String raw = TokenDigests.randomToken();
@@ -58,7 +74,8 @@ public class AuthSessionServiceImpl implements AuthSessionService {
         session.setUser(user);
         session.setExpiresAt(expiresAt);
         repository.save(session);
-        cookies.writeAccess(response, tokens.generateTokenFromUsername(user.getUsername()), tokens.getExpirationSeconds());
+        cookies.writeAccess(response, tokens.generateTokenForUser(user), tokens.getExpirationSeconds());
         cookies.write(response, "refresh_token", raw, Math.max(0, expiresAt.getEpochSecond() - Instant.now().getEpochSecond()), "/");
     }
 }
+

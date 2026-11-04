@@ -25,6 +25,9 @@ public class User {
     @Column(name = "user_id")
     @org.hibernate.annotations.JdbcTypeCode(java.sql.Types.INTEGER)
     private Long id;
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    @Builder.Default
+    private Integer authVersion = 0;
 
     @Column(name = "username", unique = true)
     private String username;
@@ -61,3 +64,4 @@ public class User {
     @org.hibernate.annotations.CreationTimestamp
     private java.time.LocalDateTime createdAt;
 }
+

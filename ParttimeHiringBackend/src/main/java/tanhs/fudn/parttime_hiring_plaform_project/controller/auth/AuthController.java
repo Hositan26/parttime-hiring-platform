@@ -41,9 +41,10 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Session refreshed"));
     }
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<String>> logout(HttpServletResponse response) {
-        authService.logout(response);
+    public ResponseEntity<ApiResponse<String>> logout(@CookieValue(name = "refresh_token", required = false) String refresh, @CookieValue(name = "access_token", required = false) String access, HttpServletResponse response) {
+        sessionService.logout(refresh, access, response);
         return ResponseEntity.ok(ApiResponse.success("Đăng xuất thành công!"));
     }
 }
+
 

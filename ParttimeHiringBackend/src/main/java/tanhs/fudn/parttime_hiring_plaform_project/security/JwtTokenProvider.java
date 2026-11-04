@@ -38,9 +38,17 @@ public class JwtTokenProvider {
 
     // Signs an access token with issuer, lifetime, and unique identifier.
     public String generateTokenFromUsername(String username) {
+        return issue(username, 0);
+    }
+    // Binds access credentials to the current account security version.
+    public String generateTokenForUser(tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User user) {
+        return issue(user.getUsername(), user.getAuthVersion());
+    }
+    // Signs versioned access credentials for revocation after security changes.
+    private String issue(String username, int version) {
         Date now = new Date();
         return Jwts.builder().setSubject(username).setIssuer(issuer)
-                .setId(UUID.randomUUID().toString()).claim("type", "access")
+                .setId(UUID.randomUUID().toString()).claim("type", "access").claim("version", version)
                 .setIssuedAt(now).setExpiration(new Date(now.getTime() + expirationSeconds * 1000))
                 .signWith(signingKey, SignatureAlgorithm.HS512).compact();
     }
@@ -76,3 +84,4 @@ public class JwtTokenProvider {
         return expirationSeconds;
     }
 }
+

@@ -21,7 +21,7 @@ class RefreshUnitTest {
     void rejectsMissingOrUnknownCredentials() {
         var repository = mock(RefreshSessionRepository.class);
         var tokens = mock(JwtTokenProvider.class);
-        var service = new AuthSessionServiceImpl(repository, tokens, new AuthCookieService(false));
+        var service = new AuthSessionServiceImpl(repository, tokens, mock(tanhs.fudn.parttime_hiring_plaform_project.repository.identity.RevokedAccessTokenRepository.class), new AuthCookieService(false));
         assertThrows(UnauthorizedException.class, () -> service.refresh(null, new MockHttpServletResponse()));
         when(repository.lockByHash(anyString())).thenReturn(Optional.empty());
         assertThrows(UnauthorizedException.class, () -> service.refresh("unknown", new MockHttpServletResponse()));
@@ -36,7 +36,7 @@ class RefreshUnitTest {
         session.setConsumed(true);
         session.setFamily("family");
         when(repository.lockByHash(TokenDigests.hash("old"))).thenReturn(Optional.of(session));
-        var service = new AuthSessionServiceImpl(repository, mock(JwtTokenProvider.class), new AuthCookieService(false));
+        var service = new AuthSessionServiceImpl(repository, mock(JwtTokenProvider.class), mock(tanhs.fudn.parttime_hiring_plaform_project.repository.identity.RevokedAccessTokenRepository.class), new AuthCookieService(false));
         assertThrows(UnauthorizedException.class, () -> service.refresh("old", new MockHttpServletResponse()));
         verify(repository).revokeFamily("family");
     }
@@ -52,7 +52,7 @@ class RefreshUnitTest {
         when(repository.lockByHash(anyString())).thenReturn(Optional.of(session));
         var tokens = mock(JwtTokenProvider.class);
         when(tokens.generateTokenFromUsername("user")).thenReturn("access");
-        var service = new AuthSessionServiceImpl(repository, tokens, new AuthCookieService(false));
+        var service = new AuthSessionServiceImpl(repository, tokens, mock(tanhs.fudn.parttime_hiring_plaform_project.repository.identity.RevokedAccessTokenRepository.class), new AuthCookieService(false));
         var response = new MockHttpServletResponse();
         service.refresh("valid", response);
         assertTrue(session.isConsumed());
@@ -60,3 +60,4 @@ class RefreshUnitTest {
         assertEquals(2, response.getHeaders("Set-Cookie").size());
     }
 }
+
