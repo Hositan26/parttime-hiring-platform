@@ -1,4 +1,7 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.auth;
+
+import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.RevokedAccessToken;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.RevokedAccessTokenRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import java.time.Instant;
 import java.util.UUID;
@@ -22,7 +25,7 @@ import tanhs.fudn.parttime_hiring_plaform_project.service.auth.AuthSessionServic
 public class AuthSessionServiceImpl implements AuthSessionService {
     private final RefreshSessionRepository repository;
     private final JwtTokenProvider tokens;
-    private final tanhs.fudn.parttime_hiring_plaform_project.repository.identity.RevokedAccessTokenRepository revokedTokens;
+    private final RevokedAccessTokenRepository revokedTokens;
     private final AuthCookieService cookies;
     @Value("${jwt.refreshable-duration:7200}")
     private long refreshSeconds = 7200;
@@ -30,6 +33,7 @@ public class AuthSessionServiceImpl implements AuthSessionService {
     // Starts an independently revocable refresh family for this browser.
     @Transactional
     public void start(User user, HttpServletResponse response) {
+        if (!Boolean.TRUE.equals(user.getIsActive())) throw new UnauthorizedException("Account is unavailable");
         issue(user, UUID.randomUUID().toString(), Instant.now().plusSeconds(refreshSeconds), response);
     }
 
@@ -42,6 +46,10 @@ public class AuthSessionServiceImpl implements AuthSessionService {
         if (session.isConsumed() || session.isRevoked() || !session.getExpiresAt().isAfter(Instant.now())
                 || !Boolean.TRUE.equals(session.getUser().getIsActive())) {
             repository.revokeFamily(session.getFamily());
+            if (session.isConsumed() && session.getUser() != null) {
+                session.getUser().setAuthVersion(session.getUser().getAuthVersion() + 1);
+                repository.revokeUser(session.getUser().getId());
+            }
             cookies.clear(response);
             throw new UnauthorizedException("Session expired");
         }
@@ -56,9 +64,10 @@ public class AuthSessionServiceImpl implements AuthSessionService {
         if (refresh != null && !refresh.isBlank()) {
             repository.lockByHash(TokenDigests.hash(refresh)).ifPresent(session -> repository.revokeFamily(session.getFamily()));
         }
-        if (access != null && tokens.validateToken(access)) {
-            var claims = tokens.parseClaims(access);
-            var revoked = new tanhs.fudn.parttime_hiring_plaform_project.entity.identity.RevokedAccessToken();
+        var validated = tokens.validClaims(access);
+        if (validated.isPresent()) {
+            var claims = validated.get();
+            var revoked = new RevokedAccessToken();
             revoked.setId(claims.getId());
             revoked.setExpiresAt(claims.getExpiration().toInstant());
             revokedTokens.save(revoked);
@@ -78,4 +87,3 @@ public class AuthSessionServiceImpl implements AuthSessionService {
         cookies.write(response, "refresh_token", raw, Math.max(0, expiresAt.getEpochSecond() - Instant.now().getEpochSecond()), "/");
     }
 }
-

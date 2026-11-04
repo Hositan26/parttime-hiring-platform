@@ -1,4 +1,6 @@
 package tanhs.fudn.parttime_hiring_plaform_project.exception;
+
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -55,7 +57,7 @@ public class GlobalExceptionHandler {
     }
 
     // Rejects malformed JSON without exposing deserialization internals.
-    @ExceptionHandler({HttpMessageNotReadableException.class, org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class})
+    @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})
     public ResponseEntity<ApiResponse<Object>> malformed(Exception exception) {
         return error(400, "BAD_REQUEST", "Request data is invalid", null);
     }
@@ -79,4 +81,3 @@ public class GlobalExceptionHandler {
                 .message(message).result(result).timestamp(Instant.now().toString()).build());
     }
 }
-

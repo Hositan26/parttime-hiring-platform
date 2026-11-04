@@ -37,4 +37,19 @@ class CsrfIntegrationTest {
                 .andExpect(status().isOk()).andExpect(jsonPath("$.result.username").value("admin"))
                 .andExpect(jsonPath("$.result.token").doesNotExist());
     }
-}
+    // Accepts credentialed preflight requests only from configured frontend origins.
+    @Test
+    void permitsConfiguredFrontendOrigin() throws Exception {
+        mvc.perform(options("/api/users/me").header("Origin", "http://localhost:5173")
+                .header("Access-Control-Request-Method", "PUT")
+                .header("Access-Control-Request-Headers", "X-XSRF-TOKEN,Content-Type"))
+                .andExpect(status().isOk()).andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"))
+                .andExpect(header().string("Access-Control-Allow-Credentials", "true"));
+    }
+
+    // Rejects untrusted websites before they can perform credentialed requests.
+    @Test
+    void rejectsUntrustedOrigin() throws Exception {
+        mvc.perform(options("/api/users/me").header("Origin", "https://untrusted.example")
+                .header("Access-Control-Request-Method", "PUT")).andExpect(status().isForbidden());
+    }}

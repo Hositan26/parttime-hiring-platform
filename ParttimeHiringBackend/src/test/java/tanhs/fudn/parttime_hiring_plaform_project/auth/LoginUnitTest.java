@@ -37,6 +37,7 @@ class LoginUnitTest {
         var request = new LoginRequest();
         request.setUsername("missing");
         request.setPassword("wrong");
+        when(userRepository.lockByUsername("missing")).thenReturn(java.util.Optional.of(tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User.builder().username("missing").build()));
         when(authenticationManager.authenticate(any())).thenThrow(new BadCredentialsException("internal details"));
         var error = assertThrows(UnauthorizedException.class,
                 () -> service.login(request, new MockHttpServletResponse()));
@@ -44,4 +45,3 @@ class LoginUnitTest {
         verifyNoInteractions(tokenProvider);
     }
 }
-

@@ -16,6 +16,10 @@ public interface AuthMapper {
     @Mapping(target = "dateOfBirth", expression = "java(parseBirthDate(request.getDateOfBirth()))")
     User toUser(RegisterRequest request);
 
+    // Maps verified Google attributes without accepting account privileges.
+    @Mapping(target = "password", ignore = true)
+    @Mapping(target = "roles", ignore = true)
+    User toGoogleUser(String username, String email, String displayName, String avatarUrl);
     // Returns public account details without exposing credentials or tokens.
     LoginResponse toLoginResponse(User user);
 

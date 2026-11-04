@@ -32,4 +32,15 @@ class RegistrationUnitTest {
         assertNull(user.getPassword());
         assertTrue(user.getRoles().isEmpty());
     }
-}
+    // Rejects Unicode passwords that exceed BCrypt's supported byte length.
+    @Test
+    void rejectsOversizedUtf8Password() {
+        RegisterRequest request = new RegisterRequest();
+        request.setUsername("candidate");
+        request.setDisplayName("Candidate");
+        request.setPassword("🔒".repeat(30));
+        try (var factory = Validation.buildDefaultValidatorFactory()) {
+            assertTrue(factory.getValidator().validate(request).stream()
+                    .anyMatch(violation -> violation.getPropertyPath().toString().equals("password")));
+        }
+    }}

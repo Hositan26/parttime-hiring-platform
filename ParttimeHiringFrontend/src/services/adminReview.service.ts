@@ -1,5 +1,5 @@
-import { apiFetch } from './apiClient';
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/admin/reviews';
+import { apiFetch, apiBase } from './apiClient';
+const API_URL = apiBase + '/admin/reviews';
 
 export interface AdminReviewResponse {
   reviewId: number;
@@ -30,4 +30,3 @@ export const deleteReview = async (id: number) => {
   if (!response.ok) throw new Error('Lỗi xóa đánh giá');
   return await response.json();
 };
-

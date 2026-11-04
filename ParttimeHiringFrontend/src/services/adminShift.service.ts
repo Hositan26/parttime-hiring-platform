@@ -1,5 +1,5 @@
-import { apiFetch } from './apiClient';
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/admin/shifts';
+import { apiFetch, apiBase } from './apiClient';
+const API_URL = apiBase + '/admin/shifts';
 
 export interface AdminShift {
   shiftId: number;
@@ -49,4 +49,3 @@ export const deleteShift = async (id: number) => {
   if (!response.ok) throw new Error('Lỗi xóa ca làm việc');
   return await response.json();
 };
-

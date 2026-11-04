@@ -1,4 +1,4 @@
-import { apiFetch } from './apiClient';
+import { apiFetch, apiBase } from './apiClient';
 export const JobStatus = {
   PENDING: 'PENDING',
   ACTIVE: 'ACTIVE',
@@ -9,7 +9,7 @@ export const JobStatus = {
 
 export type JobStatusType = typeof JobStatus[keyof typeof JobStatus];
 
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/admin/jobs';
+const API_URL = apiBase + '/admin/jobs';
 
 export interface AdminJobPostResponse {
   jobId: number;
@@ -69,4 +69,3 @@ export const updateAdminJobPostStatus = async (jobId: number, status: JobStatusT
   const data = await response.json();
   return data.result;
 };
-

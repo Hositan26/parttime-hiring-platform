@@ -1,6 +1,6 @@
 import { requiresSession, safeReturnPath } from './authPolicy.ts';
 
-const apiBase = import.meta.env?.VITE_API_BASE_URL ?? 'http://localhost:8088/parttime_hiring_platform/api';
+export const apiBase = import.meta.env?.VITE_API_BASE_URL ?? 'http://localhost:8088/parttime_hiring_platform/api';
 let refreshInFlight: Promise<boolean> | null = null;
 let csrfInFlight: Promise<string> | null = null;
 

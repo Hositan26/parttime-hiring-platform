@@ -1,5 +1,5 @@
-import { apiFetch } from './apiClient';
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/jobs';
+import { apiFetch, apiBase } from './apiClient';
+const API_URL = apiBase + '/jobs';
 
 export interface Job {
   id: number;
@@ -93,4 +93,3 @@ export const getJobById = async (id: string | number): Promise<JobDetail> => {
   const data = await response.json();
   return data.result;
 };
-

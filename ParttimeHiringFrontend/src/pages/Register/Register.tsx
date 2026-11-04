@@ -1,3 +1,5 @@
+import { registrationError } from '../../services/authValidation';
+import { apiBase } from '../../services/apiClient';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Calendar, Eye, EyeOff } from 'lucide-react';
@@ -6,6 +8,7 @@ import styles from './Register.module.css';
 import { register } from '../../services/auth.service';
 
 export const Register: React.FC = () => {
+  const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -23,6 +26,8 @@ export const Register: React.FC = () => {
     e.preventDefault();
     setError('');
 
+    const validation = registrationError(username, password, displayName, email);
+    if (validation) { setError(validation); return; }
     if (password !== confirmPassword) {
       setError('Mật khẩu xác nhận không khớp');
       return;
@@ -30,18 +35,18 @@ export const Register: React.FC = () => {
 
     setLoading(true);
     try {
-      await register(username, password, displayName, dateOfBirth);
+      await register(username, password, displayName, dateOfBirth, email);
       // Chuyển hướng sang login
       navigate('/login');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Registration failed");
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = 'http://localhost:8088/parttime_hiring_platform/oauth2/authorization/google';
+    window.location.href = apiBase.replace(/\/api\/?$/, '') + '/oauth2/authorization/google';
   };
 
   return (
@@ -66,6 +71,8 @@ export const Register: React.FC = () => {
       </div>
 
       <form onSubmit={handleSubmit} className={styles.form}>
+        <label className={styles.label}>Email<input className={styles.input} type="email" autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} required /></label>
+        {username && password && displayName && email && <p role="status">{registrationError(username, password, displayName, email)}</p>}
         {error && <div className={styles.errorAlert}>{error}</div>}
         
         <div className={styles.formGroup}>

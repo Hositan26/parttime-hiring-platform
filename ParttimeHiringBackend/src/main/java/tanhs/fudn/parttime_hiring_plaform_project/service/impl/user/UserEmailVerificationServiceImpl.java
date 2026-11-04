@@ -28,6 +28,7 @@ public class UserEmailVerificationServiceImpl implements UserEmailVerificationSe
     private final EmailVerificationOtpRepository repository;
     private final EmailService email;
     private final UserRepository users;
+    private final tanhs.fudn.parttime_hiring_plaform_project.security.AttemptRateLimiter limiter;
     @Value("${jwt.signerKey}")
     private String pepper;
 

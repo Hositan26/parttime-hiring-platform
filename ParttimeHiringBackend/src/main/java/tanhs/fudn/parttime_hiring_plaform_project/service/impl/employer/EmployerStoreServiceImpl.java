@@ -1,7 +1,8 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.employer;
 
-import tanhs.fudn.parttime_hiring_plaform_project.service.employer.EmployerStoreService;
+import org.springframework.security.access.AccessDeniedException;
 
+import tanhs.fudn.parttime_hiring_plaform_project.service.employer.EmployerStoreService;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -86,6 +87,7 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
                 .build();
     }
 
+    // Deletes an owned store when recruitment records allow removal.
     @Transactional
     public void deleteStore(String username, Integer storeId) {
         log.info("Xóa cửa hàng ID: {} bởi username: {}", storeId, username);
@@ -95,7 +97,7 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
         
         if (!store.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền xóa cửa hàng này.");
+            throw new AccessDeniedException("Bạn không có quyền xóa cửa hàng này.");
         }
         
         if (!store.getIsActive()) {
@@ -110,6 +112,7 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
         storeRepository.delete(store);
     }
 
+    // Updates owned store details and requests a new review.
     @Transactional
     public void updateStore(String username, Integer storeId, UpdateStoreRequest request) {
         log.info("Cập nhật cửa hàng ID: {} bởi username: {}", storeId, username);
@@ -119,7 +122,7 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
         
         if (!store.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền chỉnh sửa cửa hàng này.");
+            throw new AccessDeniedException("Bạn không có quyền chỉnh sửa cửa hàng này.");
         }
         
         if (!store.getIsActive()) {
@@ -159,6 +162,7 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
         return storeMapper.toNewEmployerStoreResponse(store, employer.getPhoneContact());
     }
 
+    // Changes activity state only for a store owned by this employer.
     @Transactional
     public EmployerStoreResponse toggleStoreStatus(String username, Integer storeId) {
         log.info("Thay đổi trạng thái cửa hàng ID: {} bởi username: {}", storeId, username);
@@ -168,7 +172,7 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
         
         if (!store.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền thay đổi trạng thái cửa hàng này.");
+            throw new AccessDeniedException("Bạn không có quyền thay đổi trạng thái cửa hàng này.");
         }
         
         store.setIsActive(!store.getIsActive());
@@ -180,6 +184,7 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
         return storeMapper.toToggledEmployerStoreResponse(store, jobCount, applicationCount, employer.getPhoneContact());
     }
 
+    // Returns store details only to its owning employer.
     @Transactional(readOnly = true)
     public EmployerStoreDetailResponse getStoreDetail(String username, Integer storeId) {
         log.info("Lấy chi tiết cửa hàng ID: {} bởi username: {}", storeId, username);
@@ -189,7 +194,7 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
         
         if (!store.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền xem cửa hàng này.");
+            throw new AccessDeniedException("Bạn không có quyền xem cửa hàng này.");
         }
         
         List<JobPost> jobs = jobPostRepository.findByStore_StoreId(storeId);
@@ -202,6 +207,7 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
         return storeMapper.toEmployerStoreDetailResponse(store, employer.getPhoneContact(), jobDTOs);
     }
 
+    // Returns employee details only after validating store ownership.
     @Transactional(readOnly = true)
     public List<EmployeeResponse> getStoreEmployees(String username, Integer storeId) {
         log.info("Lấy danh sách nhân sự cửa hàng ID: {} bởi username: {}", storeId, username);
@@ -211,7 +217,7 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
 
         if (!store.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền xem nhân sự của cửa hàng này.");
+            throw new AccessDeniedException("Bạn không có quyền xem nhân sự của cửa hàng này.");
         }
 
         List<EmploymentRecord> records = employmentRecordRepository.findByStoreIdWithDetails(storeId);
@@ -230,4 +236,3 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
         ).collect(Collectors.toList());
     }
 }
-

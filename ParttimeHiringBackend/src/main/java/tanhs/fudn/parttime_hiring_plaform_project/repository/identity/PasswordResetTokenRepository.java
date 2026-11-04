@@ -14,4 +14,8 @@ public interface PasswordResetTokenRepository extends JpaRepository<PasswordRese
     Optional<PasswordResetToken> lockByHash(@Param("hash") String hash);
     // Removes outstanding reset credentials after a password change.
     void deleteByUser_Id(Long userId);
+    // Deletes expired credentials without loading bearer data into memory.
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("delete from PasswordResetToken value where value.expiresAt < :now")
+    void deleteExpired(@org.springframework.data.repository.query.Param("now") java.time.Instant now);
 }

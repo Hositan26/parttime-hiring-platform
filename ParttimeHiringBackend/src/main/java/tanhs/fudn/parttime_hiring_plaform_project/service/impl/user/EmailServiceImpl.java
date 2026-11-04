@@ -2,7 +2,6 @@ package tanhs.fudn.parttime_hiring_plaform_project.service.impl.user;
 
 import tanhs.fudn.parttime_hiring_plaform_project.service.user.EmailService;
 
-
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.AccessLevel;
@@ -21,6 +20,7 @@ public class EmailServiceImpl implements EmailService {
 
     JavaMailSender mailSender;
 
+    // Delivers a short-lived email verification code without logging its value.
     public void sendOtpEmail(String toEmail, String otpCode) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -87,4 +87,3 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 }
-

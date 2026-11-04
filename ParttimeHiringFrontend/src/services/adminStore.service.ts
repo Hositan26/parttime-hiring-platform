@@ -1,5 +1,5 @@
-import { apiFetch } from './apiClient';
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/admin/stores';
+import { apiFetch, apiBase } from './apiClient';
+const API_URL = apiBase + '/admin/stores';
 
 export interface AdminStoreResponse {
   storeId: number;
@@ -49,4 +49,3 @@ export const updateAdminStoreStatus = async (id: number, isActive: boolean) => {
   const data = await response.json();
   return data.result;
 };
-

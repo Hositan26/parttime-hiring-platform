@@ -28,7 +28,7 @@ class OtpUnitTest {
         challenge.setExpirationTime(LocalDateTime.now().plusMinutes(5));
         when(repository.findTopByOwner_IdAndEmailOrderByExpirationTimeDesc(7L, "u@example.com"))
                 .thenReturn(Optional.of(challenge));
-        var service = new UserEmailVerificationServiceImpl(repository, mock(EmailService.class), users);
+        var service = new UserEmailVerificationServiceImpl(repository, mock(EmailService.class), users, mock(tanhs.fudn.parttime_hiring_plaform_project.security.AttemptRateLimiter.class));
         assertThrows(BusinessException.class, () -> service.confirmOtp("u@example.com", "000000", "user"));
         assertEquals(1, challenge.getAttempts());
         challenge.setUsed(true);
@@ -44,7 +44,7 @@ class OtpUnitTest {
         var repository = mock(EmailVerificationOtpRepository.class);
         when(repository.findTopByOwner_IdAndEmailOrderByExpirationTimeDesc(anyLong(), anyString()))
                 .thenReturn(Optional.of(new EmailVerificationOtp()));
-        var service = new UserEmailVerificationServiceImpl(repository, mock(EmailService.class), users);
+        var service = new UserEmailVerificationServiceImpl(repository, mock(EmailService.class), users, mock(tanhs.fudn.parttime_hiring_plaform_project.security.AttemptRateLimiter.class));
         assertThrows(BusinessException.class, () -> service.verifyOtp("u@example.com", "000000", "user"));
     }
 }

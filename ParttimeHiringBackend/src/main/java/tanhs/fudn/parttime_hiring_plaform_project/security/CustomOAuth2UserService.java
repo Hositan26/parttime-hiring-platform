@@ -1,5 +1,8 @@
 package tanhs.fudn.parttime_hiring_plaform_project.security;
 
+import java.util.UUID;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,9 +28,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private final UserRepository userRepository;
     private final UserOauthAccountRepository accountRepository;
     private final RoleRepository roleRepository;
+    private final tanhs.fudn.parttime_hiring_plaform_project.mapper.AuthMapper mapper;
 
     // Resolves verified Google identity into a local account principal.
     @Override
+    @Transactional
     public OAuth2User loadUser(OAuth2UserRequest request) {
         OAuth2User remote = super.loadUser(request);
         User local = resolveUser(remote.getAttributes());
@@ -61,11 +66,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private User createAccount(Map<String, Object> attributes, String subject, String email) {
         Role role = roleRepository.findById("USER")
                 .orElseThrow(() -> new OAuth2AuthenticationException("Default role is unavailable"));
-        User user = new User();
-        user.setUsername("google_" + java.util.UUID.randomUUID().toString().replace("-", ""));
-        user.setEmail(email);
-        user.setDisplayName((String) attributes.getOrDefault("name", "Google User"));
-        user.setAvatarUrl((String) attributes.get("picture"));
+        User user = mapper.toGoogleUser("google_" + java.util.UUID.randomUUID().toString().replace("-", ""),
+                email, (String) attributes.getOrDefault("name", "Google User"), (String) attributes.get("picture"));
         user.setRoles(Collections.singleton(role));
         user = userRepository.save(user);
         UserOauthAccount account = new UserOauthAccount();

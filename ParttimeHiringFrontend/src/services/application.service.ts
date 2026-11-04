@@ -1,5 +1,5 @@
-import { apiFetch } from './apiClient';
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/users/applications';
+import { apiFetch, apiBase } from './apiClient';
+const API_URL = apiBase + '/users/applications';
 
 export interface JobApplicationRequest {
     jobPostId: number;
@@ -70,7 +70,7 @@ export const getMyApplications = async (): Promise<JobApplicationResponse[]> => 
 };
 
 export const getEmployerApplications = async (storeId?: number, status?: string): Promise<EmployerApplicationResponse[]> => {
-    let url = `http://localhost:8088/parttime_hiring_platform/api/employer/applications`;
+    let url = `${apiBase}/employer/applications`;
     const params = new URLSearchParams();
     if (storeId && storeId !== 0) params.append('storeId', storeId.toString());
     if (status && status !== 'all' && status !== '') params.append('status', status);
@@ -94,7 +94,7 @@ export const getEmployerApplications = async (storeId?: number, status?: string)
 };
 
 export const updateApplicationStatus = async (applicationId: number, status: string): Promise<void> => {
-    const response = await apiFetch(`http://localhost:8088/parttime_hiring_platform/api/employer/applications/${applicationId}/status`, {
+    const response = await apiFetch(`${apiBase}/employer/applications/${applicationId}/status`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json'
@@ -108,4 +108,3 @@ export const updateApplicationStatus = async (applicationId: number, status: str
         throw new Error(errorData.message || errorData.error || 'Lỗi khi cập nhật trạng thái đơn ứng tuyển.');
     }
 };
-

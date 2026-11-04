@@ -1,5 +1,7 @@
 package tanhs.fudn.parttime_hiring_plaform_project.security;
 
+import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -8,9 +10,10 @@ import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
+
 import org.springframework.stereotype.Component;
 
 @Component
@@ -32,7 +35,7 @@ public class JwtTokenProvider {
     }
 
     // Binds access credentials to the current account security version.
-    public String generateTokenForUser(tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User user) {
+    public String generateTokenForUser(User user) {
         return issue(user.getId().toString(), user.getAuthVersion());
     }
     // Signs versioned access credentials for revocation after security changes.
@@ -51,11 +54,14 @@ public class JwtTokenProvider {
 
     // Rejects forged, expired, malformed, or incorrectly scoped access tokens.
     public boolean validateToken(String token) {
+        return validClaims(token).isPresent();
+    }
+    // Parses credentials once so expiration races cannot become server errors.
+    public Optional<Claims> validClaims(String token) {
         try {
-            parseClaims(token);
-            return true;
+            return Optional.of(parseClaims(token));
         } catch (JwtException | IllegalArgumentException exception) {
-            return false;
+            return Optional.empty();
         }
     }
 
@@ -67,6 +73,7 @@ public class JwtTokenProvider {
                 || claims.getId() == null || claims.getExpiration() == null || claims.getIssuedAt() == null) {
             throw new IllegalArgumentException("Missing access token claims");
         }
+        if (Long.parseLong(claims.getSubject()) <= 0) throw new IllegalArgumentException("Invalid account identity");
         return claims;
     }
 
@@ -75,5 +82,3 @@ public class JwtTokenProvider {
         return expirationSeconds;
     }
 }
-
-

@@ -1,5 +1,5 @@
-import { apiFetch } from './apiClient';
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/admin/users';
+import { apiFetch, apiBase } from './apiClient';
+const API_URL = apiBase + '/admin/users';
 
 export interface AdminUserResponse {
   id: number;
@@ -45,4 +45,3 @@ export const unbanUser = async (id: number) => {
   const data = await response.json();
   return data.result;
 };
-

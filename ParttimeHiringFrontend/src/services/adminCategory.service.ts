@@ -1,5 +1,5 @@
-import { apiFetch } from './apiClient';
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/admin/categories';
+import { apiFetch, apiBase } from './apiClient';
+const API_URL = apiBase + '/admin/categories';
 
 export interface AdminCategory {
   categoryId: number;
@@ -49,4 +49,3 @@ export const deleteCategory = async (id: number) => {
   if (!response.ok) throw new Error('Lỗi xóa ngành nghề');
   return await response.json();
 };
-

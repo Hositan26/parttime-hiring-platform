@@ -48,9 +48,12 @@ Dữ liệu tuyển dụng được tổ chức theo mối quan hệ **doanh ngh
 
 - Đăng ký tài khoản người dùng và đăng nhập bằng mật khẩu.
 - Tích hợp đăng nhập Google thông qua OAuth 2.0.
-- Xác thực yêu cầu bằng JWT lưu trong cookie HttpOnly.
+- Xác thực yêu cầu bằng JWT lưu trong cookie HttpOnly, refresh token và bảo vệ CSRF.
+- Đổi mật khẩu, khôi phục mật khẩu qua email và thu hồi phiên đăng nhập.
 - Phân quyền theo các vai trò `USER`, `EMPLOYER` và `ADMIN`.
 - Xác minh email bằng OTP trong quy trình nộp hồ sơ doanh nghiệp.
+
+Chi tiết API và cách kiểm thử: [Authentication / Authorization](docs/AUTHENTICATION.md).
 
 ### Người tìm việc — User
 

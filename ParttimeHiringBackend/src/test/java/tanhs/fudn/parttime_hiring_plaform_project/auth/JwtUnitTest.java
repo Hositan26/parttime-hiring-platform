@@ -26,5 +26,15 @@ class JwtUnitTest {
         assertThrows(IllegalArgumentException.class, () -> new JwtTokenProvider("short", 60, "test"));
         assertThrows(IllegalArgumentException.class, () -> new JwtTokenProvider(secret, 0, "test"));
     }
-}
-
+    // Rejects expired access credentials even when their signatures are valid.
+    @Test
+    void rejectsExpiredToken() {
+        var provider = new JwtTokenProvider(secret, 60, "test");
+        String token = io.jsonwebtoken.Jwts.builder().setSubject("7").setIssuer("test").setId("expired")
+                .claim("type", "access").claim("version", 0)
+                .setIssuedAt(new java.util.Date(System.currentTimeMillis() - 120000))
+                .setExpiration(new java.util.Date(System.currentTimeMillis() - 60000))
+                .signWith(io.jsonwebtoken.security.Keys.hmacShaKeyFor(secret.getBytes(java.nio.charset.StandardCharsets.UTF_8)),
+                        io.jsonwebtoken.SignatureAlgorithm.HS512).compact();
+        assertFalse(provider.validateToken(token));
+    }}

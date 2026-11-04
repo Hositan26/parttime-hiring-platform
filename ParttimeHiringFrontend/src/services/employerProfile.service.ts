@@ -1,4 +1,4 @@
-import { apiFetch } from './apiClient';
+import { apiFetch, apiBase } from './apiClient';
 export interface EmployerProfileResponse {
   employerId: number;
   companyName: string;
@@ -28,7 +28,7 @@ export interface EmployerProfileUpdateRequest {
   representativeName?: string;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8088/parttime_hiring_platform/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || apiBase + '';
 const API_URL = `${API_BASE_URL}/employer/me/profile`;
 
 export const getEmployerProfile = async (): Promise<EmployerProfileResponse> => {
@@ -58,4 +58,3 @@ export const updateEmployerProfile = async (data: EmployerProfileUpdateRequest):
   const responseData = await response.json();
   return responseData.result;
 };
-

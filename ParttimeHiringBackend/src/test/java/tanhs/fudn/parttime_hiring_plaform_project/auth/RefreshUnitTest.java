@@ -60,5 +60,3 @@ class RefreshUnitTest {
         assertEquals(2, response.getHeaders("Set-Cookie").size());
     }
 }
-
-

@@ -23,4 +23,8 @@ public interface RefreshSessionRepository extends JpaRepository<RefreshSession, 
     @Modifying
     @Query("update RefreshSession s set s.revoked = true where s.user.id = :userId")
     void revokeUser(@Param("userId") Long userId);
+    // Deletes expired credentials without loading bearer data into memory.
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("delete from RefreshSession value where value.expiresAt < :now")
+    void deleteExpired(@org.springframework.data.repository.query.Param("now") java.time.Instant now);
 }

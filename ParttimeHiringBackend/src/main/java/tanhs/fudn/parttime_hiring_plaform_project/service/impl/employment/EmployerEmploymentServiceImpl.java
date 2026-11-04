@@ -1,7 +1,10 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.employment;
 
-import tanhs.fudn.parttime_hiring_plaform_project.service.employment.EmployerEmploymentService;
+import org.springframework.security.access.AccessDeniedException;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.employer.StoreRepository;
 
+import tanhs.fudn.parttime_hiring_plaform_project.service.employment.EmployerEmploymentService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,7 +32,7 @@ public class EmployerEmploymentServiceImpl implements EmployerEmploymentService 
     private final EmployerRepository employerRepository;
     private final UserRepository userRepository;
     private final EmploymentRecordMapper employmentRecordMapper;
-    private final tanhs.fudn.parttime_hiring_plaform_project.repository.employer.StoreRepository storeRepository;
+    private final StoreRepository storeRepository;
 
     private Employer verifyEmployer(String username) {
         User user = userRepository.findByUsername(username)
@@ -38,13 +41,13 @@ public class EmployerEmploymentServiceImpl implements EmployerEmploymentService 
                 .orElseThrow(() -> new RuntimeException("Chưa có hồ sơ nhà tuyển dụng"));
     }
 
-    @Transactional(readOnly = true)
     // Returns store employees only after validating the employer owns the store.
+    @Transactional(readOnly = true)
     public List<EmployerEmploymentResponse> getEmploymentsByStore(Integer storeId, String username) {
         Employer employer = verifyEmployer(username);
-        var store = storeRepository.findById(storeId).orElseThrow(() -> new tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException("Store not found"));
+        var store = storeRepository.findById(storeId).orElseThrow(() -> new ResourceNotFoundException("Store not found"));
         if (!store.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new org.springframework.security.access.AccessDeniedException("You do not own this store");
+            throw new AccessDeniedException("You do not own this store");
         }
         return employmentRecordRepository.findByStoreIdWithDetails(storeId)
                 .stream()
@@ -60,6 +63,7 @@ public class EmployerEmploymentServiceImpl implements EmployerEmploymentService 
                 .collect(Collectors.toList());
     }
 
+    // Records employment termination only for the owning employer.
     @Transactional
     public void updateEmploymentStatus(Integer recordId, UpdateEmploymentStatusRequest request, String username) {
         Employer employer = verifyEmployer(username);
@@ -67,7 +71,7 @@ public class EmployerEmploymentServiceImpl implements EmployerEmploymentService 
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ nhân sự"));
 
         if (!record.getStore().getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền cập nhật nhân sự này");
+            throw new AccessDeniedException("Bạn không có quyền cập nhật nhân sự này");
         }
 
         try {
@@ -95,5 +99,3 @@ public class EmployerEmploymentServiceImpl implements EmployerEmploymentService 
         }
     }
 }
-
-

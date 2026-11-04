@@ -2,7 +2,6 @@ package tanhs.fudn.parttime_hiring_plaform_project.service.impl.employer;
 
 import tanhs.fudn.parttime_hiring_plaform_project.service.employer.EmployerVerificationService;
 
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +34,7 @@ public class EmployerVerificationServiceImpl implements EmployerVerificationServ
 
     private static final String FOLDER_NAME = "parttime_hiring/employer_verifications";
 
+    // Consumes confirmed email proof before saving business verification documents.
     @Transactional
     public void submitVerification(VerifyBusinessRequest request, String username) throws IOException {
         User user = userRepository.findByUsername(username)
@@ -96,4 +96,3 @@ public class EmployerVerificationServiceImpl implements EmployerVerificationServ
                 .orElse(null);
     }
 }
-

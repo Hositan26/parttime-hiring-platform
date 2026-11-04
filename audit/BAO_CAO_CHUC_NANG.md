@@ -1,5 +1,7 @@
 # Báo cáo rà soát chức năng — 04/11/2026
 
+> Đây là báo cáo trước khi triển khai nhóm Authentication / Authorization. Kết quả AUTH mới nhất nằm trong [báo cáo hoàn thành AUTH](../docs/AUTH_TASK_REPORT.md).
+
 ## Phạm vi và cách đọc kết quả
 
 Đã đối chiếu router, trang, service frontend với 65 endpoint backend, service nghiệp vụ,

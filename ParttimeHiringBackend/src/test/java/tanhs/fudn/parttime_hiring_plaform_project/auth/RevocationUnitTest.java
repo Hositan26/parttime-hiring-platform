@@ -25,4 +25,3 @@ class RevocationUnitTest {
         assertEquals(2, response.getHeaders("Set-Cookie").size());
     }
 }
-

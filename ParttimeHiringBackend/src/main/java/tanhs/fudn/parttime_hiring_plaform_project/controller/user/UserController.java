@@ -1,9 +1,13 @@
 package tanhs.fudn.parttime_hiring_plaform_project.controller.user;
-
+import java.security.Principal;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.request.user.UserProfileUpdateRequest;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.common.ApiResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.user.UserProfileResponse;
@@ -13,30 +17,18 @@ import tanhs.fudn.parttime_hiring_plaform_project.service.user.UserProfileServic
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
+    private final UserProfileService profiles;
 
-    private final UserProfileService userProfileService;
-
+    // Returns profile details for the account authenticated by Spring Security.
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<UserProfileResponse>> getCurrentUser(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).body(ApiResponse.<UserProfileResponse>builder()
-                    .status(401).code("UNAUTHORIZED").message("Unauthorized").build());
-        }
-
-        UserProfileResponse response = userProfileService.getCurrentUserProfile(authentication.getName());
-        return ResponseEntity.ok(ApiResponse.success(response));
+    public ResponseEntity<ApiResponse<UserProfileResponse>> current(Principal principal) {
+        return ResponseEntity.ok(ApiResponse.success(profiles.getCurrentUserProfile(principal.getName())));
     }
 
+    // Updates validated profile fields without changing the immutable account identity.
     @PutMapping("/me")
-    public ResponseEntity<ApiResponse<UserProfileResponse>> updateCurrentUser(
-            Authentication authentication, 
-            @RequestBody UserProfileUpdateRequest request) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).body(ApiResponse.<UserProfileResponse>builder()
-                    .status(401).code("UNAUTHORIZED").message("Unauthorized").build());
-        }
-
-        UserProfileResponse response = userProfileService.updateCurrentUserProfile(authentication.getName(), request);
-        return ResponseEntity.ok(ApiResponse.success(response));
+    public ResponseEntity<ApiResponse<UserProfileResponse>> update(
+            Principal principal, @Valid @RequestBody UserProfileUpdateRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(profiles.updateCurrentUserProfile(principal.getName(), request)));
     }
 }

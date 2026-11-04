@@ -1,3 +1,4 @@
+import { hasAnyRole } from '../../services/authPolicy';
 import React, { useEffect, useState } from 'react';
 import { MainLayout } from '../../components/Layout/MainLayout';
 import { User, Calendar, Briefcase, Search, Mail, Edit2, Save, X } from 'lucide-react';
@@ -276,7 +277,7 @@ export const Profile: React.FC = () => {
             </p>
             <div className={styles.quickLinks}>
               <a href="/change-password" className={styles.quickLink}>Đổi mật khẩu</a>
-              {user.roles?.some((role: any) => role.name === 'ROLE_EMPLOYER' || role === 'ROLE_EMPLOYER') && (
+              {hasAnyRole(user.roles ?? [], ['EMPLOYER']) && (
                 <a href="/employer/dashboard" className={styles.quickLink} style={{ backgroundColor: '#E5F7ED', color: '#00B14F', borderColor: '#00B14F' }}>
                   <Briefcase size={18} /> Quản lý doanh nghiệp
                 </a>
@@ -294,4 +295,3 @@ export const Profile: React.FC = () => {
     </MainLayout>
   );
 };
-

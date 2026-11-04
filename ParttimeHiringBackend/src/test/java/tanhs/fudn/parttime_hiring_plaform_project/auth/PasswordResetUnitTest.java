@@ -22,7 +22,7 @@ class PasswordResetUnitTest {
         var users = mock(UserRepository.class);
         var mail = mock(JavaMailSender.class);
         var service = new PasswordServiceImpl(users, mock(PasswordResetTokenRepository.class),
-                mock(RefreshSessionRepository.class), mock(PasswordEncoder.class), mail);
+                mock(RefreshSessionRepository.class), mock(PasswordEncoder.class), mail, mock(tanhs.fudn.parttime_hiring_plaform_project.security.AttemptRateLimiter.class));
         service.requestReset("unknown@example.com");
         verifyNoInteractions(mail);
     }
@@ -38,7 +38,7 @@ class PasswordResetUnitTest {
         when(resets.lockByHash(anyString())).thenReturn(Optional.of(token));
         var users = mock(UserRepository.class);
         var service = new PasswordServiceImpl(users, resets, mock(RefreshSessionRepository.class),
-                mock(PasswordEncoder.class), mock(JavaMailSender.class));
+                mock(PasswordEncoder.class), mock(JavaMailSender.class), mock(tanhs.fudn.parttime_hiring_plaform_project.security.AttemptRateLimiter.class));
         assertThrows(BusinessException.class, () -> service.reset("expired", "NewPass123"));
         verify(users, never()).save(any());
     }

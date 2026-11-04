@@ -1,5 +1,7 @@
 package tanhs.fudn.parttime_hiring_plaform_project.security;
 
+import tanhs.fudn.parttime_hiring_plaform_project.service.auth.AuthSessionService;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,13 +19,14 @@ import java.io.IOException;
 @Component
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private final tanhs.fudn.parttime_hiring_plaform_project.service.auth.AuthSessionService sessions;
+    private final AuthSessionService sessions;
     private final UserRepository userRepository;
 
-    @Value("${app.oauth2.redirectUri:http://localhost:5173/oauth2/redirect}")
-    private String redirectUri;
+    @Value("${app.frontend-url:http://localhost:5173}")
+    private String frontendUrl;
 
-    public OAuth2AuthenticationSuccessHandler(tanhs.fudn.parttime_hiring_plaform_project.service.auth.AuthSessionService sessions, UserRepository userRepository) {
+    // Shares browser session issuance between password and Google authentication.
+    public OAuth2AuthenticationSuccessHandler(AuthSessionService sessions, UserRepository userRepository) {
         this.sessions = sessions;
         this.userRepository = userRepository;
     }
@@ -39,11 +42,10 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         sessions.start(user, response);
 
         if (request.getSession(false) != null) request.getSession(false).invalidate();
-        String targetUrl = UriComponentsBuilder.fromUriString(redirectUri)
+        String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth2/redirect")
                 .build().toUriString();
 
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }
-
 

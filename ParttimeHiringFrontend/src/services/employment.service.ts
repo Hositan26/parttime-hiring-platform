@@ -1,5 +1,5 @@
-import { apiFetch } from './apiClient';
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api';
+import { apiFetch, apiBase } from './apiClient';
+const API_URL = apiBase + '';
 
 export interface EmployerEmploymentResponse {
   recordId: number;
@@ -57,4 +57,3 @@ export const updateEmploymentStatus = async (recordId: number, status: string, n
     throw new Error('Failed to update employment status');
   }
 };
-

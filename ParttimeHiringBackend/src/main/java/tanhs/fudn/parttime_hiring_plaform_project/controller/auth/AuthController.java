@@ -1,12 +1,18 @@
 package tanhs.fudn.parttime_hiring_plaform_project.controller.auth;
 
+import tanhs.fudn.parttime_hiring_plaform_project.service.auth.AuthSessionService;
+
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.common.ApiResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.auth.LoginResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.request.auth.LoginRequest;
@@ -20,14 +26,16 @@ import tanhs.fudn.parttime_hiring_plaform_project.service.auth.AuthService;
 public class AuthController {
 
     AuthService authService;
-    tanhs.fudn.parttime_hiring_plaform_project.service.auth.AuthSessionService sessionService;
+    AuthSessionService sessionService;
 
+    // Registers validated candidate details without accepting client-selected privileges.
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<String>> register(@Valid @RequestBody RegisterRequest request) {
         authService.register(request);
         return ResponseEntity.ok(ApiResponse.success("Đăng ký thành công!"));
     }
 
+    // Authenticates account credentials and returns only public profile details.
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
         LoginResponse loginResponse = authService.login(request, response);
@@ -40,11 +48,10 @@ public class AuthController {
         sessionService.refresh(token, response);
         return ResponseEntity.ok(ApiResponse.success("Session refreshed"));
     }
+    // Revokes current browser credentials and clears authentication cookies.
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<String>> logout(@CookieValue(name = "refresh_token", required = false) String refresh, @CookieValue(name = "access_token", required = false) String access, HttpServletResponse response) {
         sessionService.logout(refresh, access, response);
         return ResponseEntity.ok(ApiResponse.success("Đăng xuất thành công!"));
     }
 }
-
-

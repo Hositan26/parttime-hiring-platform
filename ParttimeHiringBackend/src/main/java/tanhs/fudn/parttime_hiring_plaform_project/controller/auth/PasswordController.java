@@ -1,4 +1,8 @@
 package tanhs.fudn.parttime_hiring_plaform_project.controller.auth;
+
+import java.security.Principal;
+import org.springframework.security.access.prepost.PreAuthorize;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.request.auth.ChangePasswordRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,10 +33,10 @@ public class PasswordController {
 
     // Changes an authenticated account password and clears browser credentials.
     @PostMapping("/change-password")
-    @org.springframework.security.access.prepost.PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<String>> change(
-            @Valid @RequestBody tanhs.fudn.parttime_hiring_plaform_project.dto.request.auth.ChangePasswordRequest request,
-            java.security.Principal principal, HttpServletResponse response) {
+            @Valid @RequestBody ChangePasswordRequest request,
+            Principal principal, HttpServletResponse response) {
         passwords.change(principal.getName(), request.getCurrentPassword(), request.getPassword());
         cookies.clear(response);
         return ResponseEntity.ok(ApiResponse.success("Password changed. Please sign in again"));
@@ -45,4 +49,3 @@ public class PasswordController {
         return ResponseEntity.ok(ApiResponse.success("Password reset. Please sign in again"));
     }
 }
-

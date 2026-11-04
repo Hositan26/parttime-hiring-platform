@@ -11,6 +11,7 @@ export const OAuth2RedirectHandler: React.FC = () => {
 
     if (!error) {
       // Backend already set HttpOnly cookie, just navigate to jobs
+      window.dispatchEvent(new Event('auth:changed'));
       navigate('/jobs');
     } else {
       console.error('Lỗi đăng nhập OAuth2:', error);

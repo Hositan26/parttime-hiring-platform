@@ -1,5 +1,5 @@
-import { apiFetch } from './apiClient';
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/employer/dashboard';
+import { apiFetch, apiBase } from './apiClient';
+const API_URL = apiBase + '/employer/dashboard';
 
 export interface ApiResponse<T> {
   status: number;
@@ -23,4 +23,3 @@ export const getDashboardOverview = async () => {
   const data: ApiResponse<any> = await response.json();
   return data.result;
 };
-

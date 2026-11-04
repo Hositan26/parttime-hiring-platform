@@ -1,4 +1,6 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.auth;
+
+import org.springframework.mail.MailException;
 import java.time.Instant;
 import java.util.Locale;
 import lombok.RequiredArgsConstructor;
@@ -26,12 +28,14 @@ public class PasswordServiceImpl implements PasswordService {
     private final RefreshSessionRepository sessions;
     private final PasswordEncoder encoder;
     private final JavaMailSender mail;
+    private final tanhs.fudn.parttime_hiring_plaform_project.security.AttemptRateLimiter limiter;
     @Value("${app.frontend-url:http://localhost:5173}")
     private String frontendUrl;
 
     // Sends a short-lived reset link without disclosing account existence.
     @Transactional
     public void requestReset(String email) {
+        limiter.check("password-reset-email", email.trim().toLowerCase(Locale.ROOT), 3, 900);
         var account = users.findByEmail(email.trim().toLowerCase(Locale.ROOT));
         if (account.isEmpty() || !Boolean.TRUE.equals(account.get().getIsActive())) return;
         String raw = TokenDigests.randomToken();
@@ -47,7 +51,7 @@ public class PasswordServiceImpl implements PasswordService {
         message.setText("Reset your password within 15 minutes: " + frontendUrl + "/reset-password?token=" + raw);
         try {
             mail.send(message);
-        } catch (org.springframework.mail.MailException exception) {
+        } catch (MailException exception) {
             log.warn("Password reset email could not be delivered");
         }
     }
@@ -55,7 +59,7 @@ public class PasswordServiceImpl implements PasswordService {
     // Changes credentials only after reauthentication and revokes existing sessions.
     @Transactional
     public void change(String username, String currentPassword, String password) {
-        var user = users.findByUsername(username)
+        var user = users.lockByUsername(username)
                 .orElseThrow(() -> new BusinessException("Account is unavailable"));
         if (!Boolean.TRUE.equals(user.getIsActive()) || user.getPassword() == null
                 || !encoder.matches(currentPassword, user.getPassword())) {
@@ -86,4 +90,3 @@ public class PasswordServiceImpl implements PasswordService {
         resets.deleteByUser_Id(user.getId());
     }
 }
-

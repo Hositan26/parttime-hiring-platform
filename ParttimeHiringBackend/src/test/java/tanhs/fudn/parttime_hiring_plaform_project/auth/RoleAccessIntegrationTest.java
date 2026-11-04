@@ -50,4 +50,3 @@ class RoleAccessIntegrationTest {
         return new Cookie("access_token", tokens.generateTokenForUser(users.findByUsername(username).orElseThrow()));
     }
 }
-

@@ -1,8 +1,9 @@
+import { passwordAllowed } from '../../services/authValidation';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { AuthLayout } from '../../components/Layout/AuthLayout';
-import { apiFetch } from '../../services/apiClient';
+import { apiFetch, apiBase } from '../../services/apiClient';
 import styles from '../Login/Login.module.css';
 
 // Handles password recovery without exposing account existence.
@@ -17,7 +18,7 @@ export const PasswordRecovery = () => {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const token = new URLSearchParams(window.location.search).get('token') ?? '';
-  const invalid = (reset || change) && (password.length < 8 || password.length > 72 || password !== confirmation || (reset && !token));
+  const invalid = (reset || change) && (!passwordAllowed(password) || password !== confirmation || (reset && !token));
 
   // Submits recovery details and displays the server's public result.
   const submit = async (event: FormEvent) => {
@@ -26,7 +27,7 @@ export const PasswordRecovery = () => {
     setLoading(true);
     setMessage('');
     try {
-      const response = await apiFetch('http://localhost:8088/parttime_hiring_platform/api/auth/' +
+      const response = await apiFetch(apiBase + '/auth/' +
         (change ? 'change-password' : reset ? 'reset-password' : 'forgot-password'), {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(change ? { currentPassword, password } : reset ? { token, password } : { email }),
@@ -34,6 +35,7 @@ export const PasswordRecovery = () => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message ?? 'Request failed');
       setMessage((reset || change) ? 'Mật khẩu đã được đặt lại. Hãy đăng nhập lại.' : 'Nếu tài khoản hợp lệ, liên kết đặt lại sẽ được gửi qua email.');
+      if (reset || change) window.dispatchEvent(new Event('auth:expired'));
       setPassword('');
       setConfirmation('');
     } catch (error) {
@@ -69,4 +71,3 @@ export const PasswordRecovery = () => {
     </form>
   </AuthLayout>;
 };
-

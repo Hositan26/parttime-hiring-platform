@@ -1,5 +1,5 @@
-import { apiFetch } from './apiClient';
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/admin/verifications';
+import { apiFetch, apiBase } from './apiClient';
+const API_URL = apiBase + '/admin/verifications';
 
 export interface VerificationListResponse {
   verificationId: number;
@@ -90,4 +90,3 @@ export const rejectVerification = async (id: number, reason: string) => {
   
   return await response.json();
 };
-

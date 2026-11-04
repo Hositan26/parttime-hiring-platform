@@ -1,5 +1,7 @@
 package tanhs.fudn.parttime_hiring_plaform_project.configuration;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -17,7 +19,7 @@ import tanhs.fudn.parttime_hiring_plaform_project.repository.employer.EmployerRe
 import java.util.HashSet;
 import java.util.Set;
 
-@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "app.seed-data", havingValue = "true")
+@ConditionalOnProperty(name = "app.seed-data", havingValue = "true")
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -89,4 +91,3 @@ public class DatabaseSeeder implements CommandLineRunner {
         }
     }
 }
-
