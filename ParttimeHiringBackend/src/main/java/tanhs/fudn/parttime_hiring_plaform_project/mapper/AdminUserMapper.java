@@ -15,7 +15,7 @@ public interface AdminUserMapper {
     AdminUserResponse toResponse(User entity);
 
     default List<String> mapRoles(java.util.Set<Role> roles) {
-        if (roles == null) return null;
+        if (roles == null) return List.of();
         return roles.stream().map(Role::getRoleName).collect(Collectors.toList());
     }
 }

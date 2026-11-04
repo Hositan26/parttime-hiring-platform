@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Backend: Spring Boot (local)",
+      "request": "launch",
+      "mainClass": "tanhs.fudn.parttime_hiring_plaform_project.ParttimeHiringPlaformProjectApplication",
+      "cwd": "${workspaceFolder}/ParttimeHiringBackend",
+      "args": "--spring.profiles.active=local",
+      "envFile": "${workspaceFolder}/.env",
+      "console": "integratedTerminal"
+    }
+  ]
+}

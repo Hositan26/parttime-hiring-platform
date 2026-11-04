@@ -1,0 +1,357 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.6)
+
+2026-11-04T19:43:01.104+07:00  INFO 1044 --- [           main] .ParttimeHiringPlaformProjectApplication : Starting ParttimeHiringPlaformProjectApplication using Java 22.0.1 with PID 1044 (E:\Project_Ca_Nhan\Parttime_Hiring_Plaform_Project\ParttimeHiringBackend\target\classes started by GYGABYTE in E:\Project_Ca_Nhan\Parttime_Hiring_Plaform_Project\ParttimeHiringBackend)
+2026-11-04T19:43:01.107+07:00  INFO 1044 --- [           main] .ParttimeHiringPlaformProjectApplication : The following 1 profile is active: "local"
+2026-11-04T19:43:02.012+07:00  INFO 1044 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-04T19:43:02.127+07:00  INFO 1044 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 108 ms. Found 13 JPA repository interfaces.
+2026-11-04T19:43:02.706+07:00  INFO 1044 --- [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8088 (http)
+2026-11-04T19:43:02.721+07:00  INFO 1044 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-11-04T19:43:02.721+07:00  INFO 1044 --- [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.21]
+2026-11-04T19:43:02.797+07:00  INFO 1044 --- [           main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 1629 ms
+2026-11-04T19:43:02.933+07:00  INFO 1044 --- [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-11-04T19:43:02.980+07:00  INFO 1044 --- [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.2.12.Final
+2026-11-04T19:43:03.320+07:00  INFO 1044 --- [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-04T19:43:03.345+07:00  INFO 1044 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-04T19:43:03.641+07:00  INFO 1044 --- [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@4b916cc2
+2026-11-04T19:43:03.643+07:00  INFO 1044 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-04T19:43:03.721+07:00  INFO 1044 --- [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:mysql://localhost:3306/parttime_hiring_platform?createDatabaseIfNotExist=true]
+	Database driver: MySQL Connector/J
+	Database dialect: MySQLDialect
+	Database version: 8.0.46
+	Default catalog/schema: parttime_hiring_platform/undefined
+	Autocommit mode: undefined/unknown
+	Isolation level: REPEATABLE_READ [default REPEATABLE_READ]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-04T19:43:04.996+07:00  INFO 1044 --- [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-04T19:43:05.080+07:00  INFO 1044 --- [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-11-04T19:43:05.137+07:00  INFO 1044 --- [           main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-11-04T19:43:06.195+07:00  INFO 1044 --- [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name customUserDetailsService
+2026-11-04T19:43:06.605+07:00  WARN 1044 --- [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-11-04T19:43:07.247+07:00  INFO 1044 --- [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8088 (http) with context path '/parttime_hiring_platform'
+2026-11-04T19:43:07.258+07:00  INFO 1044 --- [           main] .ParttimeHiringPlaformProjectApplication : Started ParttimeHiringPlaformProjectApplication in 6.628 seconds (process running for 6.978)
+2026-11-04T19:43:35.642+07:00  INFO 1044 --- [nio-8088-exec-1] .a.c.c.C.[.[.[/parttime_hiring_platform] : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-11-04T19:43:35.642+07:00  INFO 1044 --- [nio-8088-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-11-04T19:43:35.644+07:00  INFO 1044 --- [nio-8088-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-11-04T19:44:00.013+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T19:44:00.026+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T19:44:25.634+07:00  INFO 1044 --- [nio-8088-exec-9] o.apache.tomcat.util.http.parser.Cookie  : A cookie header was received [g_state={"i_l":0,"i_ll":1785693795578,"i_e":{"enable_itp_optimization":24},"i_et":1785693795578}] that contained an invalid cookie. That cookie will be ignored.
+ Note: further occurrences of this error will be logged at DEBUG level.
+2026-11-04T19:44:25.746+07:00 ERROR 1044 --- [nio-8088-exec-9] t.f.p.service.impl.auth.AuthServiceImpl  : Login failed for user: staff.dev@example.test
+
+org.springframework.security.authentication.BadCredentialsException: Bad credentials
+	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:154) ~[spring-security-core-7.0.5.jar:7.0.5]
+	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:183) ~[spring-security-core-7.0.5.jar:7.0.5]
+	at tanhs.fudn.parttime_hiring_plaform_project.service.impl.auth.AuthServiceImpl.login(AuthServiceImpl.java:51) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:359) ~[spring-aop-7.0.7.jar:7.0.7]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:190) ~[spring-aop-7.0.7.jar:7.0.7]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:158) ~[spring-aop-7.0.7.jar:7.0.7]
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:133) ~[spring-tx-7.0.7.jar:7.0.7]
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:371) ~[spring-tx-7.0.7.jar:7.0.7]
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:130) ~[spring-tx-7.0.7.jar:7.0.7]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179) ~[spring-aop-7.0.7.jar:7.0.7]
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:719) ~[spring-aop-7.0.7.jar:7.0.7]
+	at tanhs.fudn.parttime_hiring_plaform_project.service.impl.auth.AuthServiceImpl$$SpringCGLIB$$0.login(<generated>) ~[classes/:na]
+	at tanhs.fudn.parttime_hiring_plaform_project.controller.auth.AuthController.login(AuthController.java:32) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:252) ~[spring-web-7.0.7.jar:7.0.7]
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:184) ~[spring-web-7.0.7.jar:7.0.7]
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:117) ~[spring-webmvc-7.0.7.jar:7.0.7]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:934) ~[spring-webmvc-7.0.7.jar:7.0.7]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:853) ~[spring-webmvc-7.0.7.jar:7.0.7]
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:86) ~[spring-webmvc-7.0.7.jar:7.0.7]
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:963) ~[spring-webmvc-7.0.7.jar:7.0.7]
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:866) ~[spring-webmvc-7.0.7.jar:7.0.7]
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1000) ~[spring-webmvc-7.0.7.jar:7.0.7]
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:903) ~[spring-webmvc-7.0.7.jar:7.0.7]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:649) ~[tomcat-embed-core-11.0.21.jar:6.1]
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:874) ~[spring-webmvc-7.0.7.jar:7.0.7]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:710) ~[tomcat-embed-core-11.0.21.jar:6.1]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:128) ~[tomcat-embed-core-11.0.21.jar:11.0.21]
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:53) ~[tomcat-embed-websocket-11.0.21.jar:11.0.21]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107) ~[tomcat-embed-core-11.0.21.jar:11.0.21]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:110) ~[spring-web-7.0.7.jar:7.0.7]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107) ~[tomcat-embed-core-11.0.21.jar:11.0.21]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108) ~[spring-web-7.0.7.jar:7.0.7]
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:235) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:376) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:132) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:86) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:181) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.authentication.ui.DefaultLogoutPageGeneratingFilter.doFilterInternal(DefaultLogoutPageGeneratingFilter.java:60) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.7.jar:7.0.7]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.authentication.ui.DefaultLoginPageGeneratingFilter.doFilter(DefaultLoginPageGeneratingFilter.java:246) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.authentication.ui.DefaultLoginPageGeneratingFilter.doFilter(DefaultLoginPageGeneratingFilter.java:232) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.authentication.ui.DefaultResourcesFilter.doFilter(DefaultResourcesFilter.java:73) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at tanhs.fudn.parttime_hiring_plaform_project.security.JwtAuthenticationFilter.doFilterInternal(JwtAuthenticationFilter.java:51) ~[classes/:na]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.7.jar:7.0.7]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter.doFilter(AbstractAuthenticationProcessingFilter.java:245) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter.doFilter(AbstractAuthenticationProcessingFilter.java:239) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter.doFilterInternal(OAuth2AuthorizationRequestRedirectFilter.java:195) ~[spring-security-oauth2-client-7.0.5.jar:7.0.5]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.7.jar:7.0.7]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:110) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:96) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91) ~[spring-web-7.0.7.jar:7.0.7]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.7.jar:7.0.7]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.7.jar:7.0.7]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.7.jar:7.0.7]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.7.jar:7.0.7]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:237) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:195) ~[spring-security-web-7.0.5.jar:7.0.5]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-7.0.7.jar:7.0.7]
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52) ~[spring-web-7.0.7.jar:7.0.7]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-7.0.7.jar:7.0.7]
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74) ~[spring-web-7.0.7.jar:7.0.7]
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:317) ~[spring-security-config-7.0.5.jar:7.0.5]
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:355) ~[spring-web-7.0.7.jar:7.0.7]
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:272) ~[spring-web-7.0.7.jar:7.0.7]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107) ~[tomcat-embed-core-11.0.21.jar:11.0.21]
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-7.0.7.jar:7.0.7]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.7.jar:7.0.7]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107) ~[tomcat-embed-core-11.0.21.jar:11.0.21]
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93) ~[spring-web-7.0.7.jar:7.0.7]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.7.jar:7.0.7]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107) ~[tomcat-embed-core-11.0.21.jar:11.0.21]
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:199) ~[spring-web-7.0.7.jar:7.0.7]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.7.jar:7.0.7]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107) ~[tomcat-embed-core-11.0.21.jar:11.0.21]
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:165) ~[tomcat-embed-core-11.0.21.jar:11.0.21]
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:77) ~[tomcat-embed-core-11.0.21.jar:11.0.21]
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:492) ~[tomcat-embed-core-11.0.21.jar:11.0.21]
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:113) ~[tomcat-embed-core-11.0.21.jar:11.0.21]
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:83) ~[tomcat-embed-core-11.0.21.jar:11.0.21]
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:72) ~[tomcat-embed-core-11.0.21.jar:11.0.21]
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:341) ~[tomcat-embed-core-11.0.21.jar:11.0.21]
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:397) ~[tomcat-embed-core-11.0.21.jar:11.0.21]
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63) ~[tomcat-embed-core-11.0.21.jar:11.0.21]
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:903) ~[tomcat-embed-core-11.0.21.jar:11.0.21]
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1801) ~[tomcat-embed-core-11.0.21.jar:11.0.21]
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52) ~[tomcat-embed-core-11.0.21.jar:11.0.21]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:946) ~[tomcat-embed-core-11.0.21.jar:11.0.21]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:480) ~[tomcat-embed-core-11.0.21.jar:11.0.21]
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:57) ~[tomcat-embed-core-11.0.21.jar:11.0.21]
+	at java.base/java.lang.Thread.run(Thread.java:1570) ~[na:na]
+Caused by: org.springframework.security.core.userdetails.UsernameNotFoundException: User not found with username: staff.dev@example.test
+	at tanhs.fudn.parttime_hiring_plaform_project.security.CustomUserDetailsService.lambda$loadUserByUsername$0(CustomUserDetailsService.java:35) ~[classes/:na]
+	at java.base/java.util.Optional.orElseThrow(Optional.java:403) ~[na:na]
+	at tanhs.fudn.parttime_hiring_plaform_project.security.CustomUserDetailsService.loadUserByUsername(CustomUserDetailsService.java:35) ~[classes/:na]
+	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.retrieveUser(DaoAuthenticationProvider.java:106) ~[spring-security-core-7.0.5.jar:7.0.5]
+	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:145) ~[spring-security-core-7.0.5.jar:7.0.5]
+	... 122 common frames omitted
+
+2026-11-04T19:45:00.015+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T19:45:00.019+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T19:46:00.016+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T19:46:00.019+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T19:46:40.595+07:00  INFO 1044 --- [nio-8088-exec-8] t.f.p.s.i.e.EmployerDashboardServiceImpl : L?y th�ng tin t?ng quan Dashboard cho username: employer
+2026-11-04T19:46:40.688+07:00  INFO 1044 --- [nio-8088-exec-6] t.f.p.s.i.e.EmployerDashboardServiceImpl : L?y th�ng tin t?ng quan Dashboard cho username: employer
+2026-11-04T19:46:43.571+07:00  INFO 1044 --- [nio-8088-exec-9] t.f.p.s.i.e.EmployerStoreServiceImpl     : L?y danh s�ch c?a h�ng cho username: employer, sortBy: newest
+2026-11-04T19:46:43.612+07:00  INFO 1044 --- [io-8088-exec-10] t.f.p.s.i.e.EmployerStoreServiceImpl     : L?y danh s�ch c?a h�ng cho username: employer, sortBy: newest
+2026-11-04T19:46:44.295+07:00  INFO 1044 --- [nio-8088-exec-4] t.f.p.s.i.e.EmployerStoreServiceImpl     : L?y danh s�ch c?a h�ng cho username: employer, sortBy: newest
+2026-11-04T19:46:44.325+07:00  INFO 1044 --- [nio-8088-exec-8] t.f.p.s.i.e.EmployerStoreServiceImpl     : L?y danh s�ch c?a h�ng cho username: employer, sortBy: newest
+2026-11-04T19:46:44.332+07:00  WARN 1044 --- [nio-8088-exec-7] ration$PageModule$WarningLoggingModifier : Serializing PageImpl instances as-is is not supported, meaning that there is no guarantee about the stability of the resulting JSON structure!
+	For a stable JSON structure, please use Spring Data's PagedModel (globally via @EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO))
+	or Spring HATEOAS and Spring Data's PagedResourcesAssembler as documented in https://docs.spring.io/spring-data/commons/reference/repositories/core-extensions.html#core.web.pageables.
+
+2026-11-04T19:46:45.642+07:00  INFO 1044 --- [nio-8088-exec-9] t.f.p.s.i.e.EmployerStoreServiceImpl     : L?y danh s�ch c?a h�ng cho username: employer, sortBy: newest
+2026-11-04T19:46:45.672+07:00  INFO 1044 --- [nio-8088-exec-3] t.f.p.s.i.e.EmployerStoreServiceImpl     : L?y danh s�ch c?a h�ng cho username: employer, sortBy: newest
+2026-11-04T19:46:46.199+07:00  INFO 1044 --- [nio-8088-exec-5] t.f.p.s.i.e.EmployerStoreServiceImpl     : L?y danh s�ch c?a h�ng cho username: employer, sortBy: newest
+2026-11-04T19:46:46.233+07:00  INFO 1044 --- [nio-8088-exec-8] t.f.p.s.i.e.EmployerStoreServiceImpl     : L?y danh s�ch c?a h�ng cho username: employer, sortBy: newest
+2026-11-04T19:46:46.807+07:00  INFO 1044 --- [nio-8088-exec-9] t.f.p.s.i.e.EmployerDashboardServiceImpl : L?y th�ng tin t?ng quan Dashboard cho username: employer
+2026-11-04T19:46:46.991+07:00  INFO 1044 --- [nio-8088-exec-1] t.f.p.s.i.e.EmployerDashboardServiceImpl : L?y th�ng tin t?ng quan Dashboard cho username: employer
+2026-11-04T19:47:00.008+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T19:47:00.013+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T19:48:00.018+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T19:48:00.021+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T19:49:00.014+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T19:49:00.018+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T19:50:00.004+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T19:50:00.007+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T19:51:00.017+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T19:51:00.022+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T19:51:51.710+07:00  INFO 1044 --- [nio-8088-exec-7] t.f.p.s.i.e.EmployerDashboardServiceImpl : L?y th�ng tin t?ng quan Dashboard cho username: user_test
+2026-11-04T19:51:51.745+07:00  INFO 1044 --- [io-8088-exec-10] t.f.p.s.i.e.EmployerStoreServiceImpl     : L?y danh s�ch c?a h�ng cho username: user_test, sortBy: newest
+2026-11-04T19:51:52.141+07:00  INFO 1044 --- [nio-8088-exec-5] t.f.p.s.i.e.EmployerDashboardServiceImpl : L?y th�ng tin t?ng quan Dashboard cho username: employer
+2026-11-04T19:51:52.188+07:00  INFO 1044 --- [nio-8088-exec-8] t.f.p.s.i.e.EmployerStoreServiceImpl     : L?y danh s�ch c?a h�ng cho username: employer, sortBy: newest
+2026-11-04T19:51:52.661+07:00  INFO 1044 --- [io-8088-exec-10] t.f.p.s.i.e.EmployerDashboardServiceImpl : L?y th�ng tin t?ng quan Dashboard cho username: admin
+2026-11-04T19:51:52.693+07:00  INFO 1044 --- [nio-8088-exec-3] t.f.p.s.i.e.EmployerStoreServiceImpl     : L?y danh s�ch c?a h�ng cho username: admin, sortBy: newest
+2026-11-04T19:52:00.010+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T19:52:00.014+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T19:52:32.186+07:00  INFO 1044 --- [nio-8088-exec-3] t.f.p.s.i.e.EmployerDashboardServiceImpl : L?y th�ng tin t?ng quan Dashboard cho username: user_test
+2026-11-04T19:52:32.216+07:00  INFO 1044 --- [nio-8088-exec-5] t.f.p.s.i.e.EmployerStoreServiceImpl     : L?y danh s�ch c?a h�ng cho username: user_test, sortBy: newest
+2026-11-04T19:52:32.621+07:00  INFO 1044 --- [nio-8088-exec-7] t.f.p.s.i.e.EmployerDashboardServiceImpl : L?y th�ng tin t?ng quan Dashboard cho username: employer
+2026-11-04T19:52:32.670+07:00  INFO 1044 --- [io-8088-exec-10] t.f.p.s.i.e.EmployerStoreServiceImpl     : L?y danh s�ch c?a h�ng cho username: employer, sortBy: newest
+2026-11-04T19:52:33.100+07:00  INFO 1044 --- [nio-8088-exec-5] t.f.p.s.i.e.EmployerDashboardServiceImpl : L?y th�ng tin t?ng quan Dashboard cho username: admin
+2026-11-04T19:52:33.130+07:00  INFO 1044 --- [nio-8088-exec-8] t.f.p.s.i.e.EmployerStoreServiceImpl     : L?y danh s�ch c?a h�ng cho username: admin, sortBy: newest
+2026-11-04T19:53:00.009+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T19:53:00.012+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T19:54:00.006+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T19:54:00.009+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T19:55:00.003+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T19:55:00.007+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T19:56:00.014+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T19:56:00.019+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T19:57:00.017+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T19:57:00.022+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T19:58:00.015+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T19:58:00.018+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T19:59:00.009+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T19:59:00.012+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:00:00.017+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:00:00.021+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:01:00.007+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:01:00.010+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:02:00.007+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:02:00.010+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:03:00.007+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:03:00.010+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:04:00.005+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:04:00.009+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:05:00.005+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:05:00.008+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:06:00.022+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:06:00.026+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:07:00.010+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:07:00.014+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:08:00.014+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:08:00.018+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:09:00.009+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:09:00.013+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:10:00.011+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:10:00.015+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:11:00.005+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:11:00.008+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:12:00.018+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:12:00.025+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:13:00.005+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:13:00.008+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:14:00.014+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:14:00.017+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:15:00.008+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:15:00.012+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:16:00.012+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:16:00.016+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:17:00.004+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:17:00.008+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:18:00.007+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:18:00.012+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:19:00.015+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:19:00.017+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:20:00.017+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:20:00.021+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:21:00.017+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:21:00.021+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:22:00.012+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:22:00.016+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:23:00.005+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:23:00.009+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:24:00.012+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:24:00.016+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:25:00.008+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:25:00.011+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:26:00.018+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:26:00.021+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:27:00.009+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:27:00.013+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:28:00.018+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:28:00.021+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:29:00.008+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:29:00.013+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:30:00.005+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:30:00.009+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:31:00.015+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:31:00.021+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:32:00.016+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:32:00.020+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:33:00.011+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:33:00.017+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:34:00.050+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:34:00.114+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:35:00.015+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:35:00.028+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:36:00.022+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:36:00.038+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:37:00.025+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:37:00.073+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:38:00.026+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:38:00.036+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:39:00.018+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:39:00.023+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:40:00.017+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:40:00.032+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:41:00.027+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:41:00.045+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:42:00.023+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:42:00.031+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:43:00.013+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:43:00.020+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:44:00.012+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:44:00.017+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:45:00.024+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:45:00.036+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:46:00.010+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:46:00.014+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:47:00.084+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:47:00.088+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:48:00.006+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:48:00.016+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:49:00.036+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:49:00.046+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:50:00.010+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:50:00.021+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:51:00.011+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:51:00.027+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:52:00.019+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:52:00.024+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+2026-11-04T20:53:00.005+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Running scheduled task: updateExpiredJobs
+2026-11-04T20:53:00.011+07:00  INFO 1044 --- [   scheduling-1] t.f.p.scheduler.JobStatusScheduler       : Finished updateExpiredJobs. Updated 0 jobs to EXPIRED.
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:4.0.6:run (default-cli) on project Parttime_Hiring_Plaform_Project: Process terminated with exit code: -1 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

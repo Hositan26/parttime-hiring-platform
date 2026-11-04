@@ -1,0 +1,34 @@
+{
+  "javaAutoConfig.enabled": false,
+  "jdk.project.jdkhome": "C:/Users/GYGABYTE/AppData/Roaming/Code/User/globalStorage/pleiades.java-extension-pack-jdk/java/17",
+  "java.server.launchMode": "Standard",
+  "java.import.maven.enabled": true,
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.jdt.ls.lombokSupport.enabled": true,
+  "java.configuration.runtimes": [
+    {
+      "name": "JavaSE-17",
+      "path": "C:/Users/GYGABYTE/AppData/Roaming/Code/User/globalStorage/pleiades.java-extension-pack-jdk/java/17",
+      "default": true
+    }
+  ],
+  "maven.executable.preferMavenWrapper": true,
+  "maven.terminal.customEnv": [
+    {
+      "environmentVariable": "JAVA_HOME",
+      "value": "C:/Users/GYGABYTE/AppData/Roaming/Code/User/globalStorage/pleiades.java-extension-pack-jdk/java/17"
+    }
+  ],
+  "terminal.integrated.env.windows": {
+    "JAVA_HOME": "C:/Users/GYGABYTE/AppData/Roaming/Code/User/globalStorage/pleiades.java-extension-pack-jdk/java/17",
+    "PATH": "C:/Users/GYGABYTE/AppData/Roaming/Code/User/globalStorage/pleiades.java-extension-pack-jdk/java/17/bin;${env:PATH}"
+  },
+  "files.exclude": {
+    "**/target": true
+  },
+  "search.exclude": {
+    "**/target": true,
+    "**/node_modules": true,
+    "**/dist": true
+  }
+}

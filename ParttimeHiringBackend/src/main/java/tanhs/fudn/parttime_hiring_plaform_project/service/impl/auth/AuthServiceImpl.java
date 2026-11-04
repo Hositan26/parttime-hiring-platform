@@ -1,6 +1,6 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.auth;
 
-import tanhs.fudn.parttime_hiring_plaform_project.service.auth.AuthService;
+import  tanhs.fudn.parttime_hiring_plaform_project.service.auth.AuthService;
 
 
 import lombok.AccessLevel;
