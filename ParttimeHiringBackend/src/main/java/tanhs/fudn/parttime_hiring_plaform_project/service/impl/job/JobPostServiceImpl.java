@@ -22,6 +22,9 @@ import tanhs.fudn.parttime_hiring_plaform_project.repository.job.JobPostSpecific
 import tanhs.fudn.parttime_hiring_plaform_project.repository.job.WorkShiftRepository;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import tanhs.fudn.parttime_hiring_plaform_project.service.job.JobAvailabilityPolicy;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,6 +38,7 @@ public class JobPostServiceImpl implements JobPostService {
     JobCategoryRepository categoryRepository;
     WorkShiftRepository shiftRepository;
     JobMapper jobMapper;
+    JobAvailabilityPolicy availabilityPolicy;
 
     @Transactional(readOnly = true)
     public List<CategoryResponse> getCategories() {
@@ -73,10 +77,14 @@ public class JobPostServiceImpl implements JobPostService {
                 .collect(Collectors.toList());
     }
 
+    // Returns public details only while recruitment remains available.
     @Transactional(readOnly = true)
     public JobPostDetailResponse getJobById(Integer id) {
         JobPost job = jobPostRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Job post not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Job post not found"));
+        if (!availabilityPolicy.isAvailable(job, LocalDateTime.now())) {
+            throw new ResourceNotFoundException("Job post is no longer available");
+        }
         return jobMapper.toJobPostDetailResponse(job);
     }
 }
