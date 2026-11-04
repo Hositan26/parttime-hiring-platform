@@ -10,7 +10,7 @@ import tanhs.fudn.parttime_hiring_plaform_project.repository.employment.Employme
 import java.util.List;
 
 @SpringBootTest
-@ActiveProfiles("dev")
+@ActiveProfiles("local")
 public class DebugDataTest {
 
     @Autowired
@@ -36,7 +36,7 @@ public class DebugDataTest {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new AssertionError("Backend integration check failed", e);
         }
         System.out.println("====== END DEBUGGING ======");
     }
@@ -59,7 +59,7 @@ public class DebugDataTest {
                 System.out.println("-------------------------------------");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new AssertionError("Backend integration check failed", e);
         }
         System.out.println("====== END DEBUGGING USERS ======");
     }

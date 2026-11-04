@@ -1,430 +1,285 @@
 # Part-time Hiring Platform
 
-A full-stack recruitment platform that connects job seekers with employers for part-time job opportunities. The system enables candidates to search and apply for jobs while allowing employers to manage stores, job postings, and applications through a centralized dashboard. 
+**Nền tảng kết nối người tìm việc bán thời gian với doanh nghiệp và cửa hàng.**
 
-*(Note: Some features listed below are currently under active development and will be completed in upcoming updates).*
+Ứng dụng hỗ trợ tìm kiếm việc làm, gửi đơn ứng tuyển, quản lý tuyển dụng và quản trị dữ liệu trên một hệ thống tập trung. Dự án tổ chức thành hai ứng dụng độc lập: giao diện React và REST API Spring Boot, sử dụng MySQL để lưu trữ dữ liệu.
 
----
+## Mục lục
 
-## Features
+- [Tổng quan](#tổng-quan)
+- [Công nghệ sử dụng](#công-nghệ-sử-dụng)
+- [Chức năng theo vai trò](#chức-năng-theo-vai-trò)
+- [Kiến trúc hệ thống](#kiến-trúc-hệ-thống)
+- [Cấu trúc thư mục](#cấu-trúc-thư-mục)
+- [Hướng dẫn cài đặt và chạy](#hướng-dẫn-cài-đặt-và-chạy)
+- [Các lệnh thường dùng](#các-lệnh-thường-dùng)
+- [Tác giả](#tác-giả)
 
-### Authentication & Authorization
-* JWT-based authentication
-* Role-Based Access Control (RBAC)
-* Google OAuth Login
-* Spring Security integration
+## Tổng quan
 
-### Employer Management
-* Employer registration and verification
-* OTP email verification workflow
-* Employer profile management
-* Verification approval process
+Part-time Hiring Platform phục vụ ba nhóm người dùng:
 
-### Store Management
-* Create and manage multiple stores
-* Store information management
-* Store media upload
-* Store status tracking
+- **Người tìm việc:** tìm công việc phù hợp, quản lý hồ sơ và theo dõi đơn ứng tuyển.
+- **Doanh nghiệp:** quản lý cửa hàng, tin tuyển dụng, ứng viên và nhân sự.
+- **Quản trị viên:** quản lý tài khoản, xét duyệt doanh nghiệp và quản lý nội dung trên nền tảng.
 
-### Job Management
-* Create, update, and delete job posts
-* Job categories and work shifts
-* Job image management
-* Job status management (Active, Closed, Expired)
+Dữ liệu tuyển dụng được tổ chức theo mối quan hệ **doanh nghiệp → cửa hàng → tin tuyển dụng → đơn ứng tuyển → hồ sơ nhân sự**. Ngành nghề và ca làm giúp người tìm việc thu hẹp kết quả theo nhu cầu.
 
-### Application Management
-* Apply for jobs
-* Track application status
-* Employer review and processing
-* Hiring history management
+## Công nghệ sử dụng
 
-### AI-Powered Moderation
-* Validate job posts against employer profiles
-* Detect fraudulent recruitment content
-* Prevent unauthorized store creation
-* Improve recruitment quality and trustworthiness
+| Thành phần | Công nghệ |
+|---|---|
+| Backend | Java 17+, Spring Boot 4.0.6, Maven Wrapper |
+| REST API | Spring Web, Jakarta Validation |
+| Xác thực | Spring Security, JWT, OAuth 2.0 Client |
+| Truy cập dữ liệu | Spring Data JPA, Hibernate, MySQL Connector/J |
+| Ánh xạ dữ liệu | MapStruct, Lombok |
+| Frontend | React 19, TypeScript 6, Vite 8 |
+| Điều hướng | React Router |
+| Giao diện | CSS Modules, Lucide React, Framer Motion |
+| Biểu đồ | Recharts |
+| Lưu trữ ảnh | Cloudinary |
+| Email | Spring Mail, SMTP |
+| Kiểm tra mã | ESLint, TypeScript, Maven Test |
 
-### Review System
-* Store reviews and ratings
-* Employment record verification
-* Review moderation
+## Chức năng theo vai trò
 
----
+### Xác thực và tài khoản
 
-## Technology Stack
+- Đăng ký tài khoản người dùng và đăng nhập bằng mật khẩu.
+- Tích hợp đăng nhập Google thông qua OAuth 2.0.
+- Xác thực yêu cầu bằng JWT lưu trong cookie HttpOnly.
+- Phân quyền theo các vai trò `USER`, `EMPLOYER` và `ADMIN`.
+- Xác minh email bằng OTP trong quy trình nộp hồ sơ doanh nghiệp.
 
-### Backend
-* Java 21
-* Spring Boot
-* Spring Security
-* Spring Data JPA (Hibernate)
-* JWT Authentication
+### Người tìm việc — User
 
-### Frontend
-* React 18
-* TypeScript
-* Vite
+- Xem và cập nhật hồ sơ cá nhân.
+- Xem danh sách và thông tin chi tiết công việc.
+- Tìm kiếm theo tên công việc và cửa hàng.
+- Lọc công việc theo ngành nghề, ca làm, mức lương và địa chỉ.
+- Gửi đơn ứng tuyển kèm số điện thoại và lời nhắn.
+- Theo dõi danh sách công việc đã ứng tuyển và kết quả xử lý.
+- Xem thông tin đánh giá được hiển thị tại trang chi tiết công việc.
+- Nộp hồ sơ xác minh doanh nghiệp và theo dõi trạng thái xét duyệt.
 
-### Database
-* MySQL
+### Doanh nghiệp — Employer
 
-### Cloud Services
-* Cloudinary
+- Xem dashboard về hoạt động tuyển dụng.
+- Quản lý thông tin hồ sơ doanh nghiệp.
+- Tạo và quản lý các cửa hàng, chi nhánh.
+- Xem thông tin tuyển dụng và nhân sự theo cửa hàng.
+- Tạo, cập nhật và quản lý tin tuyển dụng.
+- Thiết lập mức lương, số lượng tuyển, ngành nghề, ca làm và hạn ứng tuyển.
+- Quản lý ảnh của tin tuyển dụng.
+- Xem danh sách ứng viên và xử lý đơn ứng tuyển.
+- Quản lý hồ sơ nhân sự được tạo từ quá trình tuyển dụng.
+- Ghi nhận nhân sự nghỉ việc hoặc bị chấm dứt làm việc.
 
-### DevOps
-* Docker
-* Git
-* GitHub
+### Quản trị viên — Admin
 
-### Authentication
-* Google OAuth 2.0
-* Email OTP Verification
+- Xem dashboard thống kê tổng quan hệ thống.
+- Quản lý danh sách người dùng và khóa/mở khóa tài khoản.
+- Quản lý danh sách và trạng thái doanh nghiệp.
+- Xem, xét duyệt và từ chối hồ sơ xác minh doanh nghiệp.
+- Quản lý tin tuyển dụng và trạng thái cửa hàng.
+- Quản lý danh mục ngành nghề.
+- Quản lý các ca làm việc.
+- Xem và xóa đánh giá cửa hàng.
 
----
-
-## Database Design
-
-**Main entities:**
-* Users, Roles, Permissions
-* Employers, Employer Verifications
-* Stores
-* Job Categories, Work Shifts, Job Posts
-* Job Applications
-* Employment Records
-* Store Reviews
-
-**Relationships:**
-* One Employer → Many Stores
-* One Store → Many Job Posts
-* One Job Post → Many Applications
-* One User → Many Applications
-
-<details>
-<summary><b>Click to view visual Database ER Diagram</b></summary>
+## Kiến trúc hệ thống
 
 ```mermaid
-erDiagram
-    users {
-        int user_id PK
-        varchar username UK
-        varchar password
-        varchar display_name
-        varchar email UK
-        varchar avatar_url
-        date dob
-    }
-
-    user_oauth_accounts {
-        int oauth_id PK
-        int user_id FK
-        varchar provider
-        varchar provider_account_id
-        datetime created_at
-    }
-
-    roles {
-        varchar role_name PK
-        varchar description
-    }
-
-    permissions {
-        varchar permission_name PK
-        varchar description
-    }
-
-    user_roles {
-        int user_id FK
-        varchar role_name FK
-    }
-
-    role_permissions {
-        varchar role_name FK
-        varchar permission_name FK
-    }
-
-    invalidated_tokens {
-        varchar jti PK
-        datetime expiry_time
-    }
-
-    email_verification_otps {
-        bigint id PK
-        varchar email
-        varchar otp_code
-        datetime expiration_time
-        boolean is_used
-    }
-
-    employers {
-        int employer_id PK
-        int user_id FK
-        varchar company_name
-        varchar business_type
-        varchar email_contact
-        varchar phone_contact
-        text description
-        varchar website
-        varchar tax_code
-        varchar representative_name
-        varchar status
-        datetime created_at
-        datetime updated_at
-    }
-
-    employer_verifications {
-        int verification_id PK
-        int user_id FK
-        int admin_id FK
-        varchar contact_email
-        varchar phone_contact
-        varchar address
-        varchar company_name
-        varchar representative_name
-        varchar store_front_image_url
-        varchar store_front_image_public_id
-        varchar tax_code
-        varchar business_license_url
-        varchar business_license_public_id
-        varchar website_fanpage_url
-        varchar id_card_front_url
-        varchar id_card_front_public_id
-        varchar id_card_back_url
-        varchar id_card_back_public_id
-        varchar verification_status
-        text rejection_reason
-        datetime submitted_at
-        datetime verified_at
-    }
-
-    stores {
-        int store_id PK
-        int employer_id FK
-        varchar store_name
-        varchar phone_contact
-        text description
-        varchar city
-        varchar district
-        varchar ward
-        varchar street_address
-        boolean is_active
-        datetime created_at
-        datetime updated_at
-    }
-
-    store_reviews {
-        int review_id PK
-        int store_id FK
-        int reviewer_user_id FK
-        int employment_record_id FK
-        int rating
-        text comment
-        varchar status
-        datetime created_at
-        datetime updated_at
-    }
-
-    job_posts {
-        int job_post_id PK
-        int employer_id FK
-        int store_id FK
-        varchar title
-        text job_description
-        text requirements
-        text benefits
-        decimal hourly_wage_min
-        decimal hourly_wage_max
-        varchar currency
-        int vacancy_count
-        int min_age
-        int max_age
-        varchar gender_requirement
-        varchar employment_type
-        varchar status
-        datetime published_at
-        datetime expired_at
-        datetime created_at
-        datetime updated_at
-    }
-
-    job_post_images {
-        int image_id PK
-        int job_post_id FK
-        varchar image_url
-    }
-
-    job_categories {
-        int category_id PK
-        varchar category_name UK
-        varchar slug UK
-    }
-
-    job_post_categories {
-        int job_post_id FK
-        int category_id FK
-    }
-
-    work_shifts {
-        int shift_id PK
-        varchar shift_name UK
-        time start_time
-        time end_time
-    }
-
-    job_post_shifts {
-        int job_post_id FK
-        int shift_id FK
-    }
-
-    job_applications {
-        int application_id PK
-        int job_post_id FK
-        int applicant_user_id FK
-        varchar contact_phone
-        text cover_letter
-        varchar status
-        datetime applied_at
-        datetime updated_at
-    }
-
-    employment_records {
-        int employment_record_id PK
-        int user_id FK
-        int store_id FK
-        int job_post_id FK
-        int application_id FK
-        date start_date
-        date end_date
-        varchar work_status
-        int verified_by_employer_id FK
-        datetime verified_at
-        text note
-        datetime created_at
-    }
-
-    users ||--o{ user_oauth_accounts : "has"
-    users ||--o{ user_roles : "has"
-    roles ||--o{ user_roles : "assigned to"
-    roles ||--o{ role_permissions : "has"
-    permissions ||--o{ role_permissions : "assigned to"
-    users ||--o| employers : "acts as"
-    users ||--o{ employer_verifications : "submits"
-    users ||--o{ employer_verifications : "verifies"
-    employers ||--o{ stores : "owns"
-    users ||--o{ store_reviews : "writes"
-    stores ||--o{ store_reviews : "receives"
-    employment_records ||--o| store_reviews : "has"
-    employers ||--o{ job_posts : "creates"
-    stores ||--o{ job_posts : "hosts"
-    job_posts ||--o{ job_post_images : "contains"
-    job_posts ||--o{ job_post_categories : "has"
-    job_categories ||--o{ job_post_categories : "assigned to"
-    job_posts ||--o{ job_post_shifts : "has"
-    work_shifts ||--o{ job_post_shifts : "assigned to"
-    job_posts ||--o{ job_applications : "receives"
-    users ||--o{ job_applications : "applies"
-    users ||--o{ employment_records : "works"
-    stores ||--o{ employment_records : "employs"
-    job_posts ||--o{ employment_records : "for"
-    job_applications ||--o| employment_records : "results in"
-    employers ||--o{ employment_records : "verifies"
+flowchart LR
+    Visitor[Người dùng / Doanh nghiệp / Admin] --> Frontend[React + TypeScript]
+    Frontend -->|HTTP / JSON| Backend[Spring Boot REST API]
+    Backend --> Database[(MySQL)]
+    Backend --> Media[Cloudinary]
+    Backend --> Mail[SMTP Email]
+    Frontend -->|Đăng nhập Google| Google[Google OAuth 2.0]
+    Google --> Backend
 ```
-</details>
-* One Employment Record → One Review
 
----
-
-## System Roles
-
-### User
-* Search jobs
-* Apply for jobs
-* Track applications
-* Review workplaces
-
-### Employer
-* Verify business account
-* Manage stores
-* Create job posts
-* Process applications
-
-### Admin
-* Manage users
-* Approve employer verification
-* Moderate job posts
-* Monitor platform activities
-
----
-
-## AI Moderation Workflow
-
-1. Employer creates a store and job post.
-2. AI analyzes:
-   * Employer profile
-   * Store information
-   * Job title
-   * Job description
-3. If inconsistencies are detected:
-   * Job post is flagged or rejected.
-4. Valid job posts are published.
-
-*Example:*
-* **Verified Employer:** Highlands Coffee
-* **Submitted Store:** Starbucks Coffee
-* **Result:** AI flags the post as suspicious and prevents publication.
-
----
-
-## Project Structure
+Backend tổ chức theo các lớp:
 
 ```text
-.
-├── ParttimeHiringBackend    # Java Spring Boot API service
-├── ParttimeHiringFrontend   # React Vite web application
-├── database                 # Database schemas             
-└── README.md                # Project overview (this file)
+Controller → Service → Repository → Database
+                 ↕
+            DTO / Mapper
 ```
 
----
+- **Controller:** tiếp nhận yêu cầu HTTP và trả phản hồi API.
+- **Service:** xử lý quy tắc nghiệp vụ và giao dịch dữ liệu.
+- **Repository:** truy vấn và lưu trữ dữ liệu thông qua Spring Data JPA.
+- **DTO / Mapper:** tách dữ liệu trao đổi qua API khỏi entity lưu trữ.
+- **Security:** cấu hình xác thực, JWT, OAuth và phân quyền.
 
-## Deployment
+## Cấu trúc thư mục
 
-### Run with Docker
-
-```bash
-docker-compose up -d
+```text
+Parttime_Hiring_Plaform_Project/
+├── ParttimeHiringBackend/
+│   ├── .mvn/                          # Cấu hình Maven Wrapper
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/tanhs/fudn/parttime_hiring_plaform_project/
+│   │   │   │   ├── configuration/     # Cấu hình ứng dụng
+│   │   │   │   ├── controller/        # REST API theo nhóm chức năng
+│   │   │   │   ├── dto/               # Request và response
+│   │   │   │   ├── entity/            # Mô hình dữ liệu JPA
+│   │   │   │   ├── exception/         # Xử lý ngoại lệ
+│   │   │   │   ├── mapper/            # Ánh xạ entity và DTO
+│   │   │   │   ├── repository/        # Truy cập dữ liệu
+│   │   │   │   ├── scheduler/         # Tác vụ theo lịch
+│   │   │   │   ├── security/          # Xác thực và phân quyền
+│   │   │   │   └── service/           # Nghiệp vụ và triển khai
+│   │   │   └── resources/
+│   │   │       ├── application.yml
+│   │   │       └── application-local.yml
+│   │   └── test/                      # Kiểm thử backend
+│   ├── mvnw
+│   ├── mvnw.cmd
+│   └── pom.xml
+├── ParttimeHiringFrontend/
+│   ├── public/                        # Tài nguyên tĩnh
+│   ├── src/
+│   │   ├── assets/                    # Hình ảnh và tài nguyên giao diện
+│   │   ├── components/                # Thành phần dùng chung và layout
+│   │   ├── pages/                     # Các trang User, Employer, Admin
+│   │   ├── services/                  # Hàm gọi API
+│   │   ├── App.tsx                    # Khai báo route
+│   │   └── main.tsx                   # Điểm khởi tạo React
+│   ├── package.json
+│   └── vite.config.ts
+├── database/
+│   ├── schema_db.sql                  # Định nghĩa cấu trúc database
+│   └── data.sql                       # Dữ liệu mẫu
+└── README.md
 ```
 
-### Run Spring Boot
+## Hướng dẫn cài đặt và chạy
+
+### 1. Yêu cầu môi trường
+
+- **JDK 17 trở lên**; biến `JAVA_HOME` trỏ đến JDK đang sử dụng.
+- **Node.js** tương thích với Vite 8; có thể dùng Node.js 22.12 trở lên thuộc nhánh 22.
+- **npm** để cài đặt và chạy frontend.
+- **MySQL** đang hoạt động tại `localhost:3306`.
+- **Git** để lấy và quản lý mã nguồn.
+
+Dự án có Maven Wrapper nên không cần cài Maven riêng.
+
+### 2. Chuẩn bị database
+
+Sử dụng database phát triển có tên `parttime_hiring_platform`. Cấu hình backend mặc định cho phép tạo database nếu chưa tồn tại và cập nhật cấu trúc bảng bằng Hibernate.
+
+Nếu cần khởi tạo từ SQL, sử dụng các tập tin trong thư mục `database/` sau khi kiểm tra nội dung. **`schema_db.sql` chứa lệnh xóa database hiện có**; chỉ chạy trên database phát triển có thể khởi tạo lại. Kiểm tra tên bảng và dữ liệu trong `data.sql` trước khi import.
+
+Thông tin kết nối mặc định:
+
+| Thuộc tính | Giá trị |
+|---|---|
+| Host | `localhost` |
+| Port | `3306` |
+| Database | `parttime_hiring_platform` |
+| Username | `root` |
+
+Đặt thông tin đăng nhập MySQL trong PowerShell trước khi chạy backend:
+
+```powershell
+$env:DB_USERNAME = "root"
+$env:DB_PASSWORD = "your_mysql_password"
+```
+
+### 3. Cấu hình dịch vụ
+
+| Biến môi trường | Mục đích |
+|---|---|
+| `DB_USERNAME`, `DB_PASSWORD` | Tài khoản kết nối MySQL |
+| `PORT` | Cổng backend; mặc định `8088` |
+| `JWT_SIGNER_KEY` | Khóa ký JWT; tối thiểu 64 byte cho HS512 |
+| `JWT_SECRET` | Giá trị cấu hình JWT bổ sung |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Đăng nhập Google |
+| `MAIL_USERNAME`, `MAIL_PASSWORD` | Tài khoản SMTP gửi email |
+| `CLOUDINARY_CLOUD_NAME` | Tên cloud Cloudinary |
+| `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Thông tin truy cập Cloudinary |
+
+Profile `local` cung cấp giá trị phát triển cho các cấu hình dịch vụ. Để sử dụng Google Login, gửi email và upload ảnh, cần cung cấp thông tin dịch vụ thật.
+
+Biến môi trường phải được nạp vào tiến trình chạy backend. File `.env` ở thư mục gốc không được Spring Boot tự động nạp theo cấu hình hiện tại. Không commit thông tin bí mật hoặc sử dụng khóa ký của profile `local` khi triển khai.
+
+### 4. Chạy backend
+
+Từ thư mục gốc dự án, mở một terminal:
+
+```powershell
+cd ParttimeHiringBackend
+.\mvnw.cmd spring-boot:run '-Dspring-boot.run.profiles=local'
+```
+
+Với macOS/Linux:
 
 ```bash
 cd ParttimeHiringBackend
-./mvnw spring-boot:run
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
-### Run Frontend Development Server
+**API base URL:** `http://localhost:8088/parttime_hiring_platform`
+
+Ví dụ kiểm tra API công khai:
+
+```text
+GET http://localhost:8088/parttime_hiring_platform/api/jobs
+```
+
+### 5. Chạy frontend
+
+Mở terminal khác từ thư mục gốc dự án:
 
 ```bash
 cd ParttimeHiringFrontend
-npm install
+npm ci
 npm run dev
 ```
 
----
+**Frontend mặc định:** `http://localhost:5173`
 
-## Future Improvements
+Sử dụng địa chỉ thực tế Vite in ra terminal. Các service frontend hiện trỏ đến backend tại `http://localhost:8088/parttime_hiring_platform`; nếu đổi cổng backend, cập nhật địa chỉ API tương ứng. Cấu hình CORS backend cũng cần khớp địa chỉ frontend.
 
-* Resume/CV Upload
-* AI Candidate Recommendation
-* AI Job Matching
-* Real-time Notifications
-* Interview Scheduling
-* Analytics Dashboard
-* Mobile Application
+### 6. Tài khoản phát triển
 
----
+Backend tạo tài khoản mặc định khi username tương ứng chưa tồn tại:
 
-## Author
+| Vai trò | Username | Password |
+|---|---|---|
+| Admin | `admin` | `admin` |
+| Employer | `employer` | `employer` |
+
+Người tìm việc có thể tạo tài khoản qua trang `/register`. Nếu database đã có các tài khoản trên, bộ khởi tạo không ghi đè mật khẩu hiện có. Các tài khoản mặc định chỉ phục vụ phát triển cục bộ.
+
+## Các lệnh thường dùng
+
+### Backend — chạy trong `ParttimeHiringBackend/`
+
+| Lệnh trên Windows | Mục đích |
+|---|---|
+| `.\mvnw.cmd spring-boot:run '-Dspring-boot.run.profiles=local'` | Chạy backend với profile local |
+| `.\mvnw.cmd test` | Chạy kiểm thử backend |
+| `.\mvnw.cmd package` | Kiểm thử và đóng gói ứng dụng |
+
+Trên macOS/Linux, thay `.\mvnw.cmd` bằng `./mvnw`. Các integration test dùng MySQL theo cấu hình và có thể cập nhật database; chạy với database phát triển riêng.
+
+### Frontend — chạy trong `ParttimeHiringFrontend/`
+
+| Lệnh | Mục đích |
+|---|---|
+| `npm ci` | Cài dependency theo lockfile |
+| `npm run dev` | Chạy development server |
+| `npm run build` | Kiểm tra TypeScript và tạo bản build |
+| `npm run lint` | Kiểm tra quy tắc mã nguồn |
+| `npm run preview` | Xem trước bản build trên máy cục bộ |
+
+## Tác giả
 
 **Ho Si Tan**  
-Software Engineering Student  
-FPT University Da Nang
+Software Engineering Student — FPT University Da Nang

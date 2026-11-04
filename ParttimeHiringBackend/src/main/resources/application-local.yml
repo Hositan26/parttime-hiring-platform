@@ -1,0 +1,21 @@
+# Development only. External integrations require real credentials to operate.
+spring:
+  mail:
+    username: ${MAIL_USERNAME:local@example.invalid}
+    password: ${MAIL_PASSWORD:local-disabled}
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:local-disabled}
+            client-secret: ${GOOGLE_CLIENT_SECRET:local-disabled}
+
+jwt:
+  signerKey: ${JWT_SIGNER_KEY:local-development-only-signing-key-do-not-use-in-production-0123456789abcdef}
+  secret: ${JWT_SECRET:local-development-only}
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:local-disabled}
+  api-key: ${CLOUDINARY_API_KEY:local-disabled}
+  api-secret: ${CLOUDINARY_API_SECRET:local-disabled}

@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.admin.verification.VerificationListResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.VerificationStatus;
 
+@org.springframework.test.context.ActiveProfiles("local")
 @SpringBootTest
 public class AdminEmployerVerificationServiceTest {
 
@@ -24,7 +25,7 @@ public class AdminEmployerVerificationServiceTest {
                 System.out.println("First element: " + result.getContent().get(0));
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new AssertionError("Backend integration check failed", e);
         }
         System.out.println("====== END TEST ======");
     }

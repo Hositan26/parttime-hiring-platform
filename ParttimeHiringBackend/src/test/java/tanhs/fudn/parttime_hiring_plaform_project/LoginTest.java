@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
+@org.springframework.test.context.ActiveProfiles("local")
 @SpringBootTest
 public class LoginTest {
     @Autowired
@@ -26,8 +27,8 @@ public class LoginTest {
             );
             System.out.println("Login Success: " + auth.getName());
         } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Exception: " + e.getClass().getName() + " - " + e.getMessage());
+            throw new AssertionError("Backend integration check failed", e);
+
         }
     }
 }
