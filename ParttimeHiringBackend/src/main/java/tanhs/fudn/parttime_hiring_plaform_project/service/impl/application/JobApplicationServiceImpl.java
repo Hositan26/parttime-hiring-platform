@@ -168,6 +168,9 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         }
 
         ApplicationStatus oldStatus = application.getStatus();
+        if (oldStatus == ApplicationStatus.ACCEPTED && status != ApplicationStatus.ACCEPTED) {
+            throw new BusinessException("Accepted applications retain their employment history");
+        }
         if (oldStatus == ApplicationStatus.WITHDRAWN
                 || (status != ApplicationStatus.ACCEPTED && status != ApplicationStatus.REJECTED)) {
             throw new BusinessException("This application decision is not allowed");
@@ -191,11 +194,6 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                     .verifiedAt(LocalDateTime.now())
                     .build();
             employmentRecordRepository.save(newRecord);
-        } else if (status == ApplicationStatus.REJECTED && oldStatus == ApplicationStatus.ACCEPTED) {
-            // Xóa bản ghi nhân sự nếu click nhầm (undo)
-            employmentRecordRepository.findByApplication(application).ifPresent(record -> {
-                employmentRecordRepository.delete(record);
-            });
         }
     }
 }

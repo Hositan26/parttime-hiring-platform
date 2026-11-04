@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { MainLayout } from '../../components/Layout/MainLayout';
 import { apiBase, apiFetch } from '../../services/apiClient';
+import { ReviewEditor } from './ReviewEditor';
 
 interface Employment {
   id: number; storeName: string; jobTitle: string | null;
@@ -33,6 +34,7 @@ export const EmploymentHistory = () => {
         <span className={record.workStatus === 'WORKING' ? 'badge-success' : 'badge-warning'}>
           {record.workStatus === 'WORKING' ? 'Đang làm việc' : record.workStatus === 'QUIT' ? 'Đã nghỉ việc' : 'Đã chấm dứt'}
         </span>
+        <ReviewEditor employmentId={record.id} />
       </article>)}
     {pages > 1 && <nav aria-label="Phân trang lịch sử làm việc">
       <button className="btn-outline" disabled={loading || page === 0} onClick={() => setPage(page - 1)}>Trang trước</button>
