@@ -59,6 +59,7 @@ class ApplicationSubmissionTest {
         arrange();
         when(applications.existsByJobPost_JobPostIdAndApplicant_Id(10, 1L)).thenReturn(true);
         assertThrows(BusinessException.class, () -> service.applyForJob(request(), "candidate"));
+        verify(users).lockByUsername("candidate");
         verify(applications, never()).save(any());
     }
 
@@ -67,7 +68,7 @@ class ApplicationSubmissionTest {
         JobPost job = JobPost.builder().jobPostId(10).status(JobStatus.ACTIVE)
                 .store(Store.builder().isActive(true).build())
                 .employer(Employer.builder().status(EmployerStatus.ACTIVE).build()).build();
-        when(users.findByUsername("candidate")).thenReturn(Optional.of(User.builder().id(1L).build()));
+        when(users.lockByUsername("candidate")).thenReturn(Optional.of(User.builder().id(1L).build()));
         when(jobs.findById(10)).thenReturn(Optional.of(job));
         return job;
     }

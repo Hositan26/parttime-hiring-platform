@@ -59,10 +59,10 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         this.availabilityPolicy = availabilityPolicy;
     }
 
-    // Accepts applications only while the recruitment opportunity remains available.
+    // Serializes candidate submissions before checking availability and duplicate applications.
     @Transactional
     public void applyForJob(JobApplicationRequest request, String username) {
-        User applicant = userRepository.findByUsername(username)
+        User applicant = userRepository.lockByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng."));
 
         JobPost jobPost = jobPostRepository.findById(request.getJobPostId())
