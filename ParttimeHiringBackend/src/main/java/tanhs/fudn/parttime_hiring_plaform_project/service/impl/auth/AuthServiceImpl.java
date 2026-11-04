@@ -43,11 +43,12 @@ public class AuthServiceImpl implements AuthService {
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
     JwtTokenProvider tokenProvider;
+    tanhs.fudn.parttime_hiring_plaform_project.service.auth.AuthSessionService sessionService;
     tanhs.fudn.parttime_hiring_plaform_project.security.AuthCookieService cookieService;
     tanhs.fudn.parttime_hiring_plaform_project.mapper.AuthMapper authMapper;
 
     // Authenticates credentials without disclosing internal authentication errors.
-    @Transactional(readOnly = true)
+    @Transactional
     public LoginResponse login(LoginRequest request, HttpServletResponse response) {
         Authentication authentication;
         try {
@@ -61,13 +62,14 @@ public class AuthServiceImpl implements AuthService {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        String jwt = tokenProvider.generateToken(authentication);
 
-        cookieService.writeAccess(response, jwt, tokenProvider.getExpirationSeconds());
+
+
 
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        sessionService.start(user, response);
         return authMapper.toLoginResponse(user);
     }
 
@@ -114,5 +116,6 @@ public class AuthServiceImpl implements AuthService {
         SecurityContextHolder.clearContext();
     }
 }
+
 
 

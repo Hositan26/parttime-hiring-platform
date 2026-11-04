@@ -20,6 +20,7 @@ import tanhs.fudn.parttime_hiring_plaform_project.service.auth.AuthService;
 public class AuthController {
 
     AuthService authService;
+    tanhs.fudn.parttime_hiring_plaform_project.service.auth.AuthSessionService sessionService;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<String>> register(@Valid @RequestBody RegisterRequest request) {
@@ -33,9 +34,16 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(loginResponse));
     }
     
+    // Rotates the refresh cookie without exposing credentials in JSON.
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<String>> refresh(@CookieValue(name = "refresh_token", required = false) String token, HttpServletResponse response) {
+        sessionService.refresh(token, response);
+        return ResponseEntity.ok(ApiResponse.success("Session refreshed"));
+    }
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<String>> logout(HttpServletResponse response) {
         authService.logout(response);
         return ResponseEntity.ok(ApiResponse.success("Đăng xuất thành công!"));
     }
 }
+
