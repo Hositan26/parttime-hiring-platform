@@ -1,6 +1,7 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.application;
 
 import org.springframework.security.access.AccessDeniedException;
+import tanhs.fudn.parttime_hiring_plaform_project.service.user.UserNotificationService;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.request.application.ApplicationUpdateRequest;
 import tanhs.fudn.parttime_hiring_plaform_project.service.job.JobAvailabilityPolicy;
 import tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException;
@@ -42,6 +43,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
     private final JobApplicationMapper applicationMapper;
     private final EmploymentRecordRepository employmentRecordRepository;
     private final JobAvailabilityPolicy availabilityPolicy;
+    private final UserNotificationService notifications;
 
     // Changes contact details only before the employer has decided.
     @Transactional
@@ -81,7 +83,8 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                                  EmployerRepository employerRepository,
                                  JobApplicationMapper applicationMapper,
                                  EmploymentRecordRepository employmentRecordRepository,
-                                 JobAvailabilityPolicy availabilityPolicy) {
+                                 JobAvailabilityPolicy availabilityPolicy,
+                                 UserNotificationService notifications) {
         this.applicationRepository = applicationRepository;
         this.jobPostRepository = jobPostRepository;
         this.userRepository = userRepository;
@@ -89,6 +92,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         this.applicationMapper = applicationMapper;
         this.employmentRecordRepository = employmentRecordRepository;
         this.availabilityPolicy = availabilityPolicy;
+        this.notifications = notifications;
     }
 
     // Serializes candidate submissions before checking availability and duplicate applications.
@@ -179,6 +183,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         // Cập nhật trạng thái
         application.setStatus(status);
         applicationRepository.save(application);
+        if (oldStatus != status) notifications.decision(application);
 
         // Logic tạo hoặc xóa EmploymentRecord
         if (status == ApplicationStatus.ACCEPTED && oldStatus != ApplicationStatus.ACCEPTED) {

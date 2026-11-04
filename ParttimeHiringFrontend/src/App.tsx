@@ -9,6 +9,7 @@ import { SavedJobs } from './pages/Jobs/SavedJobs';
 import { JobDetail } from './pages/Jobs/JobDetail';
 import { AppliedJobs } from './pages/AppliedJobs/AppliedJobs';
 import { Profile } from './pages/Profile/Profile';
+import { Notifications } from './pages/Profile/Notifications';
 import { CandidateProfile } from './pages/Profile/CandidateProfile';
 import { EmploymentHistory } from './pages/Profile/EmploymentHistory';
 import { VerifyBusiness } from './pages/VerifyBusiness/VerifyBusiness';
@@ -52,6 +53,7 @@ function App() {
         <Route path="/jobs/:id" element={<JobDetail />} />
         <Route path="/applied-jobs" element={<RoleRoute roles={['USER']}><AppliedJobs /></RoleRoute>} />
         <Route path="/profile" element={<RoleRoute><Profile /></RoleRoute>} />
+        <Route path="/notifications" element={<RoleRoute><Notifications /></RoleRoute>} />
         <Route path="/candidate-profile" element={<RoleRoute><CandidateProfile /></RoleRoute>} />
         <Route path="/candidate-profile/applications/:applicationId" element={<RoleRoute><CandidateProfile /></RoleRoute>} />
         <Route path="/employment-history" element={<RoleRoute roles={['USER']}><EmploymentHistory /></RoleRoute>} />

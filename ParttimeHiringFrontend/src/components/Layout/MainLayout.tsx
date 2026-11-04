@@ -54,9 +54,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </nav>
 
           <div className={styles.navRight}>
-            <button className={styles.iconBtn}>
+            <Link to="/notifications" className={styles.iconBtn} aria-label="Thông báo">
               <Bell size={20} />
-            </button>
+            </Link>
 
             <div className={styles.userMenu}>
               {user?.avatarUrl && user.avatarUrl !== 'null' ? (

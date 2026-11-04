@@ -58,7 +58,7 @@ class ApplicationSubmissionTest {
     private final UserRepository users = mock(UserRepository.class);
     private final JobApplicationServiceImpl service = new JobApplicationServiceImpl(applications, jobs, users,
             mock(EmployerRepository.class), mock(JobApplicationMapper.class), mock(EmploymentRecordRepository.class),
-            new JobAvailabilityPolicy());
+            new JobAvailabilityPolicy(), mock(tanhs.fudn.parttime_hiring_plaform_project.service.user.UserNotificationService.class));
 
     // Rejects unavailable recruitment before reading or saving applications.
     @Test
