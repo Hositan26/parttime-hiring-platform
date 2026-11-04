@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 public class AuthServiceImpl implements AuthService {
 
     AuthenticationManager authenticationManager;
+    tanhs.fudn.parttime_hiring_plaform_project.security.AttemptRateLimiter limiter;
     UserRepository userRepository;
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
@@ -50,6 +51,7 @@ public class AuthServiceImpl implements AuthService {
     // Authenticates credentials without disclosing internal authentication errors.
     @Transactional
     public LoginResponse login(LoginRequest request, HttpServletResponse response) {
+        limiter.check("login-account", request.getUsername().toLowerCase(java.util.Locale.ROOT), 10, 900);
         Authentication authentication;
         try {
             authentication = authenticationManager.authenticate(
@@ -116,6 +118,7 @@ public class AuthServiceImpl implements AuthService {
         SecurityContextHolder.clearContext();
     }
 }
+
 
 
 

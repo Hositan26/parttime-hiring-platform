@@ -22,6 +22,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class LoginUnitTest {
+    @Mock tanhs.fudn.parttime_hiring_plaform_project.security.AttemptRateLimiter limiter;
     @Mock AuthenticationManager authenticationManager;
     @Mock UserRepository userRepository;
     @Mock RoleRepository roleRepository;
@@ -43,3 +44,4 @@ class LoginUnitTest {
         verifyNoInteractions(tokenProvider);
     }
 }
+

@@ -16,6 +16,11 @@ import tanhs.fudn.parttime_hiring_plaform_project.dto.response.common.ApiRespons
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    // Reports throttled authentication attempts without leaking account information.
+    @ExceptionHandler(RateLimitException.class)
+    public ResponseEntity<ApiResponse<Object>> rateLimit(RateLimitException exception) {
+        return ResponseEntity.status(429).header("Retry-After", "900").body(error(429, "RATE_LIMITED", exception.getMessage(), null).getBody());
+    }
     // Maps missing resources to a predictable not-found response.
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiResponse<Object>> notFound(ResourceNotFoundException exception) {
@@ -74,3 +79,4 @@ public class GlobalExceptionHandler {
                 .message(message).result(result).timestamp(Instant.now().toString()).build());
     }
 }
+
