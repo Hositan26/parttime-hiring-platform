@@ -20,6 +20,8 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 
 import java.io.IOException;
+import tanhs.fudn.parttime_hiring_plaform_project.util.ImageUploads;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException;
 
 @Service
 @RequiredArgsConstructor
@@ -35,18 +37,21 @@ public class EmployerVerificationServiceImpl implements EmployerVerificationServ
     private static final String FOLDER_NAME = "parttime_hiring/employer_verifications";
 
     // Consumes confirmed email proof before saving business verification documents.
-    @Transactional
+    @Transactional(rollbackFor = IOException.class)
     public void submitVerification(VerifyBusinessRequest request, String username) throws IOException {
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.lockByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
-        // Validate OTP first
-        emailVerificationService.verifyOtp(request.getEmail(), request.getOtpCode(), username);
-
-        // Kiểm tra xem đã có đơn PENDING nào chưa
         if (verificationRepository.findByUserIdAndVerificationStatus(user.getId(), VerificationStatus.PENDING).isPresent()) {
-            throw new RuntimeException("Bạn đã có một đơn xác minh đang chờ duyệt.");
+            throw new BusinessException("A verification request is already pending");
         }
+        ImageUploads.validate(request.getStoreFrontImage());
+        ImageUploads.validate(request.getIdCardFront());
+        ImageUploads.validate(request.getIdCardBack());
+        if (request.getBusinessLicense() != null && !request.getBusinessLicense().isEmpty()) {
+            ImageUploads.validate(request.getBusinessLicense());
+        }
+        emailVerificationService.verifyOtp(request.getEmail(), request.getOtpCode(), username);
 
         // Upload files
         CloudinaryResponse storeFrontRes = cloudinaryService.uploadFile(request.getStoreFrontImage(), FOLDER_NAME);
@@ -58,35 +63,14 @@ public class EmployerVerificationServiceImpl implements EmployerVerificationServ
             licenseRes = cloudinaryService.uploadFile(request.getBusinessLicense(), FOLDER_NAME);
         }
 
-        // Build entity
-        EmployerVerification verification = EmployerVerification.builder()
-                .user(user)
-                .companyName(request.getStoreName())
-                .representativeName(request.getRepresentativeName())
-                .contactEmail(request.getEmail())
-                .phoneContact(request.getPhone())
-                .address(request.getAddress())
-                .taxCode(request.getTaxCode())
-                .websiteFanpageUrl(request.getWebsiteFanpageUrl())
-                
-                // URLs
-                .storeFrontImageUrl(storeFrontRes.getUrl())
-                .idCardFrontUrl(idFrontRes.getUrl())
-                .idCardBackUrl(idBackRes.getUrl())
-                .businessLicenseUrl(licenseRes != null ? licenseRes.getUrl() : null)
-                
-                // Public IDs
-                .storeFrontImagePublicId(storeFrontRes.getPublicId())
-                .idCardFrontPublicId(idFrontRes.getPublicId())
-                .idCardBackPublicId(idBackRes.getPublicId())
-                .businessLicensePublicId(licenseRes != null ? licenseRes.getPublicId() : null)
-                
-                .verificationStatus(VerificationStatus.PENDING)
-                .build();
+        EmployerVerification verification = verificationMapper.create(request, user);
+        verificationMapper.documents(storeFrontRes, idFrontRes, idBackRes, licenseRes, verification);
 
         verificationRepository.save(verification);
     }
 
+    // Reads the authenticated applicant's latest verification decision.
+    @Transactional(readOnly = true)
     public EmployerVerificationStatusResponse getMyVerificationStatus(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
