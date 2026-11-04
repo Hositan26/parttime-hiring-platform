@@ -22,6 +22,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { name: 'Đã ứng tuyển', path: '/applied-jobs' },
     { name: 'Lịch sử làm việc', path: '/employment-history' },
     { name: 'Profile', path: '/profile' },
+    { name: 'CV', path: '/candidate-profile' },
     { 
       name: isEmployer ? 'Quản lý doanh nghiệp' : 'Xác minh doanh nghiệp', 
       path: isEmployer ? '/employer/dashboard' : '/verify-business' 
