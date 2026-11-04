@@ -1,9 +1,10 @@
 import { logout } from '../../services/auth.service';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Briefcase, Bell, LogOut, User as UserIcon } from 'lucide-react';
 import styles from './MainLayout.module.css';
-import { getMe } from '../../services/auth.service';
+import { useAuth } from '../../context/authContext';
+import { apiBase } from '../../services/apiClient';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -11,13 +12,7 @@ interface MainLayoutProps {
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    getMe()
-      .then(data => setUser(data))
-      .catch(err => console.error(err));
-  }, []);
+  const { user } = useAuth();
 
   const isEmployer = user?.roles?.some((r: any) => r.name === 'ROLE_EMPLOYER' || r === 'ROLE_EMPLOYER' || r === 'EMPLOYER') || user?.roles?.includes('EMPLOYER');
 
@@ -64,7 +59,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <div className={styles.userMenu}>
               {user?.avatarUrl && user.avatarUrl !== 'null' ? (
                 <img 
-                  src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:8088/parttime_hiring_platform${user.avatarUrl.startsWith('/') ? '' : '/'}${user.avatarUrl}`} 
+                  src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `${apiBase.replace(/\/api$/, '')}${user.avatarUrl.startsWith('/') ? '' : '/'}${user.avatarUrl}`} 
                   alt="Avatar" 
                   className={styles.userAvatar} 
                   onError={(e) => {

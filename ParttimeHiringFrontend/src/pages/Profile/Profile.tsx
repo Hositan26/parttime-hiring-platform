@@ -6,6 +6,7 @@ import { Button } from '../../components/Button/Button';
 import styles from './Profile.module.css';
 import { getMe, updateMe } from '../../services/auth.service';
 import { useNavigate } from 'react-router-dom';
+import { apiBase, apiFetch } from '../../services/apiClient';
 
 export const Profile: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -20,6 +21,8 @@ export const Profile: React.FC = () => {
   });
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const [avatarError, setAvatarError] = useState('');
   const navigate = useNavigate();
   const today = new Date().toLocaleDateString('en-CA');
   const validationError = !editData.displayName.trim() || editData.displayName.length > 100
@@ -70,6 +73,22 @@ export const Profile: React.FC = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const uploadAvatar = async (file?: File) => {
+    if (!file) return;
+    if (!['image/jpeg', 'image/png'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      setAvatarError('Chọn ảnh JPEG hoặc PNG tối đa 5 MB.'); return;
+    }
+    setAvatarBusy(true); setAvatarError('');
+    try {
+      const body = new FormData(); body.append('file', file);
+      const response = await apiFetch(`${apiBase}/users/me/avatar`, { method: 'POST', body });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Không thể đổi avatar.');
+      setUser(data.result); window.dispatchEvent(new Event('auth:changed'));
+    } catch (failure) { setAvatarError(failure instanceof Error ? failure.message : 'Không thể đổi avatar.'); }
+    finally { setAvatarBusy(false); }
   };
 
   const handleCancelEdit = () => {
@@ -152,6 +171,13 @@ export const Profile: React.FC = () => {
           </div>
 
           <div className={styles.headerAction}>
+            <label>Đổi avatar (JPEG/PNG, tối đa 5 MB)
+              <input type="file" accept="image/jpeg,image/png" disabled={avatarBusy} onChange={event => {
+                void uploadAvatar(event.target.files?.[0]); event.target.value = '';
+              }} />
+            </label>
+            {avatarBusy && <span>Đang tải ảnh...</span>}
+            {avatarError && <p role="alert">{avatarError}</p>}
             <Button variant="primary">
               <Briefcase size={16} style={{ marginRight: '8px' }} /> 
               Xem việc đã ứng tuyển
