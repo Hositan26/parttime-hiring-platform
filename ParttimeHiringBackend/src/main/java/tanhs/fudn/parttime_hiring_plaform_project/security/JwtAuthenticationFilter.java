@@ -32,7 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (token != null && tokenProvider.validateToken(token)) {
             var claims = tokenProvider.parseClaims(token);
             var account = users.findByUsername(claims.getSubject());
-            if (account.isPresent() && !revokedTokens.existsById(claims.getId())
+            if (account.isPresent() && Boolean.TRUE.equals(account.get().getIsActive()) && !revokedTokens.existsById(claims.getId())
                     && account.get().getAuthVersion().equals(claims.get("version", Integer.class))) {
                 var details = userDetailsService.loadUserByUsername(account.get().getUsername());
                 var authentication = new UsernamePasswordAuthenticationToken(details, null, details.getAuthorities());
@@ -52,3 +52,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
 }
+

@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 public class AdminUserServiceImpl implements AdminUserService {
 
     private final UserRepository userRepository;
+    private final tanhs.fudn.parttime_hiring_plaform_project.repository.identity.RefreshSessionRepository sessions;
 
     public Page<AdminUserResponse> getAllUsers(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
@@ -42,9 +43,12 @@ public class AdminUserServiceImpl implements AdminUserService {
 
     @Override
     @Transactional
+    // Disables the account and permanently invalidates existing credentials.
     public void banUser(Long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         user.setIsActive(false);
+        user.setAuthVersion(user.getAuthVersion() + 1);
+        sessions.revokeUser(id);
         userRepository.save(user);
     }
 
@@ -56,3 +60,4 @@ public class AdminUserServiceImpl implements AdminUserService {
         userRepository.save(user);
     }
 }
+

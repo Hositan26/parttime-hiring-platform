@@ -29,6 +29,7 @@ public class CustomUserDetailsService implements UserDetailsService {
      * @return UserDetails để Security xác thực.
      * @throws UsernameNotFoundException Nếu không tìm thấy người dùng.
      */
+    // Loads current account status and authorities for each authentication attempt.
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username)
@@ -40,8 +41,8 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
-                user.getPassword(),
-                user.getIsActive(),
+                user.getPassword() == null ? "" : user.getPassword(),
+                Boolean.TRUE.equals(user.getIsActive()),
                 true,
                 true,
                 true,
@@ -49,3 +50,4 @@ public class CustomUserDetailsService implements UserDetailsService {
         );
     }
 }
+
