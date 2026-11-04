@@ -21,6 +21,12 @@ export const Profile: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const navigate = useNavigate();
+  const today = new Date().toLocaleDateString('en-CA');
+  const validationError = !editData.displayName.trim() || editData.displayName.length > 100
+    ? 'Tên hiển thị phải có từ 1 đến 100 ký tự.'
+    : !/^[a-zA-Z0-9_]{3,50}$/.test(editData.username) ? 'Username gồm 3–50 chữ, số hoặc dấu gạch dưới.'
+    : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editData.email) ? 'Email không hợp lệ.'
+    : editData.dateOfBirth && editData.dateOfBirth > today ? 'Ngày sinh không được ở tương lai.' : '';
 
   useEffect(() => {
     fetchUser();
@@ -46,6 +52,7 @@ export const Profile: React.FC = () => {
   };
 
   const handleSave = async () => {
+    if (validationError) { setErrorMsg(validationError); return; }
     if (user.hasPassword && !editData.currentPassword) {
       setErrorMsg('Vui lòng nhập mật khẩu xác nhận để lưu thay đổi.');
       return;
@@ -172,16 +179,16 @@ export const Profile: React.FC = () => {
                   <button className={styles.cancelBtn} onClick={handleCancelEdit} disabled={saving}>
                     <X size={16} /> Hủy
                   </button>
-                  <button className={styles.saveBtn} onClick={handleSave} disabled={saving}>
+                  <button className={styles.saveBtn} onClick={handleSave} disabled={saving || Boolean(validationError)}>
                     {saving ? 'Đang lưu...' : <><Save size={16} /> Lưu</>}
                   </button>
                 </div>
               )}
             </div>
 
-            {errorMsg && isEditing && (
+            {(errorMsg || validationError) && isEditing && (
               <div className={styles.warningAlert} style={{ backgroundColor: '#fef2f2', color: '#ef4444', borderColor: '#fecaca' }}>
-                {errorMsg}
+                {validationError || errorMsg}
               </div>
             )}
 
@@ -243,6 +250,7 @@ export const Profile: React.FC = () => {
                 {isEditing ? (
                   <input 
                     type="date" 
+                    max={today}
                     className={styles.editInput} 
                     value={editData.dateOfBirth} 
                     onChange={e => setEditData({...editData, dateOfBirth: e.target.value})}
