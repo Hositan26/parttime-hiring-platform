@@ -25,6 +25,15 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class ApplicationSubmissionTest {
+    // Restricts application history queries to the authenticated account identifier.
+    @Test
+    void scopesHistoryToCandidate() {
+        when(users.findByUsername("candidate")).thenReturn(Optional.of(User.builder().id(1L).build()));
+        when(applications.findByApplicant_IdOrderByAppliedAtDesc(1L)).thenReturn(java.util.List.of());
+        assertTrue(service.getMyApplications("candidate").isEmpty());
+        verify(applications).findByApplicant_IdOrderByAppliedAtDesc(1L);
+        verify(applications, never()).findAll();
+    }
     private final JobApplicationRepository applications = mock(JobApplicationRepository.class);
     private final JobPostRepository jobs = mock(JobPostRepository.class);
     private final UserRepository users = mock(UserRepository.class);

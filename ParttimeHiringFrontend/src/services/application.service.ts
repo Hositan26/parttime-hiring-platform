@@ -66,7 +66,7 @@ export const getMyApplications = async (): Promise<JobApplicationResponse[]> => 
         throw new Error(errorData.message || errorData.error || 'Lỗi khi tải danh sách ứng tuyển.');
     }
     
-    return response.json();
+    return (await response.json()).result;
 };
 
 export const getEmployerApplications = async (storeId?: number, status?: string): Promise<EmployerApplicationResponse[]> => {

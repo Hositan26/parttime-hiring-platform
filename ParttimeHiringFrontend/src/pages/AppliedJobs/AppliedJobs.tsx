@@ -8,6 +8,7 @@ import styles from './AppliedJobs.module.css';
 export const AppliedJobs: React.FC = () => {
   const [applications, setApplications] = useState<JobApplicationResponse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,7 +17,7 @@ export const AppliedJobs: React.FC = () => {
         setApplications(data);
       })
       .catch(err => {
-        console.error(err);
+        setError(err instanceof Error ? err.message : 'Không thể tải đơn ứng tuyển.');
       })
       .finally(() => {
         setLoading(false);
@@ -52,7 +53,7 @@ export const AppliedJobs: React.FC = () => {
           <p>Theo dõi toàn bộ công việc bạn đã gửi đơn ứng tuyển.</p>
         </div>
         
-        {loading ? (
+        {error ? <p role="alert">{error} <button className="btn-outline" onClick={() => window.location.reload()}>Thử lại</button></p> : loading ? (
           <div className={styles.contentCard} style={{ padding: '3rem', justifyContent: 'center' }}>
             <p>Đang tải dữ liệu...</p>
           </div>
