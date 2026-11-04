@@ -36,6 +36,7 @@ function App() {
     <Router>
       <Routes>
         {/* Existing Routes */}
+        <Route path="/change-password" element={<PasswordRecovery />} />
         <Route path="/forgot-password" element={<PasswordRecovery />} />
         <Route path="/reset-password" element={<PasswordRecovery />} />
         <Route path="/login" element={<Login />} />
@@ -88,4 +89,5 @@ function App() {
 }
 
 export default App;
+
 

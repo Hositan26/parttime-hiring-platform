@@ -52,6 +52,24 @@ public class PasswordServiceImpl implements PasswordService {
         }
     }
 
+    // Changes credentials only after reauthentication and revokes existing sessions.
+    @Transactional
+    public void change(String username, String currentPassword, String password) {
+        var user = users.findByUsername(username)
+                .orElseThrow(() -> new BusinessException("Account is unavailable"));
+        if (!Boolean.TRUE.equals(user.getIsActive()) || user.getPassword() == null
+                || !encoder.matches(currentPassword, user.getPassword())) {
+            throw new BusinessException("Current password is incorrect");
+        }
+        if (encoder.matches(password, user.getPassword())) {
+            throw new BusinessException("New password must differ from the current password");
+        }
+        user.setPassword(encoder.encode(password));
+        user.setAuthVersion(user.getAuthVersion() + 1);
+        users.save(user);
+        sessions.revokeUser(user.getId());
+        resets.deleteByUser_Id(user.getId());
+    }
     // Consumes a valid reset token and revokes all existing account credentials.
     @Transactional
     public void reset(String raw, String password) {
@@ -68,3 +86,4 @@ public class PasswordServiceImpl implements PasswordService {
         resets.deleteByUser_Id(user.getId());
     }
 }
+

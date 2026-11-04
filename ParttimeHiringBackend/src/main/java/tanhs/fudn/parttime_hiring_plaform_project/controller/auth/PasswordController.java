@@ -27,6 +27,16 @@ public class PasswordController {
         return ResponseEntity.ok(ApiResponse.success("If the account is eligible, a reset link will be sent"));
     }
 
+    // Changes an authenticated account password and clears browser credentials.
+    @PostMapping("/change-password")
+    @org.springframework.security.access.prepost.PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<String>> change(
+            @Valid @RequestBody tanhs.fudn.parttime_hiring_plaform_project.dto.request.auth.ChangePasswordRequest request,
+            java.security.Principal principal, HttpServletResponse response) {
+        passwords.change(principal.getName(), request.getCurrentPassword(), request.getPassword());
+        cookies.clear(response);
+        return ResponseEntity.ok(ApiResponse.success("Password changed. Please sign in again"));
+    }
     // Updates a password and removes browser credentials after successful reset.
     @PostMapping("/reset-password")
     public ResponseEntity<ApiResponse<String>> reset(@Valid @RequestBody ResetPasswordRequest request, HttpServletResponse response) {
@@ -35,3 +45,4 @@ public class PasswordController {
         return ResponseEntity.ok(ApiResponse.success("Password reset. Please sign in again"));
     }
 }
+
