@@ -41,7 +41,7 @@ public class EmployerVerificationServiceImpl implements EmployerVerificationServ
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
         // Validate OTP first
-        emailVerificationService.verifyOtp(request.getEmail(), request.getOtpCode());
+        emailVerificationService.verifyOtp(request.getEmail(), request.getOtpCode(), username);
 
         // Kiểm tra xem đã có đơn PENDING nào chưa
         if (verificationRepository.findByUserIdAndVerificationStatus(user.getId(), VerificationStatus.PENDING).isPresent()) {
@@ -96,3 +96,4 @@ public class EmployerVerificationServiceImpl implements EmployerVerificationServ
                 .orElse(null);
     }
 }
+

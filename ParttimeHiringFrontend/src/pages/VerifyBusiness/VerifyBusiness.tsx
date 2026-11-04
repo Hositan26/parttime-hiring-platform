@@ -1,7 +1,7 @@
 import { apiFetch } from '../../services/apiClient';
 import React, { useState, useRef, useEffect } from 'react';
 import { MainLayout } from '../../components/Layout/MainLayout';
-import { sendOtp } from '../../services/email.service';
+import { sendOtp, verifyOtp } from '../../services/email.service';
 import styles from './VerifyBusiness.module.css';
 import {
   ShieldCheck, Store, Phone, Globe, Mail, MapPin,
@@ -81,6 +81,7 @@ export const VerifyBusiness: React.FC = () => {
   }, [countdown]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.name === "email" || e.target.name === "otp") setOtpVerified(false);
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -135,9 +136,10 @@ export const VerifyBusiness: React.FC = () => {
     }
   };
 
-  const handleVerifyOtp = () => {
+  const handleVerifyOtp = async () => {
     if (formData.otp.length < 6) return alert('Vui lòng nhập đủ 6 ký tự mã OTP');
-    setOtpVerified(true);
+    try { await verifyOtp(formData.email, formData.otp); setOtpVerified(true); }
+    catch (error) { alert(error instanceof Error ? error.message : "Verification failed"); }
   };
 
   const handleSubmit = async () => {
@@ -567,4 +569,5 @@ export const VerifyBusiness: React.FC = () => {
     </MainLayout>
   );
 };
+
 

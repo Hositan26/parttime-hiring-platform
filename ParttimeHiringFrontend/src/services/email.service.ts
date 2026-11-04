@@ -19,14 +19,14 @@ export const sendOtp = async (email: string) => {
     return response.json();
 };
 
-export const verifyOtp = async (otpCode: string) => {
+export const verifyOtp = async (email: string, otpCode: string) => {
     const response = await apiFetch(`${API_URL}/verify-otp`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         credentials: 'include',
-        body: JSON.stringify({ otpCode })
+        body: JSON.stringify({ email, otpCode })
     });
     
     if (!response.ok) {
@@ -36,4 +36,5 @@ export const verifyOtp = async (otpCode: string) => {
     
     return response.json();
 };
+
 
