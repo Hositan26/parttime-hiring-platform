@@ -1,5 +1,7 @@
 # Development only. External integrations require real credentials to operate.
 spring:
+  datasource:
+    password: ${DB_PASSWORD:12345}
   mail:
     username: ${MAIL_USERNAME:local@example.invalid}
     password: ${MAIL_PASSWORD:local-disabled}
@@ -21,5 +23,7 @@ cloudinary:
   api-secret: ${CLOUDINARY_API_SECRET:local-disabled}
 
 app:
+  seed-data: true
   auth:
     cookie-secure: false
+

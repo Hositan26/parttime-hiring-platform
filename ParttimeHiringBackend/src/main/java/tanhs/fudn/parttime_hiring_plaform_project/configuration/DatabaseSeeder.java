@@ -17,6 +17,7 @@ import tanhs.fudn.parttime_hiring_plaform_project.repository.employer.EmployerRe
 import java.util.HashSet;
 import java.util.Set;
 
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "app.seed-data", havingValue = "true")
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -27,6 +28,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final EmployerRepository employerRepository;
     private final PasswordEncoder passwordEncoder;
 
+    // Initializes development accounts only when explicitly enabled by configuration.
     @Override
     @Transactional
     public void run(String... args) throws Exception {
@@ -43,6 +45,7 @@ public class DatabaseSeeder implements CommandLineRunner {
             return roleRepository.save(role);
         });
 
+        roleRepository.findById("USER").orElseGet(() -> roleRepository.save(new Role("USER", "Default User Role")));
         // 2. Initialize default admin user if it doesn't exist
         if (!userRepository.existsByUsername("admin")) {
             log.info("Admin user not found, creating default admin account...");
@@ -56,7 +59,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .roles(roles)
                     .build();
             userRepository.save(adminUser);
-            log.info("Default admin account created successfully! Username: admin | Password: admin");
+            log.info("Development admin account created");
         }
 
         // 3. Initialize default employer user if it doesn't exist
@@ -82,7 +85,8 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .status(EmployerStatus.ACTIVE)
                     .build();
             employerRepository.save(employerProfile);
-            log.info("Default employer account created successfully! Username: employer | Password: employer");
+            log.info("Development employer account created");
         }
     }
 }
+

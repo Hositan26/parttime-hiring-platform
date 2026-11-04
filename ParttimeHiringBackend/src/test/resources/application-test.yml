@@ -26,5 +26,7 @@ cloudinary:
   api-key: unused
   api-secret: unused
 app:
+  seed-data: true
   auth:
     cookie-secure: false
+
