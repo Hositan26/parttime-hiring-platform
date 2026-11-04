@@ -28,12 +28,13 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         this.userRepository = userRepository;
     }
 
+    // Issues the local account cookie after verified Google authentication.
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-        String email = oAuth2User.getAttribute("email");
+        String username = oAuth2User.getAttribute("localUsername");
 
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found after OAuth2 login"));
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found after OAuth2 login"));
 
         String token = tokenProvider.generateTokenFromUsername(user.getUsername());
 
@@ -45,3 +46,4 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }
+
