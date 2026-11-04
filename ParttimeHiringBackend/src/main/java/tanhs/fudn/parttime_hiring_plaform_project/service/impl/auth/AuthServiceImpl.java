@@ -43,6 +43,7 @@ public class AuthServiceImpl implements AuthService {
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
     JwtTokenProvider tokenProvider;
+    tanhs.fudn.parttime_hiring_plaform_project.security.AuthCookieService cookieService;
     tanhs.fudn.parttime_hiring_plaform_project.mapper.AuthMapper authMapper;
 
     // Authenticates credentials without disclosing internal authentication errors.
@@ -62,7 +63,7 @@ public class AuthServiceImpl implements AuthService {
 
         String jwt = tokenProvider.generateToken(authentication);
 
-        response.addHeader("Set-Cookie", "access_token=" + jwt + "; HttpOnly; Path=/; Max-Age=" + (7 * 24 * 60 * 60) + "; SameSite=Lax");
+        cookieService.writeAccess(response, jwt, tokenProvider.getExpirationSeconds());
 
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -107,8 +108,11 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
     }
     
+    // Clears authentication cookies when the user signs out.
     public void logout(HttpServletResponse response) {
-        response.addHeader("Set-Cookie", "access_token=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax");
+        cookieService.clear(response);
+        SecurityContextHolder.clearContext();
     }
 }
+
 

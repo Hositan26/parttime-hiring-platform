@@ -1,3 +1,4 @@
+import { logout } from '../../services/auth.service';
 import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, ShieldCheck, Users, Briefcase, List, Clock, MessageSquare, LogOut, Search, Bell, Store } from 'lucide-react';
@@ -6,8 +7,8 @@ import styles from './AdminLayout.module.css';
 export const AdminLayout: React.FC = () => {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
+  const handleLogout = async () => {
+    await logout();
     navigate('/login');
   };
 
@@ -92,3 +93,4 @@ export const AdminLayout: React.FC = () => {
     </div>
   );
 };
+

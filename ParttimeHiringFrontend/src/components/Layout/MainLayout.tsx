@@ -1,3 +1,4 @@
+import { logout } from '../../services/auth.service';
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Briefcase, Bell, LogOut, User as UserIcon } from 'lucide-react';
@@ -76,8 +77,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <span>Xin chào, {user?.displayName || user?.username || 'Bạn'}</span>
             </div>
 
-            <button onClick={() => {
-              localStorage.removeItem('token');
+            <button onClick={async () => {
+              await logout();
               window.location.href = '/login';
             }} className={styles.logoutBtn}>
               <LogOut size={16} />
@@ -96,3 +97,4 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     </div>
   );
 };
+

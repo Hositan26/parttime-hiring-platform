@@ -84,3 +84,9 @@ export const updateMe = async (data: {
   const resData = await response.json();
   return resData.result;
 };
+
+// Clears the server-managed authentication cookies.
+export const logout = async () => {
+  const response = await fetch(API_URL + '/logout', { method: 'POST', credentials: 'include' });
+  if (!response.ok) throw new Error('Could not sign out. Please try again.');
+};

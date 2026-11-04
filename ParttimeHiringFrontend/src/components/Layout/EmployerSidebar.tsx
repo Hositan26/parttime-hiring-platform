@@ -1,3 +1,4 @@
+import { logout } from '../../services/auth.service';
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Store, Briefcase, FileText, User, Home, LogOut, Users } from 'lucide-react';
@@ -46,8 +47,8 @@ export const EmployerSidebar: React.FC = () => {
           </button>
           <button 
             className={styles.navItem} 
-            onClick={() => {
-              localStorage.removeItem('token');
+            onClick={async () => {
+              await logout();
               localStorage.removeItem('role');
               navigate('/login');
             }}
@@ -61,3 +62,4 @@ export const EmployerSidebar: React.FC = () => {
     </aside>
   );
 };
+
