@@ -12,6 +12,9 @@ import java.util.Optional;
 
 @Repository
 public interface EmploymentRecordRepository extends JpaRepository<EmploymentRecord, Integer> {
+    // Retrieves a bounded history belonging exclusively to one account.
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"store", "jobPost"})
+    org.springframework.data.domain.Page<EmploymentRecord> findByUser_Id(Long userId, org.springframework.data.domain.Pageable pageable);
 
     Optional<EmploymentRecord> findByApplication(JobApplication application);
 

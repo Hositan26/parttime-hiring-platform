@@ -8,6 +8,7 @@ import { Jobs } from './pages/Jobs/Jobs';
 import { JobDetail } from './pages/Jobs/JobDetail';
 import { AppliedJobs } from './pages/AppliedJobs/AppliedJobs';
 import { Profile } from './pages/Profile/Profile';
+import { EmploymentHistory } from './pages/Profile/EmploymentHistory';
 import { VerifyBusiness } from './pages/VerifyBusiness/VerifyBusiness';
 import { OAuth2RedirectHandler } from './pages/Auth/OAuth2RedirectHandler';
 
@@ -48,6 +49,7 @@ function App() {
         <Route path="/jobs/:id" element={<JobDetail />} />
         <Route path="/applied-jobs" element={<RoleRoute roles={['USER']}><AppliedJobs /></RoleRoute>} />
         <Route path="/profile" element={<RoleRoute><Profile /></RoleRoute>} />
+        <Route path="/employment-history" element={<RoleRoute roles={['USER']}><EmploymentHistory /></RoleRoute>} />
         <Route path="/verify-business" element={<RoleRoute><VerifyBusiness /></RoleRoute>} />
         
         {/* Employer Routes */}
