@@ -92,7 +92,7 @@ export const Login: React.FC = () => {
         <div className={styles.formGroup}>
           <div className={styles.labelRow}>
             <label className={styles.label}>Mật khẩu</label>
-            <Link to="#" className={styles.forgotPassword}>Quên mật khẩu?</Link>
+            <Link to="/forgot-password" className={styles.forgotPassword}>Quên mật khẩu?</Link>
           </div>
           <div className={styles.inputWrapper}>
             <Lock size={18} className={styles.inputIcon} />
@@ -137,4 +137,5 @@ export const Login: React.FC = () => {
     </AuthLayout>
   );
 };
+
 

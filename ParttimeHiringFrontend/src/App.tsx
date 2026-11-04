@@ -1,3 +1,4 @@
+import { PasswordRecovery } from './pages/Auth/PasswordRecovery';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Login } from './pages/Login/Login';
 import { Register } from './pages/Register/Register';
@@ -35,6 +36,8 @@ function App() {
     <Router>
       <Routes>
         {/* Existing Routes */}
+        <Route path="/forgot-password" element={<PasswordRecovery />} />
+        <Route path="/reset-password" element={<PasswordRecovery />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
@@ -85,3 +88,4 @@ function App() {
 }
 
 export default App;
+
