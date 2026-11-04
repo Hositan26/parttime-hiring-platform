@@ -144,7 +144,7 @@ Forbidden response example:
 Use profile `local` for local HTTP development. It enables development seeding and disables
 Secure cookies for localhost. Other profiles use Secure cookies and do not seed default accounts.
 
-Set DB_USERNAME, DB_PASSWORD, JWT_SIGNER_KEY, and integration credentials in the backend process.
+The local profile imports an optional .env from the repository root or backend directory when started from either location. Use unquoted KEY=value entries. Process environment variables take precedence. Other profiles must receive DB_USERNAME, DB_PASSWORD, JWT_SIGNER_KEY, and integration credentials through deployment configuration.
 Set FRONTEND_URL and CORS_ALLOWED_ORIGINS to the deployed HTTPS frontend origin.
 JWT_SIGNER_KEY must contain at least 64 UTF-8 bytes. Rotating it invalidates existing access
 tokens and outstanding email verification challenges.

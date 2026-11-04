@@ -209,7 +209,7 @@ $env:DB_PASSWORD = "your_mysql_password"
 
 Profile `local` cung cấp giá trị phát triển cho các cấu hình dịch vụ. Để sử dụng Google Login, gửi email và upload ảnh, cần cung cấp thông tin dịch vụ thật.
 
-Biến môi trường phải được nạp vào tiến trình chạy backend. File `.env` ở thư mục gốc không được Spring Boot tự động nạp theo cấu hình hiện tại. Không commit thông tin bí mật hoặc sử dụng khóa ký của profile `local` khi triển khai.
+Profile `local` tự đọc file `.env` ở thư mục gốc hoặc thư mục backend khi chạy từ một trong hai thư mục này. Biến môi trường của tiến trình vẫn có độ ưu tiên cao hơn; các môi trường triển khai khác phải được cấu hình riêng. Không commit thông tin bí mật hoặc sử dụng khóa ký của profile `local` khi triển khai.
 
 ### 4. Chạy backend
 

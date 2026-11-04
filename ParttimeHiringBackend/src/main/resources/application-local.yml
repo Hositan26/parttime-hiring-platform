@@ -1,5 +1,7 @@
 # Development only. External integrations require real credentials to operate.
 spring:
+  config:
+    import: "optional:file:../.env[.properties],optional:file:.env[.properties]"
   datasource:
     password: ${DB_PASSWORD:12345}
   mail:
