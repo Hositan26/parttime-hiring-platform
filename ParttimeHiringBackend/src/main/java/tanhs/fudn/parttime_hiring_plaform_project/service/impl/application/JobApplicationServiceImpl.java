@@ -1,6 +1,9 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.application;
 
 import org.springframework.security.access.AccessDeniedException;
+import tanhs.fudn.parttime_hiring_plaform_project.service.job.JobAvailabilityPolicy;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException;
 
 import tanhs.fudn.parttime_hiring_plaform_project.service.application.JobApplicationService;
 
@@ -37,28 +40,37 @@ public class JobApplicationServiceImpl implements JobApplicationService {
     private final EmployerRepository employerRepository;
     private final JobApplicationMapper applicationMapper;
     private final EmploymentRecordRepository employmentRecordRepository;
+    private final JobAvailabilityPolicy availabilityPolicy;
 
+    // Connects recruitment validation, application persistence, and employment processing.
     public JobApplicationServiceImpl(JobApplicationRepository applicationRepository,
                                  JobPostRepository jobPostRepository,
                                  UserRepository userRepository,
                                  EmployerRepository employerRepository,
                                  JobApplicationMapper applicationMapper,
-                                 EmploymentRecordRepository employmentRecordRepository) {
+                                 EmploymentRecordRepository employmentRecordRepository,
+                                 JobAvailabilityPolicy availabilityPolicy) {
         this.applicationRepository = applicationRepository;
         this.jobPostRepository = jobPostRepository;
         this.userRepository = userRepository;
         this.employerRepository = employerRepository;
         this.applicationMapper = applicationMapper;
         this.employmentRecordRepository = employmentRecordRepository;
+        this.availabilityPolicy = availabilityPolicy;
     }
 
+    // Accepts applications only while the recruitment opportunity remains available.
     @Transactional
     public void applyForJob(JobApplicationRequest request, String username) {
         User applicant = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng."));
 
         JobPost jobPost = jobPostRepository.findById(request.getJobPostId())
-                .orElseThrow(() -> new RuntimeException("Công việc không tồn tại hoặc đã bị xóa."));
+                .orElseThrow(() -> new ResourceNotFoundException("Công việc không tồn tại hoặc đã bị xóa."));
+
+        if (!availabilityPolicy.isAvailable(jobPost, LocalDateTime.now())) {
+            throw new BusinessException("Công việc hiện không nhận đơn ứng tuyển.");
+        }
 
         // Anti-spam: Check if the user has already applied for this job
         boolean alreadyApplied = applicationRepository.existsByJobPost_JobPostIdAndApplicant_Id(
@@ -66,7 +78,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         );
 
         if (alreadyApplied) {
-            throw new RuntimeException("Bạn đã ứng tuyển công việc này rồi. Vui lòng kiểm tra trong danh sách đã nộp.");
+            throw new BusinessException("Bạn đã ứng tuyển công việc này rồi. Vui lòng kiểm tra trong danh sách đã nộp.");
         }
 
         JobApplication application = JobApplication.builder()
