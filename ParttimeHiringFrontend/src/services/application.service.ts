@@ -1,6 +1,17 @@
 import { apiFetch, apiBase } from './apiClient';
 const API_URL = apiBase + '/users/applications';
 
+export const editApplication = async (id: number, contactPhone: string, note: string): Promise<void> => {
+    const response = await apiFetch(`${API_URL}/${id}`, { method: 'PUT',
+        headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contactPhone, note }) });
+    if (!response.ok) throw new Error((await response.json()).message || 'Không thể sửa đơn.');
+};
+
+export const withdrawApplication = async (id: number): Promise<void> => {
+    const response = await apiFetch(`${API_URL}/${id}/withdraw`, { method: 'POST' });
+    if (!response.ok) throw new Error((await response.json()).message || 'Không thể rút đơn.');
+};
+
 export interface JobApplicationRequest {
     jobPostId: number;
     contactPhone: string;

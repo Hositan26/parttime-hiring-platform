@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MainLayout } from '../../components/Layout/MainLayout';
-import { getMyApplications, type JobApplicationResponse } from '../../services/application.service';
+import { getMyApplications, editApplication, withdrawApplication, type JobApplicationResponse } from '../../services/application.service';
 import { Clock, Building2, Briefcase } from 'lucide-react';
 import styles from './AppliedJobs.module.css';
 
@@ -9,7 +9,24 @@ export const AppliedJobs: React.FC = () => {
   const [applications, setApplications] = useState<JobApplicationResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [editing, setEditing] = useState<number | null>(null);
+  const [phone, setPhone] = useState('');
+  const [note, setNote] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState('');
+  const validContact = /^\+?[0-9]{9,15}$/.test(phone) && note.length <= 2000;
   const navigate = useNavigate();
+
+  const changeApplication = async (id: number, withdraw: boolean) => {
+    if (!withdraw && !validContact) return;
+    if (withdraw && !window.confirm('Bạn muốn rút đơn ứng tuyển này?')) return;
+    setBusy(true); setActionError('');
+    try {
+      if (withdraw) await withdrawApplication(id); else await editApplication(id, phone, note);
+      setApplications(await getMyApplications()); setEditing(null);
+    } catch (failure) { setActionError(failure instanceof Error ? failure.message : 'Không thể cập nhật đơn.'); }
+    finally { setBusy(false); }
+  };
 
   useEffect(() => {
     getMyApplications()
@@ -32,6 +49,8 @@ export const AppliedJobs: React.FC = () => {
         return <span className={`${styles.badge} ${styles.badgeAccepted}`}>Đã được nhận</span>;
       case 'REJECTED':
         return <span className={`${styles.badge} ${styles.badgeRejected}`}>Đã từ chối</span>;
+      case 'WITHDRAWN':
+        return <span className="badge-warning">Đã rút đơn</span>;
       default:
         return <span className={`${styles.badge} ${styles.badgePending}`}>{status}</span>;
     }
@@ -52,6 +71,7 @@ export const AppliedJobs: React.FC = () => {
           <h1>Công việc đã ứng tuyển</h1>
           <p>Theo dõi toàn bộ công việc bạn đã gửi đơn ứng tuyển.</p>
         </div>
+        {actionError && <p role="alert">{actionError}</p>}
         
         {error ? <p role="alert">{error} <button className="btn-outline" onClick={() => window.location.reload()}>Thử lại</button></p> : loading ? (
           <div className={styles.contentCard} style={{ padding: '3rem', justifyContent: 'center' }}>
@@ -102,6 +122,19 @@ export const AppliedJobs: React.FC = () => {
                     </div>
                   )}
                 </div>
+                {app.status === 'PENDING' && <div onClick={event => event.stopPropagation()}>
+                  <button className="btn-outline" disabled={busy} onClick={() => {
+                    setEditing(app.applicationId); setPhone(app.contactPhone); setNote(app.note || '');
+                  }}>Sửa đơn</button>
+                  <button className="btn-outline" disabled={busy} onClick={() => changeApplication(app.applicationId, true)}>Rút đơn</button>
+                  {editing === app.applicationId && <form onSubmit={event => { event.preventDefault(); changeApplication(app.applicationId, false); }}>
+                    <label>Số điện thoại<input className="input-base" value={phone} maxLength={16} onChange={event => setPhone(event.target.value)} /></label>
+                    <label>Ghi chú<textarea className="input-base" value={note} maxLength={2000} onChange={event => setNote(event.target.value)} /></label>
+                    {!validContact && <p role="alert">Số điện thoại cần 9–15 chữ số; ghi chú tối đa 2000 ký tự.</p>}
+                    <button className="btn-primary" disabled={busy || !validContact}>Lưu</button>
+                    <button type="button" className="btn-outline" onClick={() => setEditing(null)}>Hủy</button>
+                  </form>}
+                </div>}
               </div>
             ))}
           </div>

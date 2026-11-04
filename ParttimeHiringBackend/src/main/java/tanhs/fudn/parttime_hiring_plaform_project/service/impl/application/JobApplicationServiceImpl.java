@@ -1,6 +1,7 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.application;
 
 import org.springframework.security.access.AccessDeniedException;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.request.application.ApplicationUpdateRequest;
 import tanhs.fudn.parttime_hiring_plaform_project.service.job.JobAvailabilityPolicy;
 import tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException;
 import tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException;
@@ -41,6 +42,37 @@ public class JobApplicationServiceImpl implements JobApplicationService {
     private final JobApplicationMapper applicationMapper;
     private final EmploymentRecordRepository employmentRecordRepository;
     private final JobAvailabilityPolicy availabilityPolicy;
+
+    // Changes contact details only before the employer has decided.
+    @Transactional
+    public void editApplication(Integer id, ApplicationUpdateRequest request, String username) {
+        JobApplication application = ownedPendingApplication(id, username);
+        applicationMapper.updateContact(request, application);
+        applicationRepository.save(application);
+    }
+
+    // Preserves a withdrawn application instead of deleting recruitment history.
+    @Transactional
+    public void withdrawApplication(Integer id, String username) {
+        JobApplication application = ownedPendingApplication(id, username);
+        application.setStatus(ApplicationStatus.WITHDRAWN);
+        applicationRepository.save(application);
+    }
+
+    // Locks the application and checks candidate ownership and pending state.
+    private JobApplication ownedPendingApplication(Integer id, String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        JobApplication application = applicationRepository.lockById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
+        if (!application.getApplicant().getId().equals(user.getId())) {
+            throw new AccessDeniedException("Application belongs to another candidate");
+        }
+        if (application.getStatus() != ApplicationStatus.PENDING) {
+            throw new BusinessException("Only pending applications can be edited or withdrawn");
+        }
+        return application;
+    }
 
     // Connects recruitment validation, application persistence, and employment processing.
     public JobApplicationServiceImpl(JobApplicationRepository applicationRepository,
@@ -92,9 +124,11 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         applicationRepository.save(application);
     }
 
+    // Queries application history using the authenticated account identifier only.
+    @Transactional(readOnly = true)
     public List<JobApplicationResponse> getMyApplications(String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         List<JobApplication> applications = applicationRepository.findByApplicant_IdOrderByAppliedAtDesc(user.getId());
 
@@ -126,7 +160,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         Employer employer = employerRepository.findByUserId(user.getId().intValue())
                 .orElseThrow(() -> new RuntimeException("Người dùng chưa có hồ sơ nhà tuyển dụng."));
 
-        JobApplication application = applicationRepository.findById(applicationId)
+        JobApplication application = applicationRepository.lockById(applicationId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn ứng tuyển."));
 
         if (!application.getJobPost().getEmployer().getEmployerId().equals(employer.getEmployerId())) {
@@ -134,6 +168,10 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         }
 
         ApplicationStatus oldStatus = application.getStatus();
+        if (oldStatus == ApplicationStatus.WITHDRAWN
+                || (status != ApplicationStatus.ACCEPTED && status != ApplicationStatus.REJECTED)) {
+            throw new BusinessException("This application decision is not allowed");
+        }
 
         // Cập nhật trạng thái
         application.setStatus(status);

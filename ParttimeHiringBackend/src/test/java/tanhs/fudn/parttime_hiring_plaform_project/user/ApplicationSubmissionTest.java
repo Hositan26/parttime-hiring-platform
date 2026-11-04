@@ -21,10 +21,29 @@ import tanhs.fudn.parttime_hiring_plaform_project.repository.employer.EmployerRe
 import tanhs.fudn.parttime_hiring_plaform_project.repository.employment.EmploymentRecordRepository;
 import tanhs.fudn.parttime_hiring_plaform_project.service.impl.application.JobApplicationServiceImpl;
 import tanhs.fudn.parttime_hiring_plaform_project.service.job.JobAvailabilityPolicy;
+import org.springframework.security.access.AccessDeniedException;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class ApplicationSubmissionTest {
+    // Rejects withdrawals by other candidates and preserves decided applications.
+    @Test
+    void protectsWithdrawalOwnershipAndState() {
+        User candidate = User.builder().id(1L).build();
+        when(users.findByUsername("candidate")).thenReturn(Optional.of(candidate));
+        JobApplication application = JobApplication.builder().applicant(User.builder().id(2L).build())
+                .status(ApplicationStatus.PENDING).build();
+        when(applications.lockById(5)).thenReturn(Optional.of(application));
+        assertThrows(AccessDeniedException.class, () -> service.withdrawApplication(5, "candidate"));
+        application.setApplicant(candidate);
+        application.setStatus(ApplicationStatus.ACCEPTED);
+        assertThrows(BusinessException.class, () -> service.withdrawApplication(5, "candidate"));
+        application.setStatus(ApplicationStatus.PENDING);
+        service.withdrawApplication(5, "candidate");
+        assertEquals(ApplicationStatus.WITHDRAWN, application.getStatus());
+        verify(applications).save(application);
+        verify(applications, never()).delete(any());
+    }
     // Restricts application history queries to the authenticated account identifier.
     @Test
     void scopesHistoryToCandidate() {

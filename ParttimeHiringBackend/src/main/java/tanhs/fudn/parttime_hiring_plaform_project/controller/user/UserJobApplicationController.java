@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.request.application.ApplicationUpdateRequest;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.request.application.JobApplicationRequest;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.application.JobApplicationResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.common.ApiResponse;
@@ -20,6 +23,21 @@ import tanhs.fudn.parttime_hiring_plaform_project.service.application.JobApplica
 @RequiredArgsConstructor
 public class UserJobApplicationController {
     private final JobApplicationService applicationService;
+
+    // Updates contact information for an owned pending application.
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<String>> edit(@PathVariable Integer id,
+            @Valid @RequestBody ApplicationUpdateRequest request, Principal principal) {
+        applicationService.editApplication(id, request, principal.getName());
+        return ResponseEntity.ok(ApiResponse.success("Application updated"));
+    }
+
+    // Withdraws an owned pending application without deleting its history.
+    @PostMapping("/{id}/withdraw")
+    public ResponseEntity<ApiResponse<String>> withdraw(@PathVariable Integer id, Principal principal) {
+        applicationService.withdrawApplication(id, principal.getName());
+        return ResponseEntity.ok(ApiResponse.success("Application withdrawn"));
+    }
 
     // Submits validated contact details for the authenticated candidate.
     @PostMapping

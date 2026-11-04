@@ -2,6 +2,9 @@ package tanhs.fudn.parttime_hiring_plaform_project.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.MappingTarget;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.request.application.ApplicationUpdateRequest;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.application.JobApplicationResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.application.EmployerApplicationResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.application.JobApplication;
@@ -9,6 +12,11 @@ import tanhs.fudn.parttime_hiring_plaform_project.entity.job.JobPost;
 
 @Mapper(componentModel = "spring")
 public interface JobApplicationMapper {
+    // Updates contact details without changing applicant, job, or decision state.
+    @BeanMapping(ignoreByDefault = true)
+    @Mapping(target = "contactPhone", source = "contactPhone")
+    @Mapping(target = "note", source = "note")
+    void updateContact(ApplicationUpdateRequest request, @MappingTarget JobApplication application);
 
     @Mapping(target = "applicationId", source = "applicationId")
     @Mapping(target = "jobPostId", source = "jobPost.jobPostId")
