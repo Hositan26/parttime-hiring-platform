@@ -116,7 +116,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn ứng tuyển."));
 
         if (!application.getJobPost().getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền thay đổi trạng thái đơn ứng tuyển này.");
+            throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền thay đổi trạng thái đơn ứng tuyển này.");
         }
 
         ApplicationStatus oldStatus = application.getStatus();
@@ -147,3 +147,4 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         }
     }
 }
+

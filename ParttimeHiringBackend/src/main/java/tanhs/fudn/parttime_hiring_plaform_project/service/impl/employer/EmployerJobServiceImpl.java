@@ -85,7 +85,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng."));
 
         if (!jobPost.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền xem tin tuyển dụng này.");
+            throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền xem tin tuyển dụng này.");
         }
 
         int applicantsCount = (int) jobApplicationRepository.countByJobPost_JobPostId(jobId);
@@ -99,7 +99,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng."));
         
         if (!jobPost.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền xem đánh giá của tin tuyển dụng này.");
+            throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền xem đánh giá của tin tuyển dụng này.");
         }
 
         List<StoreReview> reviews = storeReviewRepository.findByEmploymentRecord_JobPost_JobPostIdOrderByCreatedAtDesc(jobId);
@@ -113,7 +113,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng."));
         
         if (!jobPost.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền xem ứng viên của tin tuyển dụng này.");
+            throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền xem ứng viên của tin tuyển dụng này.");
         }
 
         List<JobApplication> applications = jobApplicationRepository.findByJobPost_JobPostIdOrderByAppliedAtDesc(jobId);
@@ -127,7 +127,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
 
         if (!store.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền tạo việc làm cho cửa hàng này.");
+            throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền tạo việc làm cho cửa hàng này.");
         }
 
         JobPost jobPost = employerJobMapper.toEntity(request);
@@ -158,7 +158,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng."));
 
         if (!jobPost.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền chỉnh sửa tin tuyển dụng này.");
+            throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền chỉnh sửa tin tuyển dụng này.");
         }
 
         // Apply new status logic if provided
@@ -200,7 +200,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng."));
 
         if (!jobPost.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền chỉnh sửa tin tuyển dụng này.");
+            throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền chỉnh sửa tin tuyển dụng này.");
         }
 
         JobPostImage newImage = JobPostImage.builder()
@@ -220,7 +220,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng."));
 
         if (!jobPost.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền chỉnh sửa tin tuyển dụng này.");
+            throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền chỉnh sửa tin tuyển dụng này.");
         }
 
         jobPost.getImages().removeIf(img -> img.getImageId().equals(imageId));
@@ -234,7 +234,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng."));
 
         if (!jobPost.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền chỉnh sửa tin tuyển dụng này.");
+            throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền chỉnh sửa tin tuyển dụng này.");
         }
 
         if (jobPost.getStatus() == JobStatus.EXPIRED && newStatus == JobStatus.ACTIVE) {
@@ -254,7 +254,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng."));
 
         if (!jobPost.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền xóa tin tuyển dụng này.");
+            throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền xóa tin tuyển dụng này.");
         }
 
         long applicationsCount = jobApplicationRepository.countByJobPost_JobPostId(jobId);
@@ -265,3 +265,4 @@ public class EmployerJobServiceImpl implements EmployerJobService {
         jobPostRepository.delete(jobPost);
     }
 }
+

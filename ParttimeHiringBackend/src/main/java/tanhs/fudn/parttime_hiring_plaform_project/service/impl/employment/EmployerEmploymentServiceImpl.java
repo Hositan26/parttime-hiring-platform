@@ -29,6 +29,7 @@ public class EmployerEmploymentServiceImpl implements EmployerEmploymentService 
     private final EmployerRepository employerRepository;
     private final UserRepository userRepository;
     private final EmploymentRecordMapper employmentRecordMapper;
+    private final tanhs.fudn.parttime_hiring_plaform_project.repository.employer.StoreRepository storeRepository;
 
     private Employer verifyEmployer(String username) {
         User user = userRepository.findByUsername(username)
@@ -38,8 +39,13 @@ public class EmployerEmploymentServiceImpl implements EmployerEmploymentService 
     }
 
     @Transactional(readOnly = true)
+    // Returns store employees only after validating the employer owns the store.
     public List<EmployerEmploymentResponse> getEmploymentsByStore(Integer storeId, String username) {
-        verifyEmployer(username);
+        Employer employer = verifyEmployer(username);
+        var store = storeRepository.findById(storeId).orElseThrow(() -> new tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException("Store not found"));
+        if (!store.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
+            throw new org.springframework.security.access.AccessDeniedException("You do not own this store");
+        }
         return employmentRecordRepository.findByStoreIdWithDetails(storeId)
                 .stream()
                 .map(employmentRecordMapper::toEmployerEmploymentResponse)
@@ -61,7 +67,7 @@ public class EmployerEmploymentServiceImpl implements EmployerEmploymentService 
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ nhân sự"));
 
         if (!record.getStore().getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền cập nhật nhân sự này");
+            throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền cập nhật nhân sự này");
         }
 
         try {
@@ -89,3 +95,5 @@ public class EmployerEmploymentServiceImpl implements EmployerEmploymentService 
         }
     }
 }
+
+

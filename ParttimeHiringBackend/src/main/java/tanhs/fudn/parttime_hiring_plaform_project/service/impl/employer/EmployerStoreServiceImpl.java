@@ -95,7 +95,7 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
         
         if (!store.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền xóa cửa hàng này.");
+            throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền xóa cửa hàng này.");
         }
         
         if (!store.getIsActive()) {
@@ -119,7 +119,7 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
         
         if (!store.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền chỉnh sửa cửa hàng này.");
+            throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền chỉnh sửa cửa hàng này.");
         }
         
         if (!store.getIsActive()) {
@@ -168,7 +168,7 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
         
         if (!store.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền thay đổi trạng thái cửa hàng này.");
+            throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền thay đổi trạng thái cửa hàng này.");
         }
         
         store.setIsActive(!store.getIsActive());
@@ -189,7 +189,7 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
         
         if (!store.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền xem cửa hàng này.");
+            throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền xem cửa hàng này.");
         }
         
         List<JobPost> jobs = jobPostRepository.findByStore_StoreId(storeId);
@@ -211,7 +211,7 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
 
         if (!store.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền xem nhân sự của cửa hàng này.");
+            throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền xem nhân sự của cửa hàng này.");
         }
 
         List<EmploymentRecord> records = employmentRecordRepository.findByStoreIdWithDetails(storeId);
@@ -230,3 +230,4 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
         ).collect(Collectors.toList());
     }
 }
+
