@@ -1,76 +1,76 @@
 package tanhs.fudn.parttime_hiring_plaform_project.exception;
-
-import org.springframework.http.HttpStatus;
+import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.common.ApiResponse;
 
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
+    // Maps missing resources to a predictable not-found response.
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleResourceNotFoundException(ResourceNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.<Void>builder()
-                        .status(HttpStatus.NOT_FOUND.value())
-                        .code("NOT_FOUND")
-                        .message(ex.getMessage())
-                        .timestamp(Instant.now().toString())
-                        .build());
+    public ResponseEntity<ApiResponse<Object>> notFound(ResourceNotFoundException exception) {
+        return error(404, "NOT_FOUND", exception.getMessage(), null);
     }
 
+    // Reports business validation failures without treating them as server errors.
     @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<ApiResponse<Void>> handleBusinessException(BusinessException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.<Void>builder()
-                        .status(HttpStatus.BAD_REQUEST.value())
-                        .code("BAD_REQUEST")
-                        .message(ex.getMessage())
-                        .timestamp(Instant.now().toString())
-                        .build());
+    public ResponseEntity<ApiResponse<Object>> business(BusinessException exception) {
+        return error(400, "BAD_REQUEST", exception.getMessage(), null);
     }
 
-    @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ApiResponse<Void>> handleUnauthorizedException(UnauthorizedException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ApiResponse.<Void>builder()
-                        .status(HttpStatus.UNAUTHORIZED.value())
-                        .code("UNAUTHORIZED")
-                        .message(ex.getMessage())
-                        .timestamp(Instant.now().toString())
-                        .build());
+    // Returns unauthorized responses for missing or invalid credentials.
+    @ExceptionHandler({UnauthorizedException.class, AuthenticationException.class})
+    public ResponseEntity<ApiResponse<Object>> unauthorized(Exception exception) {
+        return error(401, "UNAUTHORIZED", "Authentication is required or credentials are invalid", null);
     }
 
+    // Returns forbidden responses for failed role or ownership checks.
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Object>> forbidden(AccessDeniedException exception) {
+        return error(403, "FORBIDDEN", "You do not have permission to perform this action", null);
+    }
+
+    // Reports field validation errors in a consistent API envelope.
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationException(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error ->
-                errors.put(error.getField(), error.getDefaultMessage()));
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.<Map<String, String>>builder()
-                        .status(HttpStatus.BAD_REQUEST.value())
-                        .code("VALIDATION_ERROR")
-                        .message("Dữ liệu đầu vào không hợp lệ")
-                        .result(errors)
-                        .timestamp(Instant.now().toString())
-                        .build());
+    public ResponseEntity<ApiResponse<Object>> validation(MethodArgumentNotValidException exception) {
+        Map<String, String> errors = new LinkedHashMap<>();
+        exception.getBindingResult().getFieldErrors().forEach(field ->
+                errors.putIfAbsent(field.getField(), field.getDefaultMessage()));
+        return error(400, "VALIDATION_ERROR", "Please check the submitted fields", errors);
     }
 
+    // Rejects malformed JSON without exposing deserialization internals.
+    @ExceptionHandler({HttpMessageNotReadableException.class, org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class})
+    public ResponseEntity<ApiResponse<Object>> malformed(Exception exception) {
+        return error(400, "BAD_REQUEST", "Request data is invalid", null);
+    }
+
+    // Converts database uniqueness and relationship conflicts into public errors.
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Object>> conflict(DataIntegrityViolationException exception) {
+        return error(409, "CONFLICT", "The request conflicts with existing data", null);
+    }
+
+    // Hides implementation details when an unexpected failure occurs.
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleGlobalException(Exception ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.<Void>builder()
-                        .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                        .code("INTERNAL_SERVER_ERROR")
-                        .message(ex.getMessage())
-                        .timestamp(Instant.now().toString())
-                        .build());
+    public ResponseEntity<ApiResponse<Object>> unexpected(Exception exception) {
+        log.error("Unhandled request failure of type {}", exception.getClass().getSimpleName());
+        return error(500, "INTERNAL_SERVER_ERROR", "An unexpected error occurred", null);
+    }
+
+    // Builds the standard error envelope for each handled failure.
+    private ResponseEntity<ApiResponse<Object>> error(int status, String code, String message, Object result) {
+        return ResponseEntity.status(status).body(ApiResponse.builder().status(status).code(code)
+                .message(message).result(result).timestamp(Instant.now().toString()).build());
     }
 }

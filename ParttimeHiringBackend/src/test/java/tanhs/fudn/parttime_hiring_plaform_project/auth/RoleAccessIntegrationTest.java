@@ -39,8 +39,15 @@ class RoleAccessIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 
+    // Returns JSON unauthorized responses instead of browser login redirects.
+    @Test
+    void guestReceivesJsonUnauthorized() throws Exception {
+        mvc.perform(get("/api/users/me")).andExpect(status().isUnauthorized())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.code").value("UNAUTHORIZED"));
+    }
     // Signs test credentials for persisted development identities in isolated H2.
     private Cookie cookie(String username) {
         return new Cookie("access_token", tokens.generateTokenForUser(users.findByUsername(username).orElseThrow()));
     }
 }
+
