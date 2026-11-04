@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.Locale;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.request.user.UserProfileUpdateRequest;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.user.UserProfileResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
@@ -32,13 +33,11 @@ public class UserProfileServiceImpl implements UserProfileService {
         return userProfileMapper.toResponse(user);
     }
 
-    /**
-     * Cập nhật thông tin hồ sơ người dùng
-     */
+    // Reauthenticates profile changes and rejects identifiers owned by another account.
     @Override
     @Transactional
     public UserProfileResponse updateCurrentUserProfile(String username, UserProfileUpdateRequest request) {
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.lockByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
 
         if (user.getPassword() != null && !user.getPassword().isEmpty()) {
@@ -50,16 +49,17 @@ public class UserProfileServiceImpl implements UserProfileService {
             }
         }
 
-        if (request.getDisplayName() != null) user.setDisplayName(request.getDisplayName());
-        if (request.getUsername() != null) user.setUsername(request.getUsername());
-        if (request.getEmail() != null) user.setEmail(request.getEmail());
-        if (request.getDateOfBirth() != null) user.setDateOfBirth(request.getDateOfBirth());
-
-        try {
-            User updated = userRepository.save(user);
-            return userProfileMapper.toResponse(updated);
-        } catch (org.springframework.dao.DataIntegrityViolationException e) {
-            throw new BusinessException("Username hoặc Email đã được sử dụng bởi người khác.");
+        if (request.getUsername() != null) {
+            userRepository.findByUsername(request.getUsername()).filter(other -> !other.getId().equals(user.getId()))
+                    .ifPresent(other -> { throw new BusinessException("Username đã được sử dụng."); });
         }
+        if (request.getEmail() != null) {
+            request.setEmail(request.getEmail().trim().toLowerCase(Locale.ROOT));
+            userRepository.findByEmail(request.getEmail()).filter(other -> !other.getId().equals(user.getId()))
+                    .ifPresent(other -> { throw new BusinessException("Email đã được sử dụng."); });
+        }
+        if (request.getDisplayName() != null) request.setDisplayName(request.getDisplayName().trim());
+        userProfileMapper.updateProfile(request, user);
+        return userProfileMapper.toResponse(userRepository.saveAndFlush(user));
     }
 }

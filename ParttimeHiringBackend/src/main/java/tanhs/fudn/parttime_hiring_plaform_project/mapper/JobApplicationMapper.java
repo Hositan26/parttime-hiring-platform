@@ -2,13 +2,44 @@ package tanhs.fudn.parttime_hiring_plaform_project.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.MappingTarget;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.request.application.ApplicationUpdateRequest;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.application.JobApplicationResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.application.EmployerApplicationResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.application.JobApplication;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.job.JobPost;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.employer.Employer;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.employment.EmploymentRecord;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.request.application.JobApplicationRequest;
 
 @Mapper(componentModel = "spring")
 public interface JobApplicationMapper {
+    // Creates a pending application with server-resolved applicant and job ownership.
+    @BeanMapping(ignoreByDefault = true)
+    @Mapping(target = "applicant", source = "applicant")
+    @Mapping(target = "jobPost", source = "job")
+    @Mapping(target = "contactPhone", source = "request.contactPhone")
+    @Mapping(target = "note", source = "request.note")
+    @Mapping(target = "status", constant = "PENDING")
+    JobApplication create(JobApplicationRequest request, User applicant, JobPost job);
+    // Creates verified employment only from an accepted employer-owned application.
+    @BeanMapping(ignoreByDefault = true)
+    @Mapping(target = "user", source = "application.applicant")
+    @Mapping(target = "store", source = "application.jobPost.store")
+    @Mapping(target = "jobPost", source = "application.jobPost")
+    @Mapping(target = "application", source = "application")
+    @Mapping(target = "verifiedByEmployer", source = "employer")
+    @Mapping(target = "startDate", expression = "java(java.time.LocalDate.now())")
+    @Mapping(target = "verifiedAt", expression = "java(java.time.LocalDateTime.now())")
+    @Mapping(target = "workStatus", constant = "WORKING")
+    EmploymentRecord toEmployment(JobApplication application, Employer employer);
+    // Updates contact details without changing applicant, job, or decision state.
+    @BeanMapping(ignoreByDefault = true)
+    @Mapping(target = "contactPhone", source = "contactPhone")
+    @Mapping(target = "note", source = "note")
+    void updateContact(ApplicationUpdateRequest request, @MappingTarget JobApplication application);
 
     @Mapping(target = "applicationId", source = "applicationId")
     @Mapping(target = "jobPostId", source = "jobPost.jobPostId")

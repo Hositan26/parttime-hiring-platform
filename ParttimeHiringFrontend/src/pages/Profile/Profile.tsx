@@ -5,10 +5,13 @@ import { User, Calendar, Briefcase, Search, Mail, Edit2, Save, X } from 'lucide-
 import { Button } from '../../components/Button/Button';
 import styles from './Profile.module.css';
 import { getMe, updateMe } from '../../services/auth.service';
-import { useNavigate } from 'react-router-dom';
+import { apiBase, apiFetch } from '../../services/apiClient';
 
 export const Profile: React.FC = () => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{
+    userId: number; displayName: string; username: string; email?: string; dateOfBirth?: string;
+    avatarUrl?: string; roles: string[]; hasPassword: boolean;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({ 
@@ -20,13 +23,16 @@ export const Profile: React.FC = () => {
   });
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const navigate = useNavigate();
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const [avatarError, setAvatarError] = useState('');
+  const [today] = useState(() => new Date().toLocaleDateString('en-CA'));
+  const validationError = !editData.displayName.trim() || editData.displayName.length > 100
+    ? 'Tên hiển thị phải có từ 1 đến 100 ký tự.'
+    : !/^[a-zA-Z0-9_]{3,50}$/.test(editData.username) ? 'Username gồm 3–50 chữ, số hoặc dấu gạch dưới.'
+    : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editData.email) ? 'Email không hợp lệ.'
+    : editData.dateOfBirth && editData.dateOfBirth > today ? 'Ngày sinh không được ở tương lai.' : '';
 
   useEffect(() => {
-    fetchUser();
-  }, [navigate]);
-
-  const fetchUser = () => {
     getMe()
       .then(data => {
         setUser(data);
@@ -43,10 +49,11 @@ export const Profile: React.FC = () => {
         console.error(err);
         setLoading(false);
       });
-  };
+  }, []);
 
   const handleSave = async () => {
-    if (user.hasPassword && !editData.currentPassword) {
+    if (validationError) { setErrorMsg(validationError); return; }
+    if (user?.hasPassword && !editData.currentPassword) {
       setErrorMsg('Vui lòng nhập mật khẩu xác nhận để lưu thay đổi.');
       return;
     }
@@ -57,20 +64,36 @@ export const Profile: React.FC = () => {
       setUser(updatedUser);
       setIsEditing(false);
       setEditData({ ...editData, currentPassword: '' });
-    } catch (error: any) {
+    } catch (error) {
       console.error('Update failed', error);
-      setErrorMsg(error.message || 'Có lỗi xảy ra khi cập nhật thông tin.');
+      setErrorMsg(error instanceof Error ? error.message : 'Có lỗi xảy ra khi cập nhật thông tin.');
     } finally {
       setSaving(false);
     }
   };
 
+  const uploadAvatar = async (file?: File) => {
+    if (!file) return;
+    if (!['image/jpeg', 'image/png'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      setAvatarError('Chọn ảnh JPEG hoặc PNG tối đa 5 MB.'); return;
+    }
+    setAvatarBusy(true); setAvatarError('');
+    try {
+      const body = new FormData(); body.append('file', file);
+      const response = await apiFetch(`${apiBase}/users/me/avatar`, { method: 'POST', body });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Không thể đổi avatar.');
+      setUser(data.result); window.dispatchEvent(new Event('auth:changed'));
+    } catch (failure) { setAvatarError(failure instanceof Error ? failure.message : 'Không thể đổi avatar.'); }
+    finally { setAvatarBusy(false); }
+  };
+
   const handleCancelEdit = () => {
     setEditData({
-      displayName: user.displayName || '',
-      username: user.username || '',
-      email: user.email || '',
-      dateOfBirth: user.dateOfBirth || '',
+      displayName: user?.displayName || '',
+      username: user?.username || '',
+      email: user?.email || '',
+      dateOfBirth: user?.dateOfBirth || '',
       currentPassword: ''
     });
     setErrorMsg('');
@@ -145,6 +168,13 @@ export const Profile: React.FC = () => {
           </div>
 
           <div className={styles.headerAction}>
+            <label>Đổi avatar (JPEG/PNG, tối đa 5 MB)
+              <input type="file" accept="image/jpeg,image/png" disabled={avatarBusy} onChange={event => {
+                void uploadAvatar(event.target.files?.[0]); event.target.value = '';
+              }} />
+            </label>
+            {avatarBusy && <span>Đang tải ảnh...</span>}
+            {avatarError && <p role="alert">{avatarError}</p>}
             <Button variant="primary">
               <Briefcase size={16} style={{ marginRight: '8px' }} /> 
               Xem việc đã ứng tuyển
@@ -172,16 +202,16 @@ export const Profile: React.FC = () => {
                   <button className={styles.cancelBtn} onClick={handleCancelEdit} disabled={saving}>
                     <X size={16} /> Hủy
                   </button>
-                  <button className={styles.saveBtn} onClick={handleSave} disabled={saving}>
+                  <button className={styles.saveBtn} onClick={handleSave} disabled={saving || Boolean(validationError)}>
                     {saving ? 'Đang lưu...' : <><Save size={16} /> Lưu</>}
                   </button>
                 </div>
               )}
             </div>
 
-            {errorMsg && isEditing && (
+            {(errorMsg || validationError) && isEditing && (
               <div className={styles.warningAlert} style={{ backgroundColor: '#fef2f2', color: '#ef4444', borderColor: '#fecaca' }}>
-                {errorMsg}
+                {validationError || errorMsg}
               </div>
             )}
 
@@ -243,6 +273,7 @@ export const Profile: React.FC = () => {
                 {isEditing ? (
                   <input 
                     type="date" 
+                    max={today}
                     className={styles.editInput} 
                     value={editData.dateOfBirth} 
                     onChange={e => setEditData({...editData, dateOfBirth: e.target.value})}

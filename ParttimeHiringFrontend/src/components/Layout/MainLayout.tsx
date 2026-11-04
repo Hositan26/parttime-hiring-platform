@@ -1,9 +1,11 @@
 import { logout } from '../../services/auth.service';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Briefcase, Bell, LogOut, User as UserIcon } from 'lucide-react';
 import styles from './MainLayout.module.css';
-import { getMe } from '../../services/auth.service';
+import { useAuth } from '../../context/authContext';
+import { apiBase } from '../../services/apiClient';
+import { hasAnyRole } from '../../services/authPolicy';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -11,20 +13,17 @@ interface MainLayoutProps {
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
-  const [user, setUser] = useState<any>(null);
+  const { user } = useAuth();
 
-  useEffect(() => {
-    getMe()
-      .then(data => setUser(data))
-      .catch(err => console.error(err));
-  }, []);
-
-  const isEmployer = user?.roles?.some((r: any) => r.name === 'ROLE_EMPLOYER' || r === 'ROLE_EMPLOYER' || r === 'EMPLOYER') || user?.roles?.includes('EMPLOYER');
+  const isEmployer = hasAnyRole(user?.roles || [], ['EMPLOYER']);
 
   const navLinks = [
     { name: 'Jobs', path: '/jobs' },
+    { name: 'Đã lưu', path: '/saved-jobs' },
     { name: 'Đã ứng tuyển', path: '/applied-jobs' },
+    { name: 'Lịch sử làm việc', path: '/employment-history' },
     { name: 'Profile', path: '/profile' },
+    { name: 'CV', path: '/candidate-profile' },
     { 
       name: isEmployer ? 'Quản lý doanh nghiệp' : 'Xác minh doanh nghiệp', 
       path: isEmployer ? '/employer/dashboard' : '/verify-business' 
@@ -56,14 +55,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </nav>
 
           <div className={styles.navRight}>
-            <button className={styles.iconBtn}>
+            <Link to="/notifications" className={styles.iconBtn} aria-label="Thông báo">
               <Bell size={20} />
-            </button>
+            </Link>
 
             <div className={styles.userMenu}>
               {user?.avatarUrl && user.avatarUrl !== 'null' ? (
                 <img 
-                  src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:8088/parttime_hiring_platform${user.avatarUrl.startsWith('/') ? '' : '/'}${user.avatarUrl}`} 
+                  src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `${apiBase.replace(/\/api$/, '')}${user.avatarUrl.startsWith('/') ? '' : '/'}${user.avatarUrl}`} 
                   alt="Avatar" 
                   className={styles.userAvatar} 
                   onError={(e) => {

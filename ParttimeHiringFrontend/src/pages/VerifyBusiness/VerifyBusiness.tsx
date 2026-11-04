@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { MainLayout } from '../../components/Layout/MainLayout';
 import { sendOtp, verifyOtp } from '../../services/email.service';
 import styles from './VerifyBusiness.module.css';
+import { rejectionMessage } from '../../services/verificationPolicy';
 import {
   ShieldCheck, Store, Phone, Globe, Mail, MapPin,
   FileText, Send, CheckCircle2, Lock,
@@ -37,6 +38,8 @@ export const VerifyBusiness: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedAt, setSubmittedAt] = useState<Date | null>(null);
   const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState<string | null>(null);
+  const [statusError, setStatusError] = useState('');
 
   // Thêm state cho OTP countdown và thông báo
   const [countdown, setCountdown] = useState(0);
@@ -60,13 +63,14 @@ export const VerifyBusiness: React.FC = () => {
               setIsSubmitted(true);
             }
             setVerificationStatus(data.status);
+            setRejectionReason(rejectionMessage(data.status, data.rejectionReason));
             if (data.submittedAt) {
               setSubmittedAt(new Date(data.submittedAt));
             }
           }
-        }
-      } catch (e) {
-        console.error("Error fetching status", e);
+        } else { setStatusError('Không thể tải trạng thái hồ sơ. Vui lòng tải lại trang.'); }
+      } catch {
+        setStatusError('Không thể tải trạng thái hồ sơ. Vui lòng tải lại trang.');
       }
     };
     fetchStatus();
@@ -88,6 +92,7 @@ export const VerifyBusiness: React.FC = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: keyof typeof fileData) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (!['image/jpeg', 'image/png'].includes(file.type)) { alert('Vui lòng chọn ảnh JPEG hoặc PNG.'); return; }
       if (file.size > 5 * 1024 * 1024) {
         alert('File quá lớn! Vui lòng chọn ảnh dưới 5MB để đảm bảo tốc độ tải.');
         return;
@@ -130,8 +135,8 @@ export const VerifyBusiness: React.FC = () => {
       
       // Tự ẩn thông báo sau 5s
       setTimeout(() => setOtpSuccessMsg(''), 5000);
-    } catch (err: any) {
-      alert(`Lỗi gửi OTP: ${err.message}`);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Không thể gửi OTP.');
     } finally {
       setIsSendingOtp(false);
     }
@@ -169,40 +174,17 @@ export const VerifyBusiness: React.FC = () => {
         form.append('businessLicense', fileData.businessLicense);
       }
 
-      await new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', apiBase + '/users/employer-verifications', true);
-        xhr.withCredentials = true;
-
-        xhr.upload.onprogress = (e) => {
-          if (e.lengthComputable) {
-            const percentComplete = Math.round((e.loaded / e.total) * 100);
-            // Limit to 95% during upload, the last 5% is for server processing (Cloudinary upload)
-            setUploadProgress(percentComplete < 100 ? percentComplete : 95);
-          }
-        };
-
-        xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            setUploadProgress(100);
-            resolve(JSON.parse(xhr.responseText));
-          } else {
-            let errMsg = 'Gửi thất bại';
-            try { errMsg = JSON.parse(xhr.responseText).message || errMsg; } catch(e){}
-            reject(new Error(errMsg));
-          }
-        };
-
-        xhr.onerror = () => reject(new Error('Lỗi kết nối mạng'));
-        xhr.send(form);
-      });
+      const response = await apiFetch(apiBase + '/users/employer-verifications', { method: 'POST', body: form });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || 'Không thể gửi hồ sơ xác minh.');
+      setUploadProgress(100);
 
       setSubmittedAt(new Date());
       setVerificationStatus('PENDING');
       setIsSubmitted(true);
       topRef.current?.scrollIntoView({ behavior: 'smooth' });
-    } catch (error: any) {
-      alert(`Lỗi: ${error.message}`);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Không thể gửi hồ sơ.');
     } finally {
       setIsSubmitting(false);
     }
@@ -271,6 +253,11 @@ export const VerifyBusiness: React.FC = () => {
 
   const renderForm = () => (
     <div className={styles.mainCard}>
+      {statusError && <p role="alert">{statusError}</p>}
+      {rejectionReason && <div role="alert" className={styles.statusNotice}>
+        <strong>Hồ sơ đã bị từ chối</strong><p>{rejectionReason}</p>
+        <p>Bạn có thể cập nhật thông tin, xác minh lại email và gửi hồ sơ mới bên dưới.</p>
+      </div>}
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerIcon}>

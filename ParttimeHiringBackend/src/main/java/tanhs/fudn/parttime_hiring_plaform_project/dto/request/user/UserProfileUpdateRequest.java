@@ -12,10 +12,12 @@ import java.time.LocalDate;
 public class UserProfileUpdateRequest {
     private String currentPassword;
     @Size(min = 1, max = 100)
+    @Pattern(regexp = ".*\\S.*", message = "Display name must not be blank")
     private String displayName;
     @Pattern(regexp = "[a-zA-Z0-9_]{3,50}")
     private String username;
     @Email
+    @Pattern(regexp = ".*\\S.*", message = "Email must not be blank")
     @Size(max = 255)
     private String email;
     @PastOrPresent

@@ -6,6 +6,7 @@ import { PhoneCall, MapPin, Clock, Banknote, Users, CalendarDays, User, ArrowLef
 import { getJobById, type JobDetail as JobDetailType } from '../../services/job.service';
 import { applyForJob } from '../../services/application.service';
 import styles from './JobDetail.module.css';
+import { ReportJob } from './ReportJob';
 
 export const JobDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -41,6 +42,9 @@ export const JobDetail: React.FC = () => {
   const handleApply = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!job) return;
+    if (!/^\+?[0-9]{9,15}$/.test(phone) || note.length > 2000) {
+      setErrorMsg('Số điện thoại cần 9–15 chữ số; ghi chú tối đa 2000 ký tự.'); return;
+    }
     
     setErrorMsg('');
     setSuccessMsg('');
@@ -54,8 +58,8 @@ export const JobDetail: React.FC = () => {
       });
       setSuccessMsg('Tuyệt vời! Đã gửi đơn ứng tuyển thành công.');
       setTimeout(() => setShowModal(false), 2000);
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Có lỗi xảy ra, vui lòng thử lại.');
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Có lỗi xảy ra, vui lòng thử lại.');
     } finally {
       setSubmitting(false);
     }
@@ -73,6 +77,7 @@ export const JobDetail: React.FC = () => {
 
   return (
     <MainLayout>
+      <ReportJob jobId={Number(id)} />
       <div className={styles.container}>
         <Link to="/jobs" className={styles.breadcrumb}>
           <ArrowLeft size={16} /> Quay lại danh sách

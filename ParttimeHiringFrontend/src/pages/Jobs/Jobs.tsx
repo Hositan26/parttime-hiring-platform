@@ -1,22 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MainLayout } from '../../components/Layout/MainLayout';
 import { JobCard } from '../../components/JobCard/JobCard';
 import { Input } from '../../components/Input/Input';
 import { Button } from '../../components/Button/Button';
 import { Filter, RefreshCcw } from 'lucide-react';
-import { searchJobs, getCategories, getShifts, type Job } from '../../services/job.service';
+import { searchJobPage, getCategories, getShifts, type Job, type JobCategory, type JobShift } from '../../services/job.service';
 import styles from './Jobs.module.css';
 
 export const Jobs: React.FC = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [total, setTotal] = useState(0);
+  const requestVersion = useRef(0);
   
   const [filters, setFilters] = useState({
     title: '', storeName: '', categoryId: '', shiftId: '',
     minWage: '', maxWage: '', city: '', district: '', ward: '', streetAddress: ''
   });
-  const [categories, setCategories] = useState<any[]>([]);
-  const [shifts, setShifts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<JobCategory[]>([]);
+  const [shifts, setShifts] = useState<JobShift[]>([]);
 
   useEffect(() => {
     Promise.all([getCategories(), getShifts()]).then(([cats, shfs]) => {
@@ -26,29 +31,42 @@ export const Jobs: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchFilteredJobs();
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [filters]);
+    let active = true;
+    const timer = setTimeout(async () => {
+      const version = ++requestVersion.current;
+      if ((filters.minWage && Number(filters.minWage) < 0) || (filters.maxWage && Number(filters.maxWage) < 0)
+        || (filters.minWage && filters.maxWage && Number(filters.minWage) > Number(filters.maxWage))) {
+        setError('Mức lương phải không âm và mức tối đa phải lớn hơn hoặc bằng mức tối thiểu.');
+        setLoading(false);
+        return;
+      }
+      try {
+        setLoading(true);
+        setError('');
+        const data = await searchJobPage(filters, page);
+        if (!active || version !== requestVersion.current) return;
+        setJobs(data.content);
+        setTotalPages(data.totalPages);
+        setTotal(data.totalElements);
+      } catch (error) {
+        if (active && version === requestVersion.current) setError(error instanceof Error ? error.message : 'Không thể tải danh sách việc làm.');
+      } finally {
+        if (active && version === requestVersion.current) setLoading(false);
+      }
 
-  const fetchFilteredJobs = async () => {
-    try {
-      setLoading(true);
-      const data = await searchJobs(filters);
-      setJobs(data);
-    } catch (error) {
-      console.error('Failed to fetch jobs:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    }, 500);
+    return () => { active = false; clearTimeout(timer); };
+  }, [filters, page]);
 
   const handleFilterChange = (field: string, value: string) => {
+    requestVersion.current++;
+    setPage(0);
     setFilters(prev => ({ ...prev, [field]: value }));
   };
 
   const handleClearFilters = () => {
+    requestVersion.current++;
+    setPage(0);
     setFilters({
       title: '', storeName: '', categoryId: '', shiftId: '',
       minWage: '', maxWage: '', city: '', district: '', ward: '', streetAddress: ''
@@ -135,12 +153,12 @@ export const Jobs: React.FC = () => {
               <p>Các công việc mới nhất đang tuyển dụng</p>
             </div>
             <div className={styles.resultBadge}>
-              🔍 Tìm thấy <strong>{jobs.length}</strong> việc làm
+              🔍 Tìm thấy <strong>{total}</strong> việc làm
             </div>
           </div>
 
           <div className={styles.jobGrid}>
-            {loading ? (
+            {error ? <p role="alert">{error}</p> : loading ? (
               <p>Đang tải danh sách công việc...</p>
             ) : jobs.length === 0 ? (
               <p>Chưa có công việc nào.</p>
@@ -153,6 +171,11 @@ export const Jobs: React.FC = () => {
               ))
             )}
           </div>
+          {!error && totalPages > 1 && <nav aria-label="Phân trang việc làm">
+            <button className="btn-outline" disabled={loading || page === 0} onClick={() => setPage(page - 1)}>Trang trước</button>
+            <span> Trang {page + 1} / {totalPages} </span>
+            <button className="btn-outline" disabled={loading || page + 1 >= totalPages} onClick={() => setPage(page + 1)}>Trang sau</button>
+          </nav>}
         </div>
       </div>
     </MainLayout>

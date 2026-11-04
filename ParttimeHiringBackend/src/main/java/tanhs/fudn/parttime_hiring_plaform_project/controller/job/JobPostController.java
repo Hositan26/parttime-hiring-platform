@@ -14,6 +14,7 @@ import tanhs.fudn.parttime_hiring_plaform_project.service.job.JobPostService;
 
 import java.math.BigDecimal;
 import java.util.List;
+import org.springframework.data.domain.Page;
 
 @RestController
 @RequestMapping("/api/jobs")
@@ -22,6 +23,19 @@ import java.util.List;
 public class JobPostController {
 
     JobPostService jobPostService;
+
+    // Returns a bounded page of jobs while preserving all search filters.
+    @GetMapping("/page")
+    public ResponseEntity<ApiResponse<Page<JobPostResponse>>> searchJobPage(
+            @RequestParam(required = false) String title, @RequestParam(required = false) String storeName,
+            @RequestParam(required = false) Integer categoryId, @RequestParam(required = false) Integer shiftId,
+            @RequestParam(required = false) BigDecimal minWage, @RequestParam(required = false) BigDecimal maxWage,
+            @RequestParam(required = false) String city, @RequestParam(required = false) String district,
+            @RequestParam(required = false) String ward, @RequestParam(required = false) String streetAddress,
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "12") int size) {
+        return ResponseEntity.ok(ApiResponse.success(jobPostService.searchJobPage(title, storeName, categoryId,
+                shiftId, minWage, maxWage, city, district, ward, streetAddress, page, size)));
+    }
 
     @GetMapping("/categories")
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> getCategories() {
