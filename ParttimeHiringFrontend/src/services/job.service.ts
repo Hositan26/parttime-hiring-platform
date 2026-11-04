@@ -13,6 +13,20 @@ export interface Job {
   status?: string;
 }
 
+export interface JobPage {
+  content: Job[];
+  totalElements: number;
+  totalPages: number;
+}
+
+export const searchJobPage = async (filters: Record<string, string>, page: number): Promise<JobPage> => {
+  const params = new URLSearchParams({ page: String(page), size: '12' });
+  Object.entries(filters).forEach(([key, value]) => { if (value.trim()) params.set(key, value.trim()); });
+  const response = await apiFetch(`${API_URL}/page?${params}`);
+  if (!response.ok) throw new Error('Không thể tải danh sách việc làm.');
+  return (await response.json()).result;
+};
+
 export const getJobs = async (): Promise<Job[]> => {
   const response = await apiFetch(API_URL, {
     credentials: 'include'

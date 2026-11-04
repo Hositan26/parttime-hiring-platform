@@ -1,16 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MainLayout } from '../../components/Layout/MainLayout';
 import { JobCard } from '../../components/JobCard/JobCard';
 import { Input } from '../../components/Input/Input';
 import { Button } from '../../components/Button/Button';
 import { Filter, RefreshCcw } from 'lucide-react';
-import { searchJobs, getCategories, getShifts, type Job } from '../../services/job.service';
+import { searchJobPage, getCategories, getShifts, type Job } from '../../services/job.service';
 import styles from './Jobs.module.css';
 
 export const Jobs: React.FC = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [total, setTotal] = useState(0);
+  const requestVersion = useRef(0);
   
   const [filters, setFilters] = useState({
     title: '', storeName: '', categoryId: '', shiftId: '',
@@ -31,9 +35,10 @@ export const Jobs: React.FC = () => {
       fetchFilteredJobs();
     }, 500);
     return () => clearTimeout(timer);
-  }, [filters]);
+  }, [filters, page]);
 
   const fetchFilteredJobs = async () => {
+    const version = ++requestVersion.current;
     if ((filters.minWage && Number(filters.minWage) < 0) || (filters.maxWage && Number(filters.maxWage) < 0)
       || (filters.minWage && filters.maxWage && Number(filters.minWage) > Number(filters.maxWage))) {
       setError('Mức lương phải không âm và mức tối đa phải lớn hơn hoặc bằng mức tối thiểu.');
@@ -43,20 +48,27 @@ export const Jobs: React.FC = () => {
     try {
       setLoading(true);
       setError('');
-      const data = await searchJobs(filters);
-      setJobs(data);
+      const data = await searchJobPage(filters, page);
+      if (version !== requestVersion.current) return;
+      setJobs(data.content);
+      setTotalPages(data.totalPages);
+      setTotal(data.totalElements);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Không thể tải danh sách việc làm.');
+      if (version === requestVersion.current) setError(error instanceof Error ? error.message : 'Không thể tải danh sách việc làm.');
     } finally {
-      setLoading(false);
+      if (version === requestVersion.current) setLoading(false);
     }
   };
 
   const handleFilterChange = (field: string, value: string) => {
+    requestVersion.current++;
+    setPage(0);
     setFilters(prev => ({ ...prev, [field]: value }));
   };
 
   const handleClearFilters = () => {
+    requestVersion.current++;
+    setPage(0);
     setFilters({
       title: '', storeName: '', categoryId: '', shiftId: '',
       minWage: '', maxWage: '', city: '', district: '', ward: '', streetAddress: ''
@@ -143,7 +155,7 @@ export const Jobs: React.FC = () => {
               <p>Các công việc mới nhất đang tuyển dụng</p>
             </div>
             <div className={styles.resultBadge}>
-              🔍 Tìm thấy <strong>{jobs.length}</strong> việc làm
+              🔍 Tìm thấy <strong>{total}</strong> việc làm
             </div>
           </div>
 
@@ -161,6 +173,11 @@ export const Jobs: React.FC = () => {
               ))
             )}
           </div>
+          {!error && totalPages > 1 && <nav aria-label="Phân trang việc làm">
+            <button className="btn-outline" disabled={loading || page === 0} onClick={() => setPage(page - 1)}>Trang trước</button>
+            <span> Trang {page + 1} / {totalPages} </span>
+            <button className="btn-outline" disabled={loading || page + 1 >= totalPages} onClick={() => setPage(page + 1)}>Trang sau</button>
+          </nav>}
         </div>
       </div>
     </MainLayout>
