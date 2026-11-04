@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { MainLayout } from '../../components/Layout/MainLayout';
 import { sendOtp, verifyOtp } from '../../services/email.service';
 import styles from './VerifyBusiness.module.css';
+import { rejectionMessage } from '../../services/verificationPolicy';
 import {
   ShieldCheck, Store, Phone, Globe, Mail, MapPin,
   FileText, Send, CheckCircle2, Lock,
@@ -37,6 +38,8 @@ export const VerifyBusiness: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedAt, setSubmittedAt] = useState<Date | null>(null);
   const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState<string | null>(null);
+  const [statusError, setStatusError] = useState('');
 
   // Thêm state cho OTP countdown và thông báo
   const [countdown, setCountdown] = useState(0);
@@ -60,13 +63,14 @@ export const VerifyBusiness: React.FC = () => {
               setIsSubmitted(true);
             }
             setVerificationStatus(data.status);
+            setRejectionReason(rejectionMessage(data.status, data.rejectionReason));
             if (data.submittedAt) {
               setSubmittedAt(new Date(data.submittedAt));
             }
           }
-        }
+        } else { setStatusError('Không thể tải trạng thái hồ sơ. Vui lòng tải lại trang.'); }
       } catch (e) {
-        console.error("Error fetching status", e);
+        setStatusError('Không thể tải trạng thái hồ sơ. Vui lòng tải lại trang.');
       }
     };
     fetchStatus();
@@ -271,6 +275,11 @@ export const VerifyBusiness: React.FC = () => {
 
   const renderForm = () => (
     <div className={styles.mainCard}>
+      {statusError && <p role="alert">{statusError}</p>}
+      {rejectionReason && <div role="alert" className={styles.statusNotice}>
+        <strong>Hồ sơ đã bị từ chối</strong><p>{rejectionReason}</p>
+        <p>Bạn có thể cập nhật thông tin, xác minh lại email và gửi hồ sơ mới bên dưới.</p>
+      </div>}
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerIcon}>
