@@ -8,3 +8,7 @@ export const safeReturnPath = (value: string | null): string => {
 // Detects screens that require a valid authenticated session.
 export const requiresSession = (path: string): boolean =>
   /^\/(admin|employer|profile|applied-jobs|verify-business|change-password)(\/|$)/.test(path);
+
+// Matches server role names while accepting the standard Spring prefix.
+export const hasAnyRole = (actual: string[], required: string[]): boolean =>
+  required.some(role => actual.some(value => value.replace(/^ROLE_/, '') === role));

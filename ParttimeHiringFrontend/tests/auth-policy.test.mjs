@@ -12,3 +12,10 @@ test('identifies protected screens without locking public job search', () => {
   assert.equal(requiresSession('/admin/users'), true);
   assert.equal(requiresSession('/profile'), true);
 });
+
+import { hasAnyRole } from '../src/services/authPolicy.ts';
+test('requires matching roles and normalizes Spring authorities', () => {
+  assert.equal(hasAnyRole(['USER'], ['ADMIN']), false);
+  assert.equal(hasAnyRole(['ROLE_EMPLOYER'], ['EMPLOYER']), true);
+  assert.equal(hasAnyRole([], ['USER']), false);
+});

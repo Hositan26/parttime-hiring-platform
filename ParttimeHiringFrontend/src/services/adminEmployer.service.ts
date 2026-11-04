@@ -2,6 +2,7 @@ import { apiFetch } from './apiClient';
 const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/admin/employers';
 
 export interface AdminEmployerResponse {
+  isActive: boolean;
   employerId: number;
   companyName: string;
   representativeName: string;
@@ -44,4 +45,5 @@ export const updateEmployerStatus = async (id: number, status: string) => {
   
   return await response.json();
 };
+
 

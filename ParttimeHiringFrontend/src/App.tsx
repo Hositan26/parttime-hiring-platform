@@ -1,3 +1,5 @@
+import { AuthProvider } from './context/AuthProvider';
+import { RoleRoute } from './components/ProtectedRoute/RoleRoute';
 import { PasswordRecovery } from './pages/Auth/PasswordRecovery';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Login } from './pages/Login/Login';
@@ -34,9 +36,9 @@ import { AdminDashboard } from './pages/Admin/Dashboard/AdminDashboard';
 function App() {
   return (
     <Router>
-      <Routes>
+      <AuthProvider><Routes>
         {/* Existing Routes */}
-        <Route path="/change-password" element={<PasswordRecovery />} />
+        <Route path="/change-password" element={<RoleRoute><PasswordRecovery /></RoleRoute>} />
         <Route path="/forgot-password" element={<PasswordRecovery />} />
         <Route path="/reset-password" element={<PasswordRecovery />} />
         <Route path="/login" element={<Login />} />
@@ -44,12 +46,12 @@ function App() {
         <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
         <Route path="/jobs" element={<Jobs />} />
         <Route path="/jobs/:id" element={<JobDetail />} />
-        <Route path="/applied-jobs" element={<AppliedJobs />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/verify-business" element={<VerifyBusiness />} />
+        <Route path="/applied-jobs" element={<RoleRoute roles={['USER']}><AppliedJobs /></RoleRoute>} />
+        <Route path="/profile" element={<RoleRoute><Profile /></RoleRoute>} />
+        <Route path="/verify-business" element={<RoleRoute><VerifyBusiness /></RoleRoute>} />
         
         {/* Employer Routes */}
-        <Route path="/employer" element={<EmployerLayout />}>
+        <Route path="/employer" element={<RoleRoute roles={['EMPLOYER']}><EmployerLayout /></RoleRoute>}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<EmployerDashboard />} />
           <Route path="stores" element={<EmployerStores />} />
@@ -83,11 +85,12 @@ function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
         {/* Redirect unknown routes to login */}
         <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+      </Routes></AuthProvider>
     </Router>
   );
 }
 
 export default App;
+
 
 

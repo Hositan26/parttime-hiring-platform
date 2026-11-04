@@ -90,5 +90,7 @@ export const updateMe = async (data: {
 export const logout = async () => {
   const response = await apiFetch(API_URL + '/logout', { method: 'POST', credentials: 'include' });
   if (!response.ok) throw new Error('Could not sign out. Please try again.');
+  window.dispatchEvent(new Event('auth:expired'));
 };
+
 

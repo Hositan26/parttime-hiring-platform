@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Briefcase, Search, ChevronLeft, ChevronRight, CheckCircle2, XCircle, Power, PowerOff } from 'lucide-react';
+import { Briefcase, Search, ChevronLeft, ChevronRight, CheckCircle2, XCircle } from 'lucide-react';
 import { getEmployers, updateEmployerStatus, type AdminEmployerResponse } from '../../../services/adminEmployer.service';
 import { banUser, unbanUser } from '../../../services/adminUser.service';
 import styles from '../Verifications/AdminVerifications.module.css';
@@ -178,3 +178,4 @@ export const AdminEmployers: React.FC = () => {
     </div>
   );
 };
+

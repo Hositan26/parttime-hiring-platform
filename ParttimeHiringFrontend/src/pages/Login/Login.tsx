@@ -1,3 +1,4 @@
+import { useAuth } from '../../context/authContext';
 import { safeReturnPath } from '../../services/authPolicy';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -13,6 +14,7 @@ export const Login: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { reload } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,6 +23,7 @@ export const Login: React.FC = () => {
 
     try {
       await login(username, password);
+      await reload();
       // Backend automatically sets HttpOnly cookie for session token
       
       // Fetch user profile to check roles
@@ -137,5 +140,6 @@ export const Login: React.FC = () => {
     </AuthLayout>
   );
 };
+
 
 
