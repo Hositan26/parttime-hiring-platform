@@ -1,6 +1,6 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.auth;
 
-import  tanhs.fudn.parttime_hiring_plaform_project.service.auth.AuthService;
+import tanhs.fudn.parttime_hiring_plaform_project.service.auth.AuthService;
 
 
 import lombok.AccessLevel;
@@ -45,6 +45,7 @@ public class AuthServiceImpl implements AuthService {
     JwtTokenProvider tokenProvider;
     tanhs.fudn.parttime_hiring_plaform_project.mapper.AuthMapper authMapper;
 
+    // Authenticates credentials without disclosing internal authentication errors.
     @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request, HttpServletResponse response) {
         Authentication authentication;
@@ -52,9 +53,9 @@ public class AuthServiceImpl implements AuthService {
             authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
             );
-        } catch (Exception e) {
-            log.error("Login failed for user: {}", request.getUsername(), e);
-            throw new RuntimeException("Login failed: " + e.getClass().getName() + " - " + e.getMessage());
+        } catch (org.springframework.security.core.AuthenticationException e) {
+
+            throw new tanhs.fudn.parttime_hiring_plaform_project.exception.UnauthorizedException("Invalid username or password");
         }
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -66,16 +67,7 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Set<String> roles = user.getRoles().stream()
-                .map(Role::getRoleName)
-                .collect(Collectors.toSet());
-
-        return LoginResponse.builder()
-                .username(user.getUsername())
-                .roles(roles)
-                .displayName(user.getDisplayName())
-                .avatarUrl(user.getAvatarUrl())
-                .build();
+        return authMapper.toLoginResponse(user);
     }
 
     // Registers a validated account with the default user role.
@@ -119,3 +111,4 @@ public class AuthServiceImpl implements AuthService {
         response.addHeader("Set-Cookie", "access_token=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax");
     }
 }
+
