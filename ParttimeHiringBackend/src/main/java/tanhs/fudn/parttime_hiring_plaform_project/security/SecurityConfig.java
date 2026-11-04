@@ -64,7 +64,10 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable()) // Tắt CSRF vì đang dùng JWT
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Không sử dụng session
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/oauth2/**", "/api/jobs/**", "/test-api/**").permitAll() // Cho phép truy cập tự do vào các API auth, oauth2 và jobs
+                .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/logout", "/api/auth/refresh", "/api/auth/forgot-password", "/api/auth/reset-password", "/oauth2/**", "/login/oauth2/**", "/api/jobs/**", "/error").permitAll()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/employer/**").hasRole("EMPLOYER")
+                .requestMatchers("/api/users/applications/**").hasRole("USER") // Cho phép truy cập tự do vào các API auth, oauth2 và jobs
                 .anyRequest().authenticated() // Bắt buộc xác thực với các API khác
             )
             .oauth2Login(oauth2 -> oauth2
@@ -91,3 +94,4 @@ public class SecurityConfig {
         return source;
     }
 }
+

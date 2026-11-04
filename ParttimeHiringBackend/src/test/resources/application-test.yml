@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:auth-tests;MODE=MySQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  mail:
+    username: test@example.invalid
+    password: unused
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: test-client
+            client-secret: test-secret
+jwt:
+  signerKey: test-only-signing-key-never-use-outside-tests-0123456789abcdefghijklmnopqrstuvwxyz
+  secret: test-only
+  valid-duration: 60
+cloudinary:
+  cloud-name: unused
+  api-key: unused
+  api-secret: unused
+app:
+  auth:
+    cookie-secure: false
