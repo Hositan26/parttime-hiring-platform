@@ -1,7 +1,8 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.application;
 
-import tanhs.fudn.parttime_hiring_plaform_project.service.application.JobApplicationService;
+import org.springframework.security.access.AccessDeniedException;
 
+import tanhs.fudn.parttime_hiring_plaform_project.service.application.JobApplicationService;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -104,6 +105,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                 .collect(Collectors.toList());
     }
 
+    // Updates an owned application and synchronizes employment records.
     @Transactional
     public void updateApplicationStatus(Integer applicationId, ApplicationStatus status, String username) {
         User user = userRepository.findByUsername(username)
@@ -116,7 +118,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn ứng tuyển."));
 
         if (!application.getJobPost().getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền thay đổi trạng thái đơn ứng tuyển này.");
+            throw new AccessDeniedException("Bạn không có quyền thay đổi trạng thái đơn ứng tuyển này.");
         }
 
         ApplicationStatus oldStatus = application.getStatus();

@@ -1,8 +1,9 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.user;
-
-import tanhs.fudn.parttime_hiring_plaform_project.service.user.UserEmailVerificationService;
-
 public interface UserEmailVerificationService {
-    void generateAndSendOtp(String email);
-    void verifyOtp(String email, String otpCode);
+    // Sends an email challenge bound to the authenticated applicant.
+    void generateAndSendOtp(String email, String username);
+    // Confirms a challenge without consuming its submission permission.
+    void confirmOtp(String email, String code, String username);
+    // Consumes a confirmed challenge during verification submission.
+    void verifyOtp(String email, String code, String username);
 }

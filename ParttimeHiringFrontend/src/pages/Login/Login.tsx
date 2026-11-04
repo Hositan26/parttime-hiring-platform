@@ -1,17 +1,21 @@
+import { apiBase } from '../../services/apiClient';
+import { useAuth } from '../../context/authContext';
+import { safeReturnPath } from '../../services/authPolicy';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Lock, Eye, EyeOff, Sparkles } from 'lucide-react';
 import { AuthLayout } from '../../components/Layout/AuthLayout';
 import styles from './Login.module.css';
-import { login } from '../../services/auth.service';
+import { login, getMe } from '../../services/auth.service';
 
 export const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(() => new URLSearchParams(window.location.search).has('error') ? 'Không thể đăng nhập Google. Vui lòng thử lại hoặc dùng mật khẩu.' : '');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { reload } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,30 +24,34 @@ export const Login: React.FC = () => {
 
     try {
       await login(username, password);
+      await reload();
       // Backend automatically sets HttpOnly cookie for session token
       
       // Fetch user profile to check roles
-      const { getMe } = await import('../../services/auth.service');
+
       const user = await getMe();
       
       const hasRole = (roleName: string) => user?.roles?.some((r: string) => r === roleName || r === `ROLE_${roleName}`);
 
-      if (hasRole('ADMIN')) {
+      const returnTo = new URLSearchParams(window.location.search).get('returnTo');
+      if (returnTo) {
+        navigate(safeReturnPath(returnTo), { replace: true });
+      } else if (hasRole('ADMIN')) {
         navigate('/admin/verifications');
       } else if (hasRole('EMPLOYER')) {
         navigate('/employer/dashboard');
       } else {
         navigate('/jobs');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Login failed");
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = 'http://localhost:8088/parttime_hiring_platform/oauth2/authorization/google';
+    window.location.href = apiBase.replace(/\/api\/?$/, '') + '/oauth2/authorization/google';
   };
 
   return (
@@ -88,7 +96,7 @@ export const Login: React.FC = () => {
         <div className={styles.formGroup}>
           <div className={styles.labelRow}>
             <label className={styles.label}>Mật khẩu</label>
-            <Link to="#" className={styles.forgotPassword}>Quên mật khẩu?</Link>
+            <Link to="/forgot-password" className={styles.forgotPassword}>Quên mật khẩu?</Link>
           </div>
           <div className={styles.inputWrapper}>
             <Lock size={18} className={styles.inputIcon} />
@@ -133,3 +141,4 @@ export const Login: React.FC = () => {
     </AuthLayout>
   );
 };
+

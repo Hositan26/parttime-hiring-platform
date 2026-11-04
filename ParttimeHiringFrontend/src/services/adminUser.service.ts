@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/admin/users';
+import { apiFetch, apiBase } from './apiClient';
+const API_URL = apiBase + '/admin/users';
 
 export interface AdminUserResponse {
   id: number;
@@ -12,7 +13,7 @@ export interface AdminUserResponse {
 }
 
 export const getUsers = async (page = 0, size = 10) => {
-  const response = await fetch(`${API_URL}?page=${page}&size=${size}`, {
+  const response = await apiFetch(`${API_URL}?page=${page}&size=${size}`, {
     method: 'GET',
     credentials: 'include'
   });
@@ -26,7 +27,7 @@ export const getUsers = async (page = 0, size = 10) => {
 };
 
 export const banUser = async (id: number) => {
-  const response = await fetch(`${API_URL}/${id}/ban`, {
+  const response = await apiFetch(`${API_URL}/${id}/ban`, {
     method: 'PUT',
     credentials: 'include'
   });
@@ -36,7 +37,7 @@ export const banUser = async (id: number) => {
 };
 
 export const unbanUser = async (id: number) => {
-  const response = await fetch(`${API_URL}/${id}/unban`, {
+  const response = await apiFetch(`${API_URL}/${id}/unban`, {
     method: 'PUT',
     credentials: 'include'
   });

@@ -1,3 +1,4 @@
+import { apiFetch, apiBase } from './apiClient';
 export const JobStatus = {
   PENDING: 'PENDING',
   ACTIVE: 'ACTIVE',
@@ -8,7 +9,7 @@ export const JobStatus = {
 
 export type JobStatusType = typeof JobStatus[keyof typeof JobStatus];
 
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/admin/jobs';
+const API_URL = apiBase + '/admin/jobs';
 
 export interface AdminJobPostResponse {
   jobId: number;
@@ -39,7 +40,7 @@ export const getAdminJobPosts = async (status: JobStatusType, page: number = 0, 
     params.append('status', status);
   }
 
-  const response = await fetch(`${API_URL}?${params.toString()}`, {
+  const response = await apiFetch(`${API_URL}?${params.toString()}`, {
     credentials: 'include'
   });
   
@@ -51,7 +52,7 @@ export const getAdminJobPosts = async (status: JobStatusType, page: number = 0, 
 };
 
 export const updateAdminJobPostStatus = async (jobId: number, status: JobStatusType) => {
-  const response = await fetch(`${API_URL}/${jobId}/status`, {
+  const response = await apiFetch(`${API_URL}/${jobId}/status`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json'

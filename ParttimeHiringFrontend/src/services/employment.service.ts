@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api';
+import { apiFetch, apiBase } from './apiClient';
+const API_URL = apiBase + '';
 
 export interface EmployerEmploymentResponse {
   recordId: number;
@@ -26,7 +27,7 @@ export const getEmployments = async (storeId?: number): Promise<EmployerEmployme
     ? `${API_URL}/employer/employments?storeId=${storeId}` 
     : `${API_URL}/employer/employments`;
     
-  const response = await fetch(url, {
+  const response = await apiFetch(url, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -43,7 +44,7 @@ export const getEmployments = async (storeId?: number): Promise<EmployerEmployme
 };
 
 export const updateEmploymentStatus = async (recordId: number, status: string, note: string): Promise<void> => {
-  const response = await fetch(`${API_URL}/employer/employments/${recordId}/status`, {
+  const response = await apiFetch(`${API_URL}/employer/employments/${recordId}/status`, {
     method: 'PATCH',
     credentials: 'include',
     headers: {

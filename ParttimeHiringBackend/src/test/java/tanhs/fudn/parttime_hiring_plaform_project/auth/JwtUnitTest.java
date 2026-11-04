@@ -1,0 +1,40 @@
+package tanhs.fudn.parttime_hiring_plaform_project.auth;
+import org.junit.jupiter.api.Test;
+import tanhs.fudn.parttime_hiring_plaform_project.security.JwtTokenProvider;
+import static org.junit.jupiter.api.Assertions.*;
+
+class JwtUnitTest {
+    private final String secret = "x".repeat(64);
+
+    // Accepts signed tokens only for the configured issuer and purpose.
+    @Test
+    void validatesSignedClaims() {
+        var provider = new JwtTokenProvider(secret, 60, "test");
+        String token = provider.generateTokenForUser(tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User.builder().id(7L).username("candidate").build());
+        assertTrue(provider.validateToken(token));
+        assertEquals("7", provider.getSubject(token));
+        assertNotNull(provider.parseClaims(token).getId());
+        assertFalse(new JwtTokenProvider(secret, 60, "another").validateToken(token));
+        assertFalse(new JwtTokenProvider("y".repeat(64), 60, "test").validateToken(token));
+        assertFalse(provider.validateToken(token + "tampered"));
+        assertFalse(provider.validateToken("malformed"));
+    }
+
+    // Fails startup when signing configuration cannot protect access tokens.
+    @Test
+    void rejectsWeakConfiguration() {
+        assertThrows(IllegalArgumentException.class, () -> new JwtTokenProvider("short", 60, "test"));
+        assertThrows(IllegalArgumentException.class, () -> new JwtTokenProvider(secret, 0, "test"));
+    }
+    // Rejects expired access credentials even when their signatures are valid.
+    @Test
+    void rejectsExpiredToken() {
+        var provider = new JwtTokenProvider(secret, 60, "test");
+        String token = io.jsonwebtoken.Jwts.builder().setSubject("7").setIssuer("test").setId("expired")
+                .claim("type", "access").claim("version", 0)
+                .setIssuedAt(new java.util.Date(System.currentTimeMillis() - 120000))
+                .setExpiration(new java.util.Date(System.currentTimeMillis() - 60000))
+                .signWith(io.jsonwebtoken.security.Keys.hmacShaKeyFor(secret.getBytes(java.nio.charset.StandardCharsets.UTF_8)),
+                        io.jsonwebtoken.SignatureAlgorithm.HS512).compact();
+        assertFalse(provider.validateToken(token));
+    }}

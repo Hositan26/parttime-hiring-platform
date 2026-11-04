@@ -1,7 +1,10 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.employer;
 
-import tanhs.fudn.parttime_hiring_plaform_project.service.employer.EmployerJobService;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.AccessDeniedException;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.job.JobPostSpecification;
 
+import tanhs.fudn.parttime_hiring_plaform_project.service.employer.EmployerJobService;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -65,11 +68,11 @@ public class EmployerJobServiceImpl implements EmployerJobService {
     }
 
     @Transactional(readOnly = true)
-    public Page<EmployerJobListResponse> getEmployerJobs(String username, int page, int size, Integer storeId, tanhs.fudn.parttime_hiring_plaform_project.entity.enums.JobStatus status) {
+    public Page<EmployerJobListResponse> getEmployerJobs(String username, int page, int size, Integer storeId, JobStatus status) {
         Employer employer = getEmployerByUsername(username);
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         
-        org.springframework.data.jpa.domain.Specification<JobPost> spec = tanhs.fudn.parttime_hiring_plaform_project.repository.job.JobPostSpecification.filterEmployerJobs(employer.getEmployerId(), storeId, status);
+        Specification<JobPost> spec = JobPostSpecification.filterEmployerJobs(employer.getEmployerId(), storeId, status);
         Page<JobPost> jobPosts = jobPostRepository.findAll(spec, pageable);
         
         return jobPosts.map(job -> {
@@ -78,6 +81,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
         });
     }
 
+    // Returns job details only to the owning employer.
     @Transactional(readOnly = true)
     public EmployerJobDetailResponse getEmployerJobDetail(String username, Integer jobId) {
         Employer employer = getEmployerByUsername(username);
@@ -85,13 +89,14 @@ public class EmployerJobServiceImpl implements EmployerJobService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng."));
 
         if (!jobPost.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền xem tin tuyển dụng này.");
+            throw new AccessDeniedException("Bạn không có quyền xem tin tuyển dụng này.");
         }
 
         int applicantsCount = (int) jobApplicationRepository.countByJobPost_JobPostId(jobId);
         return employerJobMapper.toDetailResponse(jobPost, applicantsCount);
     }
 
+    // Returns reviews associated with jobs owned by this employer.
     @Transactional(readOnly = true)
     public List<EmployerJobCommentResponse> getJobComments(String username, Integer jobId) {
         Employer employer = getEmployerByUsername(username);
@@ -99,13 +104,14 @@ public class EmployerJobServiceImpl implements EmployerJobService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng."));
         
         if (!jobPost.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền xem đánh giá của tin tuyển dụng này.");
+            throw new AccessDeniedException("Bạn không có quyền xem đánh giá của tin tuyển dụng này.");
         }
 
         List<StoreReview> reviews = storeReviewRepository.findByEmploymentRecord_JobPost_JobPostIdOrderByCreatedAtDesc(jobId);
         return reviews.stream().map(employerJobMapper::toCommentResponse).collect(Collectors.toList());
     }
 
+    // Returns applicant details only for an owned job.
     @Transactional(readOnly = true)
     public List<EmployerJobApplicantResponse> getJobApplicants(String username, Integer jobId) {
         Employer employer = getEmployerByUsername(username);
@@ -113,13 +119,14 @@ public class EmployerJobServiceImpl implements EmployerJobService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng."));
         
         if (!jobPost.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền xem ứng viên của tin tuyển dụng này.");
+            throw new AccessDeniedException("Bạn không có quyền xem ứng viên của tin tuyển dụng này.");
         }
 
         List<JobApplication> applications = jobApplicationRepository.findByJobPost_JobPostIdOrderByAppliedAtDesc(jobId);
         return applications.stream().map(employerJobMapper::toApplicantResponse).collect(Collectors.toList());
     }
 
+    // Creates a recruitment post for an owned store.
     @Transactional
     public EmployerJobDetailResponse createEmployerJob(String username, CreateEmployerJobRequest request) {
         Employer employer = getEmployerByUsername(username);
@@ -127,7 +134,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
 
         if (!store.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền tạo việc làm cho cửa hàng này.");
+            throw new AccessDeniedException("Bạn không có quyền tạo việc làm cho cửa hàng này.");
         }
 
         JobPost jobPost = employerJobMapper.toEntity(request);
@@ -151,6 +158,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
         return employerJobMapper.toDetailResponse(jobPost, 0);
     }
 
+    // Updates recruitment details after checking employer ownership.
     @Transactional
     public EmployerJobDetailResponse updateEmployerJob(String username, Integer jobId, UpdateEmployerJobRequest request) {
         Employer employer = getEmployerByUsername(username);
@@ -158,7 +166,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng."));
 
         if (!jobPost.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền chỉnh sửa tin tuyển dụng này.");
+            throw new AccessDeniedException("Bạn không có quyền chỉnh sửa tin tuyển dụng này.");
         }
 
         // Apply new status logic if provided
@@ -193,6 +201,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
         return employerJobMapper.toDetailResponse(jobPost, applicantsCount);
     }
 
+    // Associates a new image with an owned recruitment post.
     @Transactional
     public void addJobImage(String username, Integer jobId, String imageUrl) {
         Employer employer = getEmployerByUsername(username);
@@ -200,7 +209,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng."));
 
         if (!jobPost.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền chỉnh sửa tin tuyển dụng này.");
+            throw new AccessDeniedException("Bạn không có quyền chỉnh sửa tin tuyển dụng này.");
         }
 
         JobPostImage newImage = JobPostImage.builder()
@@ -213,6 +222,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
         jobPostRepository.save(jobPost);
     }
 
+    // Removes an image only from an owned recruitment post.
     @Transactional
     public void deleteJobImage(String username, Integer jobId, Integer imageId) {
         Employer employer = getEmployerByUsername(username);
@@ -220,13 +230,14 @@ public class EmployerJobServiceImpl implements EmployerJobService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng."));
 
         if (!jobPost.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền chỉnh sửa tin tuyển dụng này.");
+            throw new AccessDeniedException("Bạn không có quyền chỉnh sửa tin tuyển dụng này.");
         }
 
         jobPost.getImages().removeIf(img -> img.getImageId().equals(imageId));
         jobPostRepository.save(jobPost);
     }
 
+    // Changes recruitment state after validating ownership and expiration.
     @Transactional
     public void patchJobStatus(String username, Integer jobId, JobStatus newStatus) {
         Employer employer = getEmployerByUsername(username);
@@ -234,7 +245,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng."));
 
         if (!jobPost.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền chỉnh sửa tin tuyển dụng này.");
+            throw new AccessDeniedException("Bạn không có quyền chỉnh sửa tin tuyển dụng này.");
         }
 
         if (jobPost.getStatus() == JobStatus.EXPIRED && newStatus == JobStatus.ACTIVE) {
@@ -247,6 +258,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
         jobPostRepository.save(jobPost);
     }
 
+    // Deletes an owned post when no applications depend on it.
     @Transactional
     public void deleteJob(String username, Integer jobId) {
         Employer employer = getEmployerByUsername(username);
@@ -254,7 +266,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng."));
 
         if (!jobPost.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
-            throw new RuntimeException("Bạn không có quyền xóa tin tuyển dụng này.");
+            throw new AccessDeniedException("Bạn không có quyền xóa tin tuyển dụng này.");
         }
 
         long applicationsCount = jobApplicationRepository.countByJobPost_JobPostId(jobId);

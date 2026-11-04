@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/admin/shifts';
+import { apiFetch, apiBase } from './apiClient';
+const API_URL = apiBase + '/admin/shifts';
 
 export interface AdminShift {
   shiftId: number;
@@ -9,7 +10,7 @@ export interface AdminShift {
 }
 
 export const getShifts = async (page = 0, size = 10) => {
-  const response = await fetch(`${API_URL}?page=${page}&size=${size}`, {
+  const response = await apiFetch(`${API_URL}?page=${page}&size=${size}`, {
     method: 'GET',
     credentials: 'include'
   });
@@ -19,7 +20,7 @@ export const getShifts = async (page = 0, size = 10) => {
 };
 
 export const createShift = async (shift: Partial<AdminShift>) => {
-  const response = await fetch(API_URL, {
+  const response = await apiFetch(API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -30,7 +31,7 @@ export const createShift = async (shift: Partial<AdminShift>) => {
 };
 
 export const updateShift = async (id: number, shift: Partial<AdminShift>) => {
-  const response = await fetch(`${API_URL}/${id}`, {
+  const response = await apiFetch(`${API_URL}/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -41,7 +42,7 @@ export const updateShift = async (id: number, shift: Partial<AdminShift>) => {
 };
 
 export const deleteShift = async (id: number) => {
-  const response = await fetch(`${API_URL}/${id}`, {
+  const response = await apiFetch(`${API_URL}/${id}`, {
     method: 'DELETE',
     credentials: 'include'
   });

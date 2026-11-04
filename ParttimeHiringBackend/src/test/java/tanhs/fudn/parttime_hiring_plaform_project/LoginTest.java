@@ -4,31 +4,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.test.context.ActiveProfiles;
+import static org.junit.jupiter.api.Assertions.*;
 
-@org.springframework.test.context.ActiveProfiles("local")
 @SpringBootTest
-public class LoginTest {
-    @Autowired
-    private AuthenticationManager authenticationManager;
-    @Autowired
-    private UserDetailsService userDetailsService;
-    @Test
-    public void testLogin() {
-        try {
-            System.out.println("Loading user by username...");
-            UserDetails user = userDetailsService.loadUserByUsername("admin");
-            System.out.println("User loaded: " + user.getUsername() + ", enabled: " + user.isEnabled() + ", password: " + user.getPassword());
-            System.out.println("Authenticating...");
-            Authentication auth = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken("admin", "admin")
-            );
-            System.out.println("Login Success: " + auth.getName());
-        } catch (Exception e) {
-            throw new AssertionError("Backend integration check failed", e);
+@ActiveProfiles("test")
+class LoginTest {
+    @Autowired AuthenticationManager authenticationManager;
 
-        }
+    // Authenticates the isolated development administrator without logging credentials.
+    @Test
+    void authenticatesAdministrator() {
+        var authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken("admin", "admin"));
+        assertTrue(authentication.isAuthenticated());
+        assertEquals("admin", authentication.getName());
     }
 }

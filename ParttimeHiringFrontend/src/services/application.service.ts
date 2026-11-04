@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/users/applications';
+import { apiFetch, apiBase } from './apiClient';
+const API_URL = apiBase + '/users/applications';
 
 export interface JobApplicationRequest {
     jobPostId: number;
@@ -37,7 +38,7 @@ export interface EmployerApplicationResponse {
 }
 
 export const applyForJob = async (request: JobApplicationRequest) => {
-    const response = await fetch(API_URL, {
+    const response = await apiFetch(API_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -55,7 +56,7 @@ export const applyForJob = async (request: JobApplicationRequest) => {
 };
 
 export const getMyApplications = async (): Promise<JobApplicationResponse[]> => {
-    const response = await fetch(`${API_URL}/my-applications`, {
+    const response = await apiFetch(`${API_URL}/my-applications`, {
         method: 'GET',
         credentials: 'include'
     });
@@ -69,7 +70,7 @@ export const getMyApplications = async (): Promise<JobApplicationResponse[]> => 
 };
 
 export const getEmployerApplications = async (storeId?: number, status?: string): Promise<EmployerApplicationResponse[]> => {
-    let url = `http://localhost:8088/parttime_hiring_platform/api/employer/applications`;
+    let url = `${apiBase}/employer/applications`;
     const params = new URLSearchParams();
     if (storeId && storeId !== 0) params.append('storeId', storeId.toString());
     if (status && status !== 'all' && status !== '') params.append('status', status);
@@ -78,7 +79,7 @@ export const getEmployerApplications = async (storeId?: number, status?: string)
         url += `?${params.toString()}`;
     }
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
         method: 'GET',
         credentials: 'include'
     });
@@ -93,7 +94,7 @@ export const getEmployerApplications = async (storeId?: number, status?: string)
 };
 
 export const updateApplicationStatus = async (applicationId: number, status: string): Promise<void> => {
-    const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/employer/applications/${applicationId}/status`, {
+    const response = await apiFetch(`${apiBase}/employer/applications/${applicationId}/status`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json'

@@ -2,7 +2,6 @@ package tanhs.fudn.parttime_hiring_plaform_project.service.impl.user;
 
 import tanhs.fudn.parttime_hiring_plaform_project.service.user.EmailService;
 
-
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.AccessLevel;
@@ -21,6 +20,7 @@ public class EmailServiceImpl implements EmailService {
 
     JavaMailSender mailSender;
 
+    // Delivers a short-lived email verification code without logging its value.
     public void sendOtpEmail(String toEmail, String otpCode) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -36,7 +36,7 @@ public class EmailServiceImpl implements EmailService {
                     + "<div style=\"text-align: center; margin: 30px 0;\">"
                     + "<span style=\"font-size: 32px; font-weight: bold; color: #10b981; letter-spacing: 5px; background: #ecfdf5; padding: 10px 20px; border-radius: 8px;\">" + otpCode + "</span>"
                     + "</div>"
-                    + "<p style=\"color: #334155; font-size: 16px;\">Mã này có hiệu lực trong <strong>1 phút</strong>. Vui lòng không chia sẻ mã này cho người khác.</p>"
+                    + "<p style=\"color: #334155; font-size: 16px;\">Mã này có hiệu lực trong <strong>5 phút</strong>. Vui lòng không chia sẻ mã này cho người khác.</p>"
                     + "<hr style=\"border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;\">"
                     + "<p style=\"color: #94a3b8; font-size: 12px; text-align: center;\">Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email.</p>"
                     + "</div>";

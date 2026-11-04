@@ -1,6 +1,7 @@
+import { apiFetch, apiBase } from '../../services/apiClient';
 import React, { useState, useRef, useEffect } from 'react';
 import { MainLayout } from '../../components/Layout/MainLayout';
-import { sendOtp } from '../../services/email.service';
+import { sendOtp, verifyOtp } from '../../services/email.service';
 import styles from './VerifyBusiness.module.css';
 import {
   ShieldCheck, Store, Phone, Globe, Mail, MapPin,
@@ -49,7 +50,7 @@ export const VerifyBusiness: React.FC = () => {
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const res = await fetch('http://localhost:8088/parttime_hiring_platform/api/users/employer-verifications/my-status', {
+        const res = await apiFetch(apiBase + '/users/employer-verifications/my-status', {
           credentials: 'include'
         });
         if (res.ok) {
@@ -80,6 +81,7 @@ export const VerifyBusiness: React.FC = () => {
   }, [countdown]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.name === "email" || e.target.name === "otp") setOtpVerified(false);
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -120,6 +122,7 @@ export const VerifyBusiness: React.FC = () => {
     
     setIsSendingOtp(true);
     try {
+      setOtpVerified(false);
       await sendOtp(formData.email);
       setOtpSuccessMsg('Gửi mã OTP thành công! Vui lòng kiểm tra email (kể cả hòm thư rác).');
       setOtpSent(true);
@@ -134,9 +137,10 @@ export const VerifyBusiness: React.FC = () => {
     }
   };
 
-  const handleVerifyOtp = () => {
+  const handleVerifyOtp = async () => {
     if (formData.otp.length < 6) return alert('Vui lòng nhập đủ 6 ký tự mã OTP');
-    setOtpVerified(true);
+    try { await verifyOtp(formData.email, formData.otp); setOtpVerified(true); }
+    catch (error) { alert(error instanceof Error ? error.message : "Verification failed"); }
   };
 
   const handleSubmit = async () => {
@@ -167,7 +171,7 @@ export const VerifyBusiness: React.FC = () => {
 
       await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', 'http://localhost:8088/parttime_hiring_platform/api/users/employer-verifications', true);
+        xhr.open('POST', apiBase + '/users/employer-verifications', true);
         xhr.withCredentials = true;
 
         xhr.upload.onprogress = (e) => {

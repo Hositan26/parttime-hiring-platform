@@ -1,7 +1,8 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.admin;
 
-import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminUserService;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.RefreshSessionRepository;
 
+import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminUserService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 public class AdminUserServiceImpl implements AdminUserService {
 
     private final UserRepository userRepository;
+    private final RefreshSessionRepository sessions;
 
     public Page<AdminUserResponse> getAllUsers(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
@@ -40,11 +42,14 @@ public class AdminUserServiceImpl implements AdminUserService {
                 .build());
     }
 
+    // Disables the account and permanently invalidates existing credentials.
     @Override
     @Transactional
     public void banUser(Long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         user.setIsActive(false);
+        user.setAuthVersion(user.getAuthVersion() + 1);
+        sessions.revokeUser(id);
         userRepository.save(user);
     }
 

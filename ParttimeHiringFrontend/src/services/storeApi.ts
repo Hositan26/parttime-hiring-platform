@@ -1,3 +1,4 @@
+import { apiFetch, apiBase } from './apiClient';
 export interface ApiResponse<T> {
   status: number;
   code: string;
@@ -25,7 +26,7 @@ export interface EmployerStoreListDTO {
 }
 
 export const getEmployerStores = async (sortBy: string = 'newest'): Promise<EmployerStoreListDTO> => {
-  const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/employer/stores?sortBy=${sortBy}`, {
+  const response = await apiFetch(`${apiBase}/employer/stores?sortBy=${sortBy}`, {
     credentials: 'include'
   });
   
@@ -39,7 +40,7 @@ export const getEmployerStores = async (sortBy: string = 'newest'): Promise<Empl
 };
 
 export const deleteStore = async (storeId: string | number): Promise<void> => {
-  const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/employer/stores/${storeId}`, {
+  const response = await apiFetch(`${apiBase}/employer/stores/${storeId}`, {
     method: 'DELETE',
     credentials: 'include'
   });
@@ -71,7 +72,7 @@ export interface EmployerStoreDetailDTO {
 }
 
 export const getStoreDetail = async (storeId: string | number): Promise<EmployerStoreDetailDTO> => {
-  const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/employer/stores/${storeId}`, {
+  const response = await apiFetch(`${apiBase}/employer/stores/${storeId}`, {
     credentials: 'include'
   });
   
@@ -97,7 +98,7 @@ export interface EmployeeResponseDTO {
 }
 
 export const getStoreEmployees = async (storeId: string | number): Promise<EmployeeResponseDTO[]> => {
-  const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/employer/stores/${storeId}/employees`, {
+  const response = await apiFetch(`${apiBase}/employer/stores/${storeId}/employees`, {
     credentials: 'include'
   });
   
@@ -118,7 +119,7 @@ export interface UpdateStoreRequestDTO {
 }
 
 export const updateStore = async (storeId: string | number, requestData: UpdateStoreRequestDTO): Promise<void> => {
-  const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/employer/stores/${storeId}`, {
+  const response = await apiFetch(`${apiBase}/employer/stores/${storeId}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json'
@@ -144,7 +145,7 @@ export interface CreateStoreRequestDTO {
 }
 
 export const createStore = async (requestData: CreateStoreRequestDTO): Promise<EmployerStoreDTO> => {
-  const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/employer/stores`, {
+  const response = await apiFetch(`${apiBase}/employer/stores`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -163,7 +164,7 @@ export const createStore = async (requestData: CreateStoreRequestDTO): Promise<E
 };
 
 export const toggleStoreStatus = async (storeId: string | number): Promise<EmployerStoreDTO> => {
-  const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/employer/stores/${storeId}/status`, {
+  const response = await apiFetch(`${apiBase}/employer/stores/${storeId}/status`, {
     method: 'PATCH',
     credentials: 'include'
   });
