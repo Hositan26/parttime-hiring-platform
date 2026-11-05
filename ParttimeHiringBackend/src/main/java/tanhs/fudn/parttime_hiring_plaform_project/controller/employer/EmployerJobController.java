@@ -19,6 +19,7 @@ import tanhs.fudn.parttime_hiring_plaform_project.service.common.CloudinaryServi
 import tanhs.fudn.parttime_hiring_plaform_project.service.employer.EmployerJobService;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
+import tanhs.fudn.parttime_hiring_plaform_project.util.ImageUploads;
 
 import java.security.Principal;
 import java.util.List;
@@ -33,16 +34,18 @@ public class EmployerJobController {
     EmployerJobService employerJobService;
     CloudinaryService cloudinaryService;
 
+    // Lists owned jobs with filters applied before pagination.
     @GetMapping
     public ResponseEntity<ApiResponse<Page<EmployerJobListResponse>>> getEmployerJobs(
             Principal principal,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Integer storeId,
-            @RequestParam(required = false) JobStatus status
+            @RequestParam(required = false) JobStatus status,
+            @RequestParam(required = false) String keyword
     ) {
         return ResponseEntity.ok(ApiResponse.success(
-                employerJobService.getEmployerJobs(principal.getName(), page, size, storeId, status)
+                employerJobService.getEmployerJobs(principal.getName(), page, size, storeId, status, keyword)
         ));
     }
 
@@ -102,7 +105,7 @@ public class EmployerJobController {
         ));
     }
 
-    // Associates a new image with an owned recruitment post.
+    // Validates the owned listing and image before uploading recruitment media.
     @PostMapping(value = "/{id}/images", consumes = "multipart/form-data")
     public ResponseEntity<ApiResponse<Void>> addJobImage(
             Principal principal,
@@ -110,6 +113,7 @@ public class EmployerJobController {
             @RequestParam("file") MultipartFile file
     ) throws IOException {
         employerJobService.getEmployerJobDetail(principal.getName(), id);
+        ImageUploads.validate(file);
         var cloudinaryResponse = cloudinaryService.uploadFile(file, "job_posts");
         employerJobService.addJobImage(principal.getName(), id, cloudinaryResponse.getUrl());
         return ResponseEntity.ok(ApiResponse.success(null));

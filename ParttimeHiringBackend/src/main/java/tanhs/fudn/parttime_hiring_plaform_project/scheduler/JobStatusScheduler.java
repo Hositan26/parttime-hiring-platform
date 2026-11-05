@@ -17,15 +17,14 @@ public class JobStatusScheduler {
 
     private final JobPostRepository jobPostRepository;
 
-    // Chạy mỗi phút để cập nhật Database gần như Realtime
+    // Expires active listings without changing manually closed jobs.
     @Scheduled(cron = "0 * * * * ?")
     @Transactional
     public void updateExpiredJobs() {
         log.info("Running scheduled task: updateExpiredJobs");
         LocalDateTime now = LocalDateTime.now();
         
-        // Find all jobs that are not EXPIRED but expiredAt < now, and update their status
-        int updatedCount = jobPostRepository.updateStatusForExpiredJobs(now, JobStatus.EXPIRED);
+        int updatedCount = jobPostRepository.updateStatusForExpiredJobs(now, JobStatus.EXPIRED, JobStatus.ACTIVE);
         
         log.info("Finished updateExpiredJobs. Updated {} jobs to EXPIRED.", updatedCount);
     }

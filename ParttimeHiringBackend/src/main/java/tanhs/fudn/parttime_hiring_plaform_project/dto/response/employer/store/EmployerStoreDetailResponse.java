@@ -17,9 +17,11 @@ public class EmployerStoreDetailResponse {
     private String name;
     private String phone;
     private String address;
+    private String streetAddress;
     private String description;
     private String status;
     private String logo;
+    private String coverImageUrl;
     
     private List<StoreJobDTO> jobs;
     

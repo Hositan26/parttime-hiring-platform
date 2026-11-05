@@ -43,6 +43,12 @@ public class Store {
     @Column(name = "street_address")
     private String streetAddress;
 
+    @Column(name = "cover_image_url", length = 1024)
+    private String coverImageUrl;
+
+    @Column(name = "is_approved")
+    private Boolean isApproved;
+
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 

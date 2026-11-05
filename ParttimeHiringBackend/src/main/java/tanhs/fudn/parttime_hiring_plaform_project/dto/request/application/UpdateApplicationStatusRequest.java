@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.ApplicationStatus;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 @Data
 @NoArgsConstructor
@@ -13,4 +14,7 @@ import jakarta.validation.constraints.NotNull;
 public class UpdateApplicationStatusRequest {
     @NotNull(message = "Trạng thái không được để trống")
     private ApplicationStatus status;
+
+    @Size(max = 500)
+    private String rejectionReason;
 }

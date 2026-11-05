@@ -1,6 +1,7 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.employer;
 
 import org.springframework.security.access.AccessDeniedException;
+import tanhs.fudn.parttime_hiring_plaform_project.service.employer.StoreApprovalPolicy;
 
 import tanhs.fudn.parttime_hiring_plaform_project.service.employer.EmployerStoreService;
 
@@ -30,6 +31,13 @@ import tanhs.fudn.parttime_hiring_plaform_project.repository.employment.Employme
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.employer.store.EmployeeResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.employment.EmploymentRecord;
 import java.util.Comparator;
+import java.io.IOException;
+import org.springframework.web.multipart.MultipartFile;
+import tanhs.fudn.parttime_hiring_plaform_project.service.common.CloudinaryService;
+import tanhs.fudn.parttime_hiring_plaform_project.util.ImageUploads;
+import java.util.Objects;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,6 +54,37 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
     JobApplicationRepository jobApplicationRepository;
     StoreMapper storeMapper;
     EmploymentRecordRepository employmentRecordRepository;
+    CloudinaryService cloudinary;
+
+    // Validates ownership and image contents before sending a cover to storage.
+    @Transactional(rollbackFor = IOException.class)
+    public String uploadCover(String username, Integer storeId, MultipartFile file) throws IOException {
+        Store store = lockOwnedStore(username, storeId);
+        ImageUploads.validate(file);
+        String url = cloudinary.uploadFile(file, "store_covers").getUrl();
+        store.setCoverImageUrl(url);
+        storeRepository.save(store);
+        return url;
+    }
+
+    // Removes the displayed cover without modifying verification documents.
+    @Transactional
+    public void removeCover(String username, Integer storeId) {
+        Store store = lockOwnedStore(username, storeId);
+        store.setCoverImageUrl(null);
+        storeRepository.save(store);
+    }
+
+    // Locks a store and rejects attempts to change another employer's data.
+    private Store lockOwnedStore(String username, Integer storeId) {
+        Employer owner = getEmployerByUsername(username);
+        Store store = storeRepository.lockById(storeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cửa hàng."));
+        if (!owner.getEmployerId().equals(store.getEmployer().getEmployerId())) {
+            throw new AccessDeniedException("Bạn không có quyền chỉnh sửa cửa hàng này.");
+        }
+        return store;
+    }
 
     private Employer getEmployerByUsername(String username) {
         User user = userRepository.findByUsername(username)
@@ -93,50 +132,46 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
         log.info("Xóa cửa hàng ID: {} bởi username: {}", storeId, username);
         Employer employer = getEmployerByUsername(username);
         
-        Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
+        Store store = storeRepository.lockById(storeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cửa hàng."));
         
         if (!store.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
             throw new AccessDeniedException("Bạn không có quyền xóa cửa hàng này.");
         }
         
-        if (!store.getIsActive()) {
-            throw new RuntimeException("Cửa hàng đang chờ phê duyệt không thể bị xóa.");
+        if (jobPostRepository.countByStore_StoreId(storeId) > 0
+                || jobApplicationRepository.countByStoreId(storeId) > 0
+                || employmentRecordRepository.existsByStore_StoreId(storeId)) {
+            throw new BusinessException("Cửa hàng đã có dữ liệu tuyển dụng hoặc nhân sự. Hãy tạm ngừng hoạt động.");
         }
-        
-        long jobsCount = jobPostRepository.countByStore_StoreId(storeId);
-        if (jobsCount > 0) {
-            throw new RuntimeException("Không thể xóa cửa hàng đang có tin tuyển dụng.");
-        }
-        
+
         storeRepository.delete(store);
     }
 
-    // Updates owned store details and requests a new review.
+    // Requests new approval when an owned store changes its address.
     @Transactional
     public void updateStore(String username, Integer storeId, UpdateStoreRequest request) {
         log.info("Cập nhật cửa hàng ID: {} bởi username: {}", storeId, username);
         Employer employer = getEmployerByUsername(username);
         
-        Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
+        Store store = storeRepository.lockById(storeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cửa hàng."));
         
         if (!store.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
             throw new AccessDeniedException("Bạn không có quyền chỉnh sửa cửa hàng này.");
         }
         
-        if (!store.getIsActive()) {
-            throw new RuntimeException("Cửa hàng đang chờ phê duyệt không thể chỉnh sửa.");
-        }
-        
+        boolean addressChanged = !Objects.equals(store.getStreetAddress(), request.getAddress());
         store.setStoreName(request.getName());
         store.setPhoneContact(request.getPhone());
         store.setStreetAddress(request.getAddress());
         store.setDescription(request.getDescription());
         
-        // Khi cập nhật thông tin, tự động chuyển về trạng thái chờ phê duyệt
-        store.setIsActive(false);
-        
+        if (addressChanged) {
+            store.setIsActive(false);
+            store.setIsApproved(false);
+        }
+
         storeRepository.save(store);
     }
 
@@ -154,6 +189,7 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
                 .ward(request.getWard())
                 .streetAddress(request.getStreetAddress())
                 .description(request.getDescription())
+                .isApproved(false)
                 .isActive(false) 
                 .build();
                 
@@ -168,14 +204,14 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
         log.info("Thay đổi trạng thái cửa hàng ID: {} bởi username: {}", storeId, username);
         Employer employer = getEmployerByUsername(username);
         
-        Store store = storeRepository.findById(storeId)
+        Store store = storeRepository.lockById(storeId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
         
         if (!store.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
             throw new AccessDeniedException("Bạn không có quyền thay đổi trạng thái cửa hàng này.");
         }
         
-        store.setIsActive(!store.getIsActive());
+        StoreApprovalPolicy.toggleActivity(store);
         store = storeRepository.save(store);
         
         long jobCount = jobPostRepository.countByStore_StoreId(storeId);

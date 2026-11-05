@@ -41,6 +41,7 @@ public class EmployerJobApplicationController {
         return ResponseEntity.ok(apiResponse);
     }
 
+    // Accepts or rejects an application with candidate-visible feedback.
     @PutMapping("/{applicationId}/status")
     public ResponseEntity<ApiResponse<Void>> updateApplicationStatus(
             @PathVariable Integer applicationId,
@@ -49,7 +50,7 @@ public class EmployerJobApplicationController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
-        applicationService.updateApplicationStatus(applicationId, request.getStatus(), username);
+        applicationService.updateApplicationStatus(applicationId, request.getStatus(), request.getRejectionReason(), username);
 
         ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
                 .code("200")

@@ -50,7 +50,7 @@ class ApplicationSubmissionTest {
     void protectsWithdrawalOwnershipAndState() {
         User candidate = User.builder().id(1L).build();
         when(users.findByUsername("candidate")).thenReturn(Optional.of(candidate));
-        JobApplication application = JobApplication.builder().applicant(User.builder().id(2L).build())
+        JobApplication application = JobApplication.builder().jobPost(JobPost.builder().title("Fixture").build()).applicant(User.builder().id(2L).build())
                 .status(ApplicationStatus.PENDING).build();
         when(applications.lockById(5)).thenReturn(Optional.of(application));
         assertThrows(AccessDeniedException.class, () -> service.withdrawApplication(5, "candidate"));
@@ -75,9 +75,51 @@ class ApplicationSubmissionTest {
     private final JobApplicationRepository applications = mock(JobApplicationRepository.class);
     private final JobPostRepository jobs = mock(JobPostRepository.class);
     private final UserRepository users = mock(UserRepository.class);
+    private final EmployerRepository employers = mock(EmployerRepository.class);
+    private final EmploymentRecordRepository employments = mock(EmploymentRecordRepository.class);
+    private final UserNotificationService notifications = mock(UserNotificationService.class);
     private final JobApplicationServiceImpl service = new JobApplicationServiceImpl(applications, jobs, users,
-            mock(EmployerRepository.class), Mappers.getMapper(JobApplicationMapper.class), mock(EmploymentRecordRepository.class),
-            new JobAvailabilityPolicy(), mock(UserNotificationService.class));
+            employers, Mappers.getMapper(JobApplicationMapper.class), employments,
+            new JobAvailabilityPolicy(), notifications);
+
+    // Requires meaningful feedback and exposes it in the candidate's application.
+    @Test
+    void recordsRejectionFeedback() {
+        JobApplication application = ownedApplication();
+        assertThrows(BusinessException.class, () -> service.updateApplicationStatus(5, ApplicationStatus.REJECTED, "  ", "employer"));
+        assertThrows(BusinessException.class, () -> service.updateApplicationStatus(5, ApplicationStatus.REJECTED, "a".repeat(501), "employer"));
+        verify(applications, never()).save(any());
+        service.updateApplicationStatus(5, ApplicationStatus.REJECTED, "  Không phù hợp ca làm.  ", "employer");
+        assertEquals(ApplicationStatus.REJECTED, application.getStatus());
+        var response = Mappers.getMapper(JobApplicationMapper.class).toJobApplicationResponse(application);
+        assertEquals("Không phù hợp ca làm.", response.getRejectionReason());
+        verify(notifications).decision(application);
+        verifyNoInteractions(employments);
+    }
+
+    // Keeps acceptance final and avoids duplicating work records on retry.
+    @Test
+    void preservesFinalAcceptance() {
+        JobApplication application = ownedApplication();
+        service.updateApplicationStatus(5, ApplicationStatus.ACCEPTED, null, "employer");
+        service.updateApplicationStatus(5, ApplicationStatus.ACCEPTED, null, "employer");
+        assertThrows(BusinessException.class, () -> service.updateApplicationStatus(5, ApplicationStatus.REJECTED, "Different shift", "employer"));
+        assertEquals(ApplicationStatus.ACCEPTED, application.getStatus());
+        verify(employments).save(any());
+        verify(notifications).decision(application);
+    }
+
+    // Arranges an application for the authenticated employer's listing.
+    private JobApplication ownedApplication() {
+        Employer employer = Employer.builder().employerId(2).build();
+        Store store = Store.builder().employer(employer).build();
+        JobPost job = JobPost.builder().employer(employer).store(store).title("Evening shift").build();
+        JobApplication application = JobApplication.builder().jobPost(job).status(ApplicationStatus.PENDING).build();
+        when(users.findByUsername("employer")).thenReturn(Optional.of(User.builder().id(1L).build()));
+        when(employers.findByUserId(1)).thenReturn(Optional.of(employer));
+        when(applications.lockById(5)).thenReturn(Optional.of(application));
+        return application;
+    }
 
     // Rejects unavailable recruitment before reading or saving applications.
     @Test
@@ -92,6 +134,7 @@ class ApplicationSubmissionTest {
     @Test
     void acceptsAvailableJob() {
         arrange();
+        when(applications.save(any())).thenAnswer(call -> call.getArgument(0));
         service.applyForJob(request(), "candidate");
         ArgumentCaptor<JobApplication> captor = ArgumentCaptor.forClass(JobApplication.class);
         verify(applications).save(captor.capture());

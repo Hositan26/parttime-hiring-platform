@@ -66,7 +66,7 @@ class UserJourneyIntegrationTest {
         applicationService.applyForJob(JobApplicationRequest.builder().jobPostId(job.getJobPostId()).contactPhone("0901234567").note("Available weekends").build(), username);
         var application = applications.findByApplicant_IdOrderByAppliedAtDesc(candidate.getId()).get(0);
         assertEquals("Customer service", profiles.applicationProfile(recruiter.getUsername(), application.getApplicationId()).getSkills());
-        applicationService.updateApplicationStatus(application.getApplicationId(), ApplicationStatus.ACCEPTED, recruiter.getUsername());
+        applicationService.updateApplicationStatus(application.getApplicationId(), ApplicationStatus.ACCEPTED, null, recruiter.getUsername());
         assertEquals(1, notifications.list(username, 0, 20).getTotalElements());
         var notification = notifications.list(username, 0, 20).getContent().get(0);
         notifications.read(username, notification.getId());
@@ -76,7 +76,10 @@ class UserJourneyIntegrationTest {
         ReviewRequest review = new ReviewRequest(); review.setRating(5); review.setComment("Helpful team");
         assertEquals(5, reviews.save(username, history.getContent().get(0).getId(), review).getRating());
         InteractionRequest invitation = new InteractionRequest(); invitation.setBody("Meet at the store"); invitation.setMeetingAt(LocalDateTime.now().plusDays(1));
+        assertEquals(1, notifications.list(recruiter.getUsername(), 0, 20).getTotalElements());
         var interview = communication.send(username, application.getApplicationId(), invitation, InteractionKind.INTERVIEW);
+        assertEquals(2, notifications.list(recruiter.getUsername(), 0, 20).getTotalElements());
+        assertEquals(application.getApplicationId(), notifications.list(recruiter.getUsername(), 0, 20).getContent().get(0).getApplicationId());
         assertEquals("ACCEPTED", communication.respond(recruiter.getUsername(), interview.getId(), InteractionStatus.ACCEPTED).getStatus());
         assertEquals(1, communication.conversation(username, application.getApplicationId(), 0).getTotalElements());
         InteractionRequest report = new InteractionRequest(); report.setBody("Please verify the address");

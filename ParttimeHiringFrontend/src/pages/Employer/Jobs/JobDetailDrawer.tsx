@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, FileText, Users, DollarSign, Calendar, MapPin, Clock, Briefcase, User, Star, Edit, Save, Trash, MessageSquare, Image as ImageIcon, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, FileText, Users, DollarSign, Calendar, MapPin, Clock, Briefcase, User, Star, Edit, Save, Trash, MessageSquare, Image as ImageIcon, CheckCircle, AlertTriangle } from 'lucide-react';
 import styles from './JobDetailDrawer.module.css';
 import { getEmployerJobDetail, getJobApplicants, getJobComments, uploadJobImage, deleteJobImage, updateEmployerJob, type EmployerJobDetailDTO, type EmployerJobApplicantDTO, type EmployerJobCommentDTO } from '../../../services/employerJobApi';
 import { updateApplicationStatus } from '../../../services/application.service';
@@ -18,6 +18,11 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({ jobId, onClose
   const [comments, setComments] = useState<EmployerJobCommentDTO[]>([]);
   const [selectedProfile, setSelectedProfile] = useState<EmployerJobApplicantDTO | null>(null);
   const [loading, setLoading] = useState(true);
+  const [acceptingApp, setAcceptingApp] = useState<EmployerJobApplicantDTO | null>(null);
+  const [rejectingApp, setRejectingApp] = useState<EmployerJobApplicantDTO | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [actionError, setActionError] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<any>({});
@@ -51,7 +56,6 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({ jobId, onClose
         genderRequirement: data.genderRequirement || 'ANY',
         minAge: data.minAge || 18,
         maxAge: data.maxAge || 60,
-        status: data.status || 'ACTIVE',
         categoryIds: data.categoryIds || [],
         shiftIds: data.shiftIds || []
       });
@@ -85,10 +89,9 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({ jobId, onClose
   const handleSave = async () => {
     // Validate date
     if (editForm.expiredAt) {
-      const selectedDate = new Date(editForm.expiredAt);
       const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      if (selectedDate < today) {
+      const localToday = new Date(today.getTime() - today.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
+      if (editForm.expiredAt < localToday) {
         alert('Hạn nộp không được chọn ngày trong quá khứ!');
         return;
       }
@@ -147,21 +150,49 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({ jobId, onClose
     }
   };
 
-  const handleUpdateApplicantStatus = async (applicationId: number, status: string) => {
-    if (status === 'ACCEPTED') {
-      const isConfirmed = window.confirm('Bạn có chắc chắn muốn duyệt ứng viên này? Hệ thống sẽ tạo hồ sơ nhân sự chính thức.');
-      if (!isConfirmed) return;
-    }
+  const confirmAcceptApplicant = async () => {
+    if (!acceptingApp) return;
+    setIsProcessing(true);
+    setActionError('');
     try {
-      await updateApplicationStatus(applicationId, status);
-      // Refresh applicant list
+      await updateApplicationStatus(acceptingApp.applicationId, 'ACCEPTED');
+      setAcceptingApp(null);
       if (jobId) {
         const apps = await getJobApplicants(jobId);
         setApplicants(apps);
       }
-    } catch (error) {
-      console.error(error);
-      alert('Có lỗi xảy ra khi cập nhật trạng thái.');
+    } catch (err: any) {
+      setActionError(err?.message || 'Có lỗi xảy ra khi duyệt ứng viên.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const confirmRejectApplicant = async () => {
+    if (!rejectingApp) return;
+    const trimmed = rejectionReason.trim();
+    if (!trimmed) {
+      setActionError('Vui lòng nhập lý do từ chối để gửi thông báo cho ứng viên.');
+      return;
+    }
+    if (trimmed.length > 500) {
+      setActionError('Lý do từ chối không được vượt quá 500 ký tự.');
+      return;
+    }
+    setIsProcessing(true);
+    setActionError('');
+    try {
+      await updateApplicationStatus(rejectingApp.applicationId, 'REJECTED', trimmed);
+      setRejectingApp(null);
+      setRejectionReason('');
+      if (jobId) {
+        const apps = await getJobApplicants(jobId);
+        setApplicants(apps);
+      }
+    } catch (err: any) {
+      setActionError(err?.message || 'Có lỗi xảy ra khi từ chối ứng viên.');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -271,38 +302,6 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({ jobId, onClose
                   <span>Tổng quan công việc</span>
                 </div>
                 <div className={styles.overviewGrid}>
-                  {/* Status update logic when editing */}
-                  {isEditing && (
-                    <div className={styles.overviewItem} style={{ gridColumn: '1 / -1', backgroundColor: '#F8FAFC', padding: 12, borderRadius: 8, border: '1px solid #E2E8F0', flexDirection: 'column', alignItems: 'flex-start' }}>
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
-                        <AlertCircle size={18} color="#3B82F6" />
-                        <span className={styles.overviewLabel}>Trạng thái hoạt động</span>
-                      </div>
-                      {job.status === 'EXPIRED' ? (
-                        <div style={{ color: '#EF4444', fontSize: '0.9rem' }}>
-                          Tin đã hết hạn. Vui lòng gia hạn <b>Hạn nộp</b> ở bên dưới trước khi chuyển sang trạng thái HOẠT ĐỘNG.
-                        </div>
-                      ) : (
-                        <div className={styles.chipContainer}>
-                          <button
-                            type="button"
-                            className={`${styles.chipBtn} ${editForm.status === 'ACTIVE' ? styles.chipSelected : ''}`}
-                            onClick={() => setEditForm({...editForm, status: 'ACTIVE'})}
-                          >
-                            Đang hoạt động (ACTIVE)
-                          </button>
-                          <button
-                            type="button"
-                            className={`${styles.chipBtn} ${editForm.status === 'INACTIVE' ? styles.chipSelected : ''}`}
-                            onClick={() => setEditForm({...editForm, status: 'INACTIVE'})}
-                          >
-                            Tạm đóng (INACTIVE)
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
                   {/* CATEGORIES CHIPS */}
                   <div className={styles.overviewItem} style={{ gridColumn: '1 / -1', flexDirection: 'column', alignItems: 'flex-start' }}>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
@@ -621,15 +620,27 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({ jobId, onClose
                           <h4>{app.name}</h4>
                           <p>Nộp ngày: {app.appliedDate}</p>
                           <div className={`${styles.appStatusBadge} ${styles['appStatus' + app.status]}`}>
-                            {app.status === 'PENDING' ? 'CHỜ DUYỆT' : app.status === 'ACCEPTED' ? 'ĐÃ CHẤP NHẬN' : 'ĐÃ TỪ CHỐI'}
+                            {app.status === 'PENDING' ? 'CHỜ DUYỆT' : app.status === 'ACCEPTED' ? 'ĐÃ CHẤP NHẬN' : app.status === 'WITHDRAWN' ? 'ĐÃ RÚT ĐƠN' : 'ĐÃ TỪ CHỐI'}
                           </div>
                         </div>
                         <div className={styles.applicantActions}>
                           <button className={styles.viewCvBtn} onClick={() => setSelectedProfile(app)}><FileText size={16} /> Xem hồ sơ</button>
-                          <div className={styles.applicantActionGroup}>
-                            <button className={styles.btnApprove} onClick={() => handleUpdateApplicantStatus(app.applicationId, 'ACCEPTED')}><CheckCircle size={16} /> Duyệt</button>
-                            <button className={styles.btnReject} onClick={() => handleUpdateApplicantStatus(app.applicationId, 'REJECTED')}><X size={16} /> Từ chối</button>
-                          </div>
+                          {app.status === 'PENDING' && (
+                            <div className={styles.applicantActionGroup}>
+                              <button 
+                                className={styles.btnApprove} 
+                                onClick={() => { setActionError(''); setAcceptingApp(app); }}
+                              >
+                                <CheckCircle size={16} /> Duyệt
+                              </button>
+                              <button 
+                                className={styles.btnReject} 
+                                onClick={() => { setActionError(''); setRejectionReason(''); setRejectingApp(app); }}
+                              >
+                                <X size={16} /> Từ chối
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -690,6 +701,128 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({ jobId, onClose
           note: selectedProfile.note
         } : null}
       />
+
+      {/* Accept Confirmation Modal */}
+      {acceptingApp && (
+        <div className={styles.actionModalOverlay} onClick={() => !isProcessing && setAcceptingApp(null)}>
+          <div className={styles.actionModalCard} onClick={e => e.stopPropagation()}>
+            <div className={styles.actionModalHeader}>
+              <div className={styles.actionModalTitle}>
+                <CheckCircle size={20} color="var(--success, #059669)" />
+                <span>Xác nhận duyệt ứng viên</span>
+              </div>
+              <button 
+                className={styles.closeBtn} 
+                onClick={() => !isProcessing && setAcceptingApp(null)}
+                aria-label="Đóng modal"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className={styles.actionModalBody}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#F8FAFC', padding: '12px', borderRadius: '8px' }}>
+                <img 
+                  src={acceptingApp.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(acceptingApp.name)} 
+                  alt="" 
+                  style={{ width: '40px', height: '40px', borderRadius: '50%' }}
+                />
+                <div>
+                  <div style={{ fontWeight: 700, color: '#0F172A' }}>{acceptingApp.name}</div>
+                  <div style={{ fontSize: '0.85rem', color: '#64748B' }}>Nộp ngày: {acceptingApp.appliedDate}</div>
+                </div>
+              </div>
+              <div style={{ padding: '12px 14px', background: '#FEF3C7', borderLeft: '4px solid #F59E0B', borderRadius: '6px', fontSize: '0.9rem', color: '#92400E' }}>
+                <strong>Lưu ý quan trọng:</strong> Chấp nhận CV là quyết định cuối cùng. Ứng viên sẽ được chuyển sang danh sách nhân sự chính thức của cửa hàng.
+              </div>
+              {actionError && (
+                <div style={{ padding: '10px 14px', background: '#FEE2E2', border: '1px solid #FECACA', borderRadius: '6px', color: '#DC2626', fontSize: '0.875rem' }}>
+                  {actionError}
+                </div>
+              )}
+            </div>
+            <div className={styles.actionModalFooter}>
+              <button 
+                className="btn-outline" 
+                onClick={() => setAcceptingApp(null)}
+                disabled={isProcessing}
+              >
+                Hủy bỏ
+              </button>
+              <button 
+                className="btn-primary" 
+                onClick={confirmAcceptApplicant}
+                disabled={isProcessing}
+              >
+                {isProcessing ? 'Đang duyệt...' : 'Xác nhận duyệt'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject Modal with Mandatory Reason */}
+      {rejectingApp && (
+        <div className={styles.actionModalOverlay} onClick={() => !isProcessing && setRejectingApp(null)}>
+          <div className={styles.actionModalCard} onClick={e => e.stopPropagation()}>
+            <div className={styles.actionModalHeader}>
+              <div className={styles.actionModalTitle}>
+                <AlertTriangle size={20} color="var(--danger, #DC2626)" />
+                <span>Từ chối đơn ứng tuyển</span>
+              </div>
+              <button 
+                className={styles.closeBtn} 
+                onClick={() => !isProcessing && setRejectingApp(null)}
+                aria-label="Đóng modal"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className={styles.actionModalBody}>
+              <p style={{ margin: 0 }}>
+                Bạn đang từ chối hồ sơ của <strong>{rejectingApp.name}</strong>. Vui lòng cung cấp lý do cụ thể để ứng viên hiểu rõ và cải thiện hồ sơ.
+              </p>
+              <div>
+                <label style={{ display: 'block', fontWeight: 600, fontSize: '0.875rem', marginBottom: '6px', color: '#1E293B' }}>
+                  Lý do từ chối <span style={{ color: 'var(--danger)' }}>*</span>
+                </label>
+                <textarea 
+                  className="input-base"
+                  style={{ width: '100%', minHeight: '100px', resize: 'vertical' }}
+                  placeholder="Ví dụ: Chưa đáp ứng khung giờ ca sáng, đã đủ chỉ tiêu nhân sự..."
+                  value={rejectionReason}
+                  maxLength={500}
+                  onChange={e => setRejectionReason(e.target.value)}
+                  autoFocus
+                />
+                <div style={{ display: 'flex', justifyContent: 'flex-end', fontSize: '0.75rem', color: '#64748B', marginTop: '4px' }}>
+                  {rejectionReason.length} / 500 ký tự
+                </div>
+              </div>
+              {actionError && (
+                <div style={{ padding: '10px 14px', background: '#FEE2E2', border: '1px solid #FECACA', borderRadius: '6px', color: '#DC2626', fontSize: '0.875rem' }}>
+                  {actionError}
+                </div>
+              )}
+            </div>
+            <div className={styles.actionModalFooter}>
+              <button 
+                className="btn-outline" 
+                onClick={() => setRejectingApp(null)}
+                disabled={isProcessing}
+              >
+                Hủy bỏ
+              </button>
+              <button 
+                className="btn-danger" 
+                onClick={confirmRejectApplicant}
+                disabled={isProcessing || !rejectionReason.trim()}
+              >
+                {isProcessing ? 'Đang từ chối...' : 'Từ chối ứng viên'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

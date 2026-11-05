@@ -1,6 +1,7 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.user;
 
 import java.time.LocalDateTime;
+import tanhs.fudn.parttime_hiring_plaform_project.service.user.UserNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ public class RecruitmentInteractionServiceImpl implements RecruitmentInteraction
     private final JobApplicationRepository applications;
     private final RecruitmentInteractionRepository interactions;
     private final RecruitmentInteractionMapper mapper;
+    private final UserNotificationService notifications;
 
     // Restricts conversation history to the actual candidate and employer.
     @Transactional(readOnly = true)
@@ -57,7 +59,12 @@ public class RecruitmentInteractionServiceImpl implements RecruitmentInteraction
         var recipient = users.findById(recipientId).orElseThrow(() -> new ResourceNotFoundException("Recipient not found"));
         var interaction = mapper.create(request, user, recipient, application, application.getJobPost(), kind);
         if (kind == InteractionKind.MESSAGE) interaction.setMeetingAt(null);
-        return mapper.toResponse(interactions.save(interaction));
+        var saved = interactions.save(interaction);
+        if (application.getApplicant().getId().equals(user.getId())) {
+            String message = kind == InteractionKind.MESSAGE ? "Ứng viên gửi tin nhắn mới: " : "Ứng viên đề xuất lịch phỏng vấn: ";
+            notifications.employerActivity(application, message + application.getJobPost().getTitle());
+        }
+        return mapper.toResponse(saved);
     }
 
     // Serializes appointment responses and prevents authors from accepting their own invitations.
@@ -79,7 +86,11 @@ public class RecruitmentInteractionServiceImpl implements RecruitmentInteraction
             throw new BusinessException("Interview response is not allowed");
         }
         item.setStatus(status);
-        return mapper.toResponse(interactions.save(item));
+        var saved = interactions.save(item);
+        if (application.getApplicant().getId().equals(user.getId())) {
+            notifications.employerActivity(application, "Ứng viên cập nhật lịch phỏng vấn: " + application.getJobPost().getTitle());
+        }
+        return mapper.toResponse(saved);
     }
 
     // Limits open reports to one per reporter and recruitment opportunity.

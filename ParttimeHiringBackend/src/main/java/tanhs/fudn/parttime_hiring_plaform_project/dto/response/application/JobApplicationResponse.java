@@ -20,6 +20,7 @@ public class JobApplicationResponse {
     private String storeFrontImageUrl;
     private String contactPhone;
     private String note;
+    private String rejectionReason;
     private String status;
     private String jobStatus;
     private LocalDateTime appliedAt;

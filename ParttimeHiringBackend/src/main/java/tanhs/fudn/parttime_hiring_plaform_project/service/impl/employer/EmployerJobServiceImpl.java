@@ -2,6 +2,9 @@ package tanhs.fudn.parttime_hiring_plaform_project.service.impl.employer;
 
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.EmployerStatus;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException;
+import tanhs.fudn.parttime_hiring_plaform_project.service.employer.StoreApprovalPolicy;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.job.JobPostSpecification;
 
 import tanhs.fudn.parttime_hiring_plaform_project.service.employer.EmployerJobService;
@@ -23,6 +26,7 @@ import tanhs.fudn.parttime_hiring_plaform_project.entity.application.JobApplicat
 import tanhs.fudn.parttime_hiring_plaform_project.entity.employer.Employer;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.employer.Store;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.JobStatus;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.ReviewStatus;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.job.JobCategory;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.job.JobPost;
@@ -67,12 +71,16 @@ public class EmployerJobServiceImpl implements EmployerJobService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhà tuyển dụng."));
     }
 
+    // Applies employer and title filters before reading a page.
     @Transactional(readOnly = true)
-    public Page<EmployerJobListResponse> getEmployerJobs(String username, int page, int size, Integer storeId, JobStatus status) {
+    public Page<EmployerJobListResponse> getEmployerJobs(String username, int page, int size, Integer storeId, JobStatus status, String keyword) {
         Employer employer = getEmployerByUsername(username);
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        if (page < 0 || size < 1 || size > 50) {
+            throw new BusinessException("Trang hoặc số lượng bản ghi không hợp lệ.");
+        }
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt", "jobPostId").descending());
         
-        Specification<JobPost> spec = JobPostSpecification.filterEmployerJobs(employer.getEmployerId(), storeId, status);
+        Specification<JobPost> spec = JobPostSpecification.filterEmployerJobs(employer.getEmployerId(), storeId, status, keyword);
         Page<JobPost> jobPosts = jobPostRepository.findAll(spec, pageable);
         
         return jobPosts.map(job -> {
@@ -108,7 +116,10 @@ public class EmployerJobServiceImpl implements EmployerJobService {
         }
 
         List<StoreReview> reviews = storeReviewRepository.findByEmploymentRecord_JobPost_JobPostIdOrderByCreatedAtDesc(jobId);
-        return reviews.stream().map(employerJobMapper::toCommentResponse).collect(Collectors.toList());
+        return reviews.stream()
+                .filter(review -> review.getStatus() == ReviewStatus.VISIBLE)
+                .map(employerJobMapper::toCommentResponse)
+                .toList();
     }
 
     // Returns applicant details only for an owned job.
@@ -126,15 +137,25 @@ public class EmployerJobServiceImpl implements EmployerJobService {
         return applications.stream().map(employerJobMapper::toApplicantResponse).collect(Collectors.toList());
     }
 
-    // Creates a recruitment post for an owned store.
+    // Publishes recruitment only for an approved and operating store.
     @Transactional
     public EmployerJobDetailResponse createEmployerJob(String username, CreateEmployerJobRequest request) {
         Employer employer = getEmployerByUsername(username);
-        Store store = storeRepository.findById(request.getStoreId())
+        Store store = storeRepository.lockById(request.getStoreId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
 
         if (!store.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
             throw new AccessDeniedException("Bạn không có quyền tạo việc làm cho cửa hàng này.");
+        }
+
+        if (employer.getStatus() != EmployerStatus.ACTIVE) {
+            throw new BusinessException("Doanh nghiệp không hoạt động.");
+        }
+        if (!StoreApprovalPolicy.isApproved(store) || !Boolean.TRUE.equals(store.getIsActive())) {
+            throw new BusinessException("Chỉ cửa hàng đã duyệt và đang hoạt động mới được đăng tin.");
+        }
+        if (request.getExpiredAt() == null || request.getExpiredAt().isBefore(LocalDate.now())) {
+            throw new BusinessException("Hạn nộp hồ sơ không được ở quá khứ.");
         }
 
         JobPost jobPost = employerJobMapper.toEntity(request);
@@ -158,7 +179,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
         return employerJobMapper.toDetailResponse(jobPost, 0);
     }
 
-    // Updates recruitment details after checking employer ownership.
+    // Edits an owned listing without changing its recruitment state.
     @Transactional
     public EmployerJobDetailResponse updateEmployerJob(String username, Integer jobId, UpdateEmployerJobRequest request) {
         Employer employer = getEmployerByUsername(username);
@@ -169,19 +190,11 @@ public class EmployerJobServiceImpl implements EmployerJobService {
             throw new AccessDeniedException("Bạn không có quyền chỉnh sửa tin tuyển dụng này.");
         }
 
-        // Apply new status logic if provided
-        if (request.getStatus() != null) {
-            if (jobPost.getStatus() == JobStatus.EXPIRED && request.getStatus() == JobStatus.ACTIVE) {
-                if (request.getExpiredAt() != null && !request.getExpiredAt().isAfter(LocalDate.now())) {
-                    throw new RuntimeException("Không thể kích hoạt lại tin đã hết hạn. Vui lòng gia hạn ngày nộp hồ sơ.");
-                }
-            }
-            jobPost.setStatus(request.getStatus());
+        if (request.getStatus() != null && request.getStatus() != jobPost.getStatus()) {
+            throw new BusinessException("Hãy đổi trạng thái tin bằng thao tác riêng.");
         }
-
-        // If the date is explicitly set to past, auto change to EXPIRED
-        if (request.getExpiredAt() != null && request.getExpiredAt().isBefore(LocalDate.now())) {
-            jobPost.setStatus(JobStatus.EXPIRED);
+        if (request.getExpiredAt() == null || request.getExpiredAt().isBefore(LocalDate.now())) {
+            throw new BusinessException("Hạn nộp hồ sơ không được ở quá khứ.");
         }
 
         employerJobMapper.updateEntityFromRequest(request, jobPost);
@@ -248,12 +261,27 @@ public class EmployerJobServiceImpl implements EmployerJobService {
             throw new AccessDeniedException("Bạn không có quyền chỉnh sửa tin tuyển dụng này.");
         }
 
-        if (jobPost.getStatus() == JobStatus.EXPIRED && newStatus == JobStatus.ACTIVE) {
-            if (jobPost.getExpiredAt() != null && !jobPost.getExpiredAt().isAfter(LocalDateTime.now())) {
-                throw new RuntimeException("Không thể kích hoạt lại tin đã hết hạn. Vui lòng gia hạn ngày nộp hồ sơ.");
+        if (newStatus == null || newStatus == JobStatus.EXPIRED) {
+            throw new BusinessException("Trạng thái này không thể đặt thủ công.");
+        }
+        if (newStatus == jobPost.getStatus()) {
+            return;
+        }
+        if (newStatus == JobStatus.PAUSED && jobPost.getStatus() != JobStatus.ACTIVE) {
+            throw new BusinessException("Chỉ tin đang tuyển mới có thể tạm dừng.");
+        }
+        if (newStatus == JobStatus.ACTIVE) {
+            if (jobPost.getExpiredAt() == null || !jobPost.getExpiredAt().isAfter(LocalDateTime.now())) {
+                throw new BusinessException("Hãy gia hạn nộp hồ sơ trước khi mở lại tin.");
+            }
+            Store store = storeRepository.lockById(jobPost.getStore().getStoreId())
+                    .orElseThrow(() -> new BusinessException("Không tìm thấy cửa hàng."));
+            if (employer.getStatus() != EmployerStatus.ACTIVE || !StoreApprovalPolicy.isApproved(store)
+                    || !Boolean.TRUE.equals(store.getIsActive())) {
+                throw new BusinessException("Chỉ cửa hàng đã duyệt và đang hoạt động mới được mở lại tin.");
             }
         }
-        
+
         jobPost.setStatus(newStatus);
         jobPostRepository.save(jobPost);
     }
@@ -271,9 +299,14 @@ public class EmployerJobServiceImpl implements EmployerJobService {
 
         long applicationsCount = jobApplicationRepository.countByJobPost_JobPostId(jobId);
         if (applicationsCount > 0) {
-            throw new RuntimeException("Không thể xóa tin tuyển dụng đã có người ứng tuyển.");
+            throw new BusinessException("Không thể xóa tin tuyển dụng đã có người ứng tuyển.");
         }
 
-        jobPostRepository.delete(jobPost);
+        try {
+            jobPostRepository.delete(jobPost);
+            jobPostRepository.flush();
+        } catch (org.springframework.dao.DataIntegrityViolationException failure) {
+            throw new BusinessException("Tin tuyển dụng đã có dữ liệu liên quan. Hãy đóng tin để giữ lịch sử.");
+        }
     }
 }

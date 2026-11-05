@@ -1,3 +1,4 @@
+import { employerJobSearchParams } from './employerSearch';
 import { apiFetch, apiBase } from './apiClient';
 // Wait, let's check the controller URL. In EmployerJobController, it is `@RequestMapping("/api/employers/jobs")`. So `${apiBase}/employer/jobs`.
 
@@ -22,7 +23,7 @@ export interface EmployerJobApplicantDTO {
   appliedTime: string;
   note: string;
   jobTitle: string;
-  status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'WITHDRAWN';
 }
 
 export interface EmployerJobImageDTO {
@@ -123,10 +124,8 @@ const handleResponse = async (response: Response) => {
   return data.result;
 };
 
-export const getEmployerJobs = async (page: number = 0, size: number = 10, storeId?: number, status?: string) => {
-  let url = `${apiBase}/employer/jobs?page=${page}&size=${size}`;
-  if (storeId) url += `&storeId=${storeId}`;
-  if (status) url += `&status=${status}`;
+export const getEmployerJobs = async (page = 0, size = 10, storeId?: number, status?: string, keyword?: string) => {
+  const url = `${apiBase}/employer/jobs?${employerJobSearchParams(page, size, storeId, status, keyword)}`;
   const response = await apiFetch(url, getFetchOptions());
   return handleResponse(response);
 };

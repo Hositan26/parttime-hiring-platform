@@ -53,10 +53,11 @@ public class AdminStoreServiceImpl implements AdminStoreService {
     @Override
     @Transactional
     public AdminStoreResponse updateStoreStatus(Integer storeId, Boolean isActive) {
-        Store store = storeRepository.findById(storeId)
+        Store store = storeRepository.lockById(storeId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng/chi nhánh"));
         
-        store.setIsActive(isActive);
+        store.setIsApproved(Boolean.TRUE.equals(isActive));
+        store.setIsActive(Boolean.TRUE.equals(isActive));
         storeRepository.save(store);
 
         String address = "";

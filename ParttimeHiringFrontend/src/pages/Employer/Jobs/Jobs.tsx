@@ -25,7 +25,7 @@ const StatusDropdown: React.FC<{ status: string, onChange: (val: string) => void
         className={`${styles.statusBadge} ${status === 'ACTIVE' ? styles.statusActive : styles.statusClosed} ${styles.clickableBadge}`}
         onClick={() => setIsOpen(!isOpen)}
       >
-        {status === 'ACTIVE' ? 'ĐANG MỞ' : 'ĐÃ ĐÓNG'}
+        {status === 'ACTIVE' ? 'ĐANG MỞ' : status === 'PAUSED' ? 'TẠM DỪNG' : status === 'EXPIRED' ? 'HẾT HẠN' : 'ĐÃ ĐÓNG'}
       </div>
       {isOpen && (
         <div className={styles.customOptions}>
@@ -35,6 +35,11 @@ const StatusDropdown: React.FC<{ status: string, onChange: (val: string) => void
           >
             <span className={`${styles.statusBadge} ${styles.statusActive}`}>ĐANG MỞ</span>
           </div>
+          {status === 'ACTIVE' && (
+            <div className={styles.customOption} onClick={() => { onChange('PAUSED'); setIsOpen(false); }}>
+              <span className={styles.statusBadge}>TẠM DỪNG</span>
+            </div>
+          )}
           <div 
             className={styles.customOption}
             onClick={() => { onChange('CLOSED'); setIsOpen(false); }}
@@ -81,6 +86,7 @@ export const Jobs: React.FC = () => {
   const [selectedStoreId, setSelectedStoreId] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
+  const jobsRequest = useRef(0);
 
   const fetchStores = async () => {
     try {
@@ -92,18 +98,20 @@ export const Jobs: React.FC = () => {
   };
 
   const fetchJobs = async () => {
+    const request = ++jobsRequest.current;
     try {
       setLoading(true);
       const storeIdParam = selectedStoreId ? parseInt(selectedStoreId) : undefined;
       const statusParam = selectedStatus ? selectedStatus : undefined;
-      const data = await getEmployerJobs(page, 10, storeIdParam, statusParam);
+      const data = await getEmployerJobs(page, 10, storeIdParam, statusParam, searchQuery);
+      if (request !== jobsRequest.current) return;
       setJobs(data?.content || []);
       setTotalJobs(data?.totalElements || 0);
       setTotalPages(data?.totalPages || 0);
     } catch (error) {
       console.error('Failed to fetch jobs:', error);
     } finally {
-      setLoading(false);
+      if (request === jobsRequest.current) setLoading(false);
     }
   };
 
@@ -113,7 +121,7 @@ export const Jobs: React.FC = () => {
 
   useEffect(() => {
     fetchJobs();
-  }, [page, selectedStoreId, selectedStatus]);
+  }, [page, selectedStoreId, selectedStatus, searchQuery]);
 
   const activeJobs = jobs.filter(j => j.status === 'ACTIVE').length;
   const closedJobs = jobs.filter(j => j.status === 'CLOSED' || j.status === 'EXPIRED').length;
@@ -208,7 +216,7 @@ export const Jobs: React.FC = () => {
         <div className={styles.tableToolbar}>
           <div className={styles.searchBox}>
             <Search size={18} color="var(--text-light)" />
-            <input type="text" placeholder="Tìm kiếm job theo tiêu đề..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+            <input type="text" placeholder="Tìm kiếm job theo tiêu đề..." value={searchQuery} onChange={e => { setPage(0); setSearchQuery(e.target.value); }} />
           </div>
           <div className={styles.filtersGroup}>
             <select 
@@ -228,12 +236,14 @@ export const Jobs: React.FC = () => {
             >
               <option value="">Tất cả trạng thái</option>
               <option value="ACTIVE">Đang hoạt động</option>
-              <option value="INACTIVE">Đã đóng</option>
+              <option value="CLOSED">Đã đóng</option>
+              <option value="PAUSED">Tạm dừng</option>
               <option value="EXPIRED">Đã hết hạn</option>
             </select>
           </div>
         </div>
         
+        <div className={styles.tableWrapper}>
         <table className={styles.table}>
           <thead>
             <tr>
@@ -251,11 +261,11 @@ export const Jobs: React.FC = () => {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={8} style={{ textAlign: 'center', padding: '40px 0' }}>Đang tải dữ liệu...</td>
+                <td colSpan={9} style={{ textAlign: 'center', padding: '40px 0' }}>Đang tải dữ liệu...</td>
               </tr>
             ) : jobs.length === 0 ? (
               <tr>
-                <td colSpan={8} style={{ padding: 0 }}>
+                <td colSpan={9} style={{ padding: 0 }}>
                   <div className={styles.emptyState}>
                     <div className={styles.emptyStateIcon}>
                       <Briefcase size={40} />
@@ -334,11 +344,7 @@ export const Jobs: React.FC = () => {
                   )}
                 </td>
                 <td>
-                  {job.status === 'EXPIRED' || job.daysLeft === 'Đã hết hạn' ? (
-                    <div className={`${styles.statusBadge} ${styles.statusExpired}`}>HẾT HẠN</div>
-                  ) : (
-                    <StatusDropdown status={job.status} onChange={(val) => handleStatusChange(job.id, val)} />
-                  )}
+                  <StatusDropdown status={job.status} onChange={(val) => handleStatusChange(job.id, val)} />
                 </td>
                 <td>
                   <div className={styles.actionsCell}>
@@ -354,6 +360,7 @@ export const Jobs: React.FC = () => {
             ))}
           </tbody>
         </table>
+        </div>
 
         {totalPages > 1 && (
           <div className={styles.pagination}>

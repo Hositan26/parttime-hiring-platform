@@ -1,6 +1,7 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.employment;
 
 import org.springframework.security.access.AccessDeniedException;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException;
 import tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.employer.StoreRepository;
 
@@ -67,35 +68,31 @@ public class EmployerEmploymentServiceImpl implements EmployerEmploymentService 
     @Transactional
     public void updateEmploymentStatus(Integer recordId, UpdateEmploymentStatusRequest request, String username) {
         Employer employer = verifyEmployer(username);
-        EmploymentRecord record = employmentRecordRepository.findById(recordId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ nhân sự"));
+        EmploymentRecord record = employmentRecordRepository.lockById(recordId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy hồ sơ nhân sự"));
 
         if (!record.getStore().getEmployer().getEmployerId().equals(employer.getEmployerId())) {
             throw new AccessDeniedException("Bạn không có quyền cập nhật nhân sự này");
         }
 
-        try {
-            WorkStatus status = request.getStatus();
-            
-            // Validate transition
-            if (record.getWorkStatus() == WorkStatus.QUIT || record.getWorkStatus() == WorkStatus.TERMINATED) {
-                throw new RuntimeException("Không thể cập nhật nhân viên đã nghỉ hoặc bị sa thải");
-            }
-            if (status == WorkStatus.WORKING) {
-                throw new RuntimeException("Nhân sự đang ở trạng thái làm việc");
-            }
-            if ((status == WorkStatus.QUIT || status == WorkStatus.TERMINATED) && 
-                (request.getNote() == null || request.getNote().trim().isEmpty())) {
-                throw new RuntimeException("Vui lòng cung cấp lý do (note) khi nghỉ việc hoặc sa thải");
-            }
-
-            record.setWorkStatus(status);
-            record.setEndDate(LocalDate.now());
-            record.setNote(request.getNote());
-
-            employmentRecordRepository.save(record);
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Trạng thái không hợp lệ");
+        WorkStatus status = request.getStatus();
+        if (record.getWorkStatus() != WorkStatus.WORKING) {
+            throw new BusinessException("Chỉ có thể kết thúc hồ sơ đang làm việc.");
         }
+        if (status != WorkStatus.QUIT && status != WorkStatus.TERMINATED) {
+            throw new BusinessException("Trạng thái kết thúc không hợp lệ.");
+        }
+        String reason = request.getNote();
+        if (reason == null || reason.isBlank()) {
+            throw new BusinessException("Vui lòng nhập lý do nghỉ việc hoặc sa thải.");
+        }
+        LocalDate today = LocalDate.now();
+        if (record.getStartDate() != null && today.isBefore(record.getStartDate())) {
+            throw new BusinessException("Ngày kết thúc không được trước ngày bắt đầu.");
+        }
+        record.setWorkStatus(status);
+        record.setEndDate(today);
+        record.setNote(reason.strip());
+        employmentRecordRepository.save(record);
     }
 }

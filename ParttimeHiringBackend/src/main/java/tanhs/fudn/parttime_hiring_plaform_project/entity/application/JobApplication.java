@@ -38,6 +38,9 @@ public class    JobApplication {
     @Column(name = "note", columnDefinition = "TEXT")
     private String note;
 
+    @Column(name = "rejection_reason", length = 500)
+    private String rejectionReason;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private ApplicationStatus status;

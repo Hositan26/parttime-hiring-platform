@@ -1,5 +1,6 @@
 package tanhs.fudn.parttime_hiring_plaform_project.controller.employer;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,11 +26,12 @@ public class EmployerProfileController {
         return ResponseEntity.ok(ApiResponse.success(profile));
     }
 
+    // Validates and saves the signed-in business profile.
     @PutMapping("/profile")
     @PreAuthorize("hasRole('EMPLOYER')")
     public ResponseEntity<ApiResponse<EmployerProfileResponse>> updateProfile(
             Principal principal,
-            @RequestBody EmployerProfileUpdateRequest request) {
+            @Valid @RequestBody EmployerProfileUpdateRequest request) {
         EmployerProfileResponse updatedProfile = employerProfileService.updateEmployerProfile(principal.getName(), request);
         return ResponseEntity.ok(ApiResponse.success(updatedProfile));
     }

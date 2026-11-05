@@ -1,13 +1,15 @@
 import { hasAnyRole } from '../../services/authPolicy';
 import React, { useEffect, useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { MainLayout } from '../../components/Layout/MainLayout';
-import { User, Calendar, Briefcase, Search, Mail, Edit2, Save, X } from 'lucide-react';
+import { User, Calendar, Briefcase, Search, Mail, Edit2, Save, X, Camera, Lock, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Button } from '../../components/Button/Button';
 import styles from './Profile.module.css';
 import { getMe, updateMe } from '../../services/auth.service';
 import { apiBase, apiFetch } from '../../services/apiClient';
 
 export const Profile: React.FC = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState<{
     userId: number; displayName: string; username: string; email?: string; dateOfBirth?: string;
     avatarUrl?: string; roles: string[]; hasPassword: boolean;
@@ -23,12 +25,14 @@ export const Profile: React.FC = () => {
   });
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const [avatarBusy, setAvatarBusy] = useState(false);
   const [avatarError, setAvatarError] = useState('');
   const [today] = useState(() => new Date().toLocaleDateString('en-CA'));
+  
   const validationError = !editData.displayName.trim() || editData.displayName.length > 100
     ? 'Tên hiển thị phải có từ 1 đến 100 ký tự.'
-    : !/^[a-zA-Z0-9_]{3,50}$/.test(editData.username) ? 'Username gồm 3–50 chữ, số hoặc dấu gạch dưới.'
+    : !/^[a-zA-Z0-9_]{3,50}$/.test(editData.username) ? 'Tên đăng nhập gồm 3–50 chữ, số hoặc dấu gạch dưới.'
     : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editData.email) ? 'Email không hợp lệ.'
     : editData.dateOfBirth && editData.dateOfBirth > today ? 'Ngày sinh không được ở tương lai.' : '';
 
@@ -64,6 +68,8 @@ export const Profile: React.FC = () => {
       setUser(updatedUser);
       setIsEditing(false);
       setEditData({ ...editData, currentPassword: '' });
+      setSuccessMsg('Đã cập nhật thông tin cá nhân thành công!');
+      setTimeout(() => setSuccessMsg(''), 3000);
     } catch (error) {
       console.error('Update failed', error);
       setErrorMsg(error instanceof Error ? error.message : 'Có lỗi xảy ra khi cập nhật thông tin.');
@@ -75,17 +81,26 @@ export const Profile: React.FC = () => {
   const uploadAvatar = async (file?: File) => {
     if (!file) return;
     if (!['image/jpeg', 'image/png'].includes(file.type) || file.size > 5 * 1024 * 1024) {
-      setAvatarError('Chọn ảnh JPEG hoặc PNG tối đa 5 MB.'); return;
+      setAvatarError('Chọn ảnh JPEG hoặc PNG tối đa 5 MB.'); 
+      return;
     }
-    setAvatarBusy(true); setAvatarError('');
+    setAvatarBusy(true); 
+    setAvatarError('');
     try {
-      const body = new FormData(); body.append('file', file);
+      const body = new FormData(); 
+      body.append('file', file);
       const response = await apiFetch(`${apiBase}/users/me/avatar`, { method: 'POST', body });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Không thể đổi avatar.');
-      setUser(data.result); window.dispatchEvent(new Event('auth:changed'));
-    } catch (failure) { setAvatarError(failure instanceof Error ? failure.message : 'Không thể đổi avatar.'); }
-    finally { setAvatarBusy(false); }
+      setUser(data.result); 
+      window.dispatchEvent(new Event('auth:changed'));
+      setSuccessMsg('Đã cập nhật ảnh đại diện!');
+      setTimeout(() => setSuccessMsg(''), 3000);
+    } catch (failure) { 
+      setAvatarError(failure instanceof Error ? failure.message : 'Không thể đổi avatar.'); 
+    } finally { 
+      setAvatarBusy(false); 
+    }
   };
 
   const handleCancelEdit = () => {
@@ -103,7 +118,10 @@ export const Profile: React.FC = () => {
   if (loading) {
     return (
       <MainLayout>
-        <div style={{ textAlign: 'center', padding: '50px' }}>Đang tải thông tin...</div>
+        <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-gray)' }}>
+          <div style={{ display: 'inline-block', width: '32px', height: '32px', border: '3px solid #E5E7EB', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', marginBottom: '12px' }}></div>
+          <p>Đang tải thông tin hồ sơ...</p>
+        </div>
       </MainLayout>
     );
   }
@@ -111,8 +129,9 @@ export const Profile: React.FC = () => {
   if (!user) {
     return (
       <MainLayout>
-        <div style={{ textAlign: 'center', padding: '50px' }}>
-          Bạn chưa đăng nhập. Vui lòng <a href="/login" style={{ color: '#10b981' }}>đăng nhập</a>.
+        <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+          <p style={{ marginBottom: '16px' }}>Bạn chưa đăng nhập.</p>
+          <Link to="/login" className="btn-primary">Đăng nhập ngay</Link>
         </div>
       </MainLayout>
     );
@@ -125,8 +144,17 @@ export const Profile: React.FC = () => {
         <div className={styles.headerCard}>
           <div className={styles.headerTop}>
             <div className={styles.avatarWrapper}>
-              {user.avatarUrl ? (
-                <img src={user.avatarUrl} alt="Avatar" referrerPolicy="no-referrer" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', position: 'relative', zIndex: 1 }} />
+              {user.avatarUrl && user.avatarUrl !== 'null' ? (
+                <img 
+                  src={user.avatarUrl} 
+                  alt="Avatar" 
+                  referrerPolicy="no-referrer" 
+                  style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', position: 'relative', zIndex: 1 }} 
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || user.username)}&background=random`;
+                  }}
+                />
               ) : (
                 <div className={styles.avatar}>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</div>
               )}
@@ -135,10 +163,12 @@ export const Profile: React.FC = () => {
               <div className={styles.roleTag}>
                 <User size={14} /> Hồ sơ cá nhân
               </div>
-              <h1 className={styles.displayName}>{user.displayName || user.username}</h1>
+              <h1 className={styles.displayName} style={{ wordBreak: 'break-word' }}>
+                {user.displayName || user.username}
+              </h1>
               <p className={styles.username}>@{user.username || 'user'}</p>
               <p className={styles.description}>
-                Quản lý thông tin cơ bản của tài khoản và truy cập nhanh đến các chức năng phù hợp với vai trò hiện tại.
+                Quản lý thông tin tài khoản, cập nhật liên hệ và truy cập nhanh các dịch vụ tuyển dụng.
               </p>
             </div>
           </div>
@@ -148,14 +178,14 @@ export const Profile: React.FC = () => {
               <User size={20} className={styles.iconBlue} />
               <div>
                 <p className={styles.infoLabel}>TÊN HIỂN THỊ</p>
-                <p className={styles.infoValue}>{user.displayName || 'Chưa cập nhật'}</p>
+                <p className={styles.infoValue} style={{ wordBreak: 'break-word' }}>{user.displayName || 'Chưa cập nhật'}</p>
               </div>
             </div>
             <div className={styles.infoCard}>
               <Mail size={20} className={styles.iconBlue} />
               <div>
                 <p className={styles.infoLabel}>EMAIL</p>
-                <p className={styles.infoValue}>{user.email || 'Chưa cập nhật'}</p>
+                <p className={styles.infoValue} style={{ wordBreak: 'break-word' }}>{user.email || 'Chưa cập nhật'}</p>
               </div>
             </div>
             <div className={styles.infoCard}>
@@ -167,19 +197,53 @@ export const Profile: React.FC = () => {
             </div>
           </div>
 
-          <div className={styles.headerAction}>
-            <label>Đổi avatar (JPEG/PNG, tối đa 5 MB)
-              <input type="file" accept="image/jpeg,image/png" disabled={avatarBusy} onChange={event => {
-                void uploadAvatar(event.target.files?.[0]); event.target.value = '';
-              }} />
-            </label>
-            {avatarBusy && <span>Đang tải ảnh...</span>}
-            {avatarError && <p role="alert">{avatarError}</p>}
-            <Button variant="primary">
-              <Briefcase size={16} style={{ marginRight: '8px' }} /> 
+          <div className={styles.headerAction} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <label 
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 14px',
+                  backgroundColor: 'var(--bg-white)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: '0.8125rem',
+                  fontWeight: 600,
+                  color: 'var(--text-dark)',
+                  cursor: avatarBusy ? 'not-allowed' : 'pointer',
+                  boxShadow: 'var(--shadow-sm)'
+                }}
+              >
+                <Camera size={15} color="var(--primary)" />
+                <span>{avatarBusy ? 'Đang tải ảnh...' : 'Đổi ảnh đại diện'}</span>
+                <input 
+                  type="file" 
+                  accept="image/jpeg,image/png" 
+                  disabled={avatarBusy} 
+                  style={{ display: 'none' }}
+                  onChange={event => {
+                    void uploadAvatar(event.target.files?.[0]); 
+                    event.target.value = '';
+                  }} 
+                />
+              </label>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>(JPEG/PNG, tối đa 5 MB)</span>
+            </div>
+
+            <Button variant="primary" onClick={() => navigate('/applied-jobs')}>
+              <Briefcase size={16} style={{ marginRight: '6px' }} /> 
               Xem việc đã ứng tuyển
             </Button>
           </div>
+
+          {avatarError && <p role="alert" style={{ color: 'var(--danger)', fontSize: '0.85rem', marginTop: '8px' }}>{avatarError}</p>}
+          {successMsg && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#065F46', fontSize: '0.85rem', marginTop: '8px' }} role="status">
+              <CheckCircle2 size={16} color="var(--success)" />
+              <span>{successMsg}</span>
+            </div>
+          )}
         </div>
 
         {/* Bottom Section */}
@@ -190,7 +254,7 @@ export const Profile: React.FC = () => {
               <div>
                 <h2 className={styles.cardTitle}>Thông tin tài khoản</h2>
                 <p className={styles.cardDesc}>
-                  Đây là phần thông tin cơ bản đang được hiển thị trên hệ thống. Bạn có thể dùng trang này để kiểm tra nhanh tên người dùng, tên hiển thị và ngày sinh của mình.
+                  Thông tin hồ sơ của bạn được bảo mật và dùng cho việc xác minh danh tính và liên hệ việc làm.
                 </p>
               </div>
               {!isEditing ? (
@@ -211,13 +275,14 @@ export const Profile: React.FC = () => {
 
             {(errorMsg || validationError) && isEditing && (
               <div className={styles.warningAlert} style={{ backgroundColor: '#fef2f2', color: '#ef4444', borderColor: '#fecaca' }}>
-                {validationError || errorMsg}
+                <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                <span>{validationError || errorMsg}</span>
               </div>
             )}
 
             {(!user.dateOfBirth && !isEditing) && (
               <div className={styles.warningAlert}>
-                Bạn chưa cập nhật thông tin ngày sinh. Hãy nhấn nút "Chỉnh sửa" để bổ sung nhé!
+                Bạn chưa cập nhật ngày sinh. Nhấn "Chỉnh sửa" để hoàn thiện hồ sơ nhé!
               </div>
             )}
 
@@ -239,7 +304,7 @@ export const Profile: React.FC = () => {
 
               {/* Username */}
               <div className={styles.detailBoxRow}>
-                <span className={styles.detailBoxLabel}>Username</span>
+                <span className={styles.detailBoxLabel}>Tên đăng nhập</span>
                 {isEditing ? (
                   <input 
                     type="text" 
@@ -286,11 +351,14 @@ export const Profile: React.FC = () => {
               {/* Confirm Password (only if editing and user has password) */}
               {(isEditing && user.hasPassword) && (
                 <div className={styles.detailBoxRow} style={{ backgroundColor: '#fffbeb', borderColor: '#fde68a' }}>
-                  <span className={styles.detailBoxLabel} style={{ color: '#d97706' }}>Xác nhận Mật khẩu</span>
+                  <span className={styles.detailBoxLabel} style={{ color: '#d97706' }}>
+                    <Lock size={14} style={{ display: 'inline', marginRight: 4 }} />
+                    Mật khẩu xác nhận
+                  </span>
                   <input 
                     type="password" 
                     className={styles.editInput} 
-                    placeholder="Nhập mật khẩu hiện tại"
+                    placeholder="Nhập mật khẩu hiện tại để xác nhận thay đổi"
                     value={editData.currentPassword} 
                     onChange={e => setEditData({...editData, currentPassword: e.target.value})}
                     style={{ borderColor: '#fcd34d' }}
@@ -304,21 +372,26 @@ export const Profile: React.FC = () => {
           <div className={styles.card}>
             <h2 className={styles.cardTitle}>Truy cập nhanh</h2>
             <p className={styles.cardDesc}>
-              Chọn lối tắt phù hợp để tiếp tục thao tác nhanh trong hệ thống.
+              Lối tắt tiện ích để chuyển nhanh đến các chức năng chính.
             </p>
             <div className={styles.quickLinks}>
-              <a href="/change-password" className={styles.quickLink}>Đổi mật khẩu</a>
+              <Link to="/change-password" className={styles.quickLink}>
+                <Lock size={16} /> Đổi mật khẩu
+              </Link>
               {hasAnyRole(user.roles ?? [], ['EMPLOYER']) && (
-                <a href="/employer/dashboard" className={styles.quickLink} style={{ backgroundColor: '#E5F7ED', color: '#00B14F', borderColor: '#00B14F' }}>
-                  <Briefcase size={18} /> Quản lý doanh nghiệp
-                </a>
+                <Link to="/employer/dashboard" className={styles.quickLink} style={{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)', borderColor: 'rgba(0, 177, 79, 0.3)' }}>
+                  <Briefcase size={16} /> Quản lý doanh nghiệp
+                </Link>
               )}
-              <a href="/applied-jobs" className={styles.quickLink}>
-                <Briefcase size={18} /> Việc đã ứng tuyển
-              </a>
-              <a href="/jobs" className={styles.quickLink}>
-                <Search size={18} /> Tìm việc mới
-              </a>
+              <Link to="/applied-jobs" className={styles.quickLink}>
+                <Briefcase size={16} /> Việc đã ứng tuyển
+              </Link>
+              <Link to="/candidate-profile" className={styles.quickLink}>
+                <User size={16} /> Hồ sơ & CV ứng tuyển
+              </Link>
+              <Link to="/jobs" className={styles.quickLink}>
+                <Search size={16} /> Tìm việc làm mới
+              </Link>
             </div>
           </div>
         </div>

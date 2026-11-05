@@ -96,7 +96,8 @@ public class JobPostSpecification {
         };
     }
 
-    public static Specification<JobPost> filterEmployerJobs(Integer employerId, Integer storeId, JobStatus status) {
+    // Restricts title matches to jobs owned by the selected employer.
+    public static Specification<JobPost> filterEmployerJobs(Integer employerId, Integer storeId, JobStatus status, String keyword) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(criteriaBuilder.equal(root.get("employer").get("employerId"), employerId));
@@ -107,6 +108,12 @@ public class JobPostSpecification {
 
             if (status != null) {
                 predicates.add(criteriaBuilder.equal(root.get("status"), status));
+            }
+
+            if (keyword != null && !keyword.isBlank()) {
+                String term = keyword.strip().toLowerCase(java.util.Locale.ROOT)
+                        .replace("!", "!!").replace("%", "!%").replace("_", "!_");
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), "%" + term + "%", '!'));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
