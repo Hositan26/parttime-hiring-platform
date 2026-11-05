@@ -26,6 +26,7 @@ import tanhs.fudn.parttime_hiring_plaform_project.entity.application.JobApplicat
 import tanhs.fudn.parttime_hiring_plaform_project.entity.employer.Employer;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.employer.Store;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.JobStatus;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.ReviewStatus;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.job.JobCategory;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.job.JobPost;
@@ -112,7 +113,10 @@ public class EmployerJobServiceImpl implements EmployerJobService {
         }
 
         List<StoreReview> reviews = storeReviewRepository.findByEmploymentRecord_JobPost_JobPostIdOrderByCreatedAtDesc(jobId);
-        return reviews.stream().map(employerJobMapper::toCommentResponse).collect(Collectors.toList());
+        return reviews.stream()
+                .filter(review -> review.getStatus() == ReviewStatus.VISIBLE)
+                .map(employerJobMapper::toCommentResponse)
+                .toList();
     }
 
     // Returns applicant details only for an owned job.

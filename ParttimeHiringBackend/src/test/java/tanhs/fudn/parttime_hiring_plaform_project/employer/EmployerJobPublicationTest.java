@@ -2,6 +2,11 @@ package tanhs.fudn.parttime_hiring_plaform_project.employer;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.List;
+import org.springframework.security.access.AccessDeniedException;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.ReviewStatus;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.review.StoreReview;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.employer.job.EmployerJobCommentResponse;
 import org.junit.jupiter.api.Test;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.request.employer.job.CreateEmployerJobRequest;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.employer.Employer;
@@ -29,9 +34,10 @@ class EmployerJobPublicationTest {
     private final EmployerRepository employers = mock(EmployerRepository.class);
     private final StoreRepository stores = mock(StoreRepository.class);
     private final JobPostRepository jobs = mock(JobPostRepository.class);
+    private final StoreReviewRepository reviews = mock(StoreReviewRepository.class);
     private final EmployerJobMapper mapper = mock(EmployerJobMapper.class);
     private final EmployerJobServiceImpl service = new EmployerJobServiceImpl(users, employers, jobs, stores,
-            mock(StoreReviewRepository.class), mock(JobApplicationRepository.class),
+            reviews, mock(JobApplicationRepository.class),
             mock(JobCategoryRepository.class), mock(WorkShiftRepository.class), mapper);
 
     // Prevents pending, paused, and inactive businesses from publishing jobs.
@@ -66,6 +72,29 @@ class EmployerJobPublicationTest {
         assertSame(store, post.getStore());
         assertEquals(JobStatus.ACTIVE, post.getStatus());
         verify(jobs).save(post);
+    }
+
+    // Returns visible reviews only and rejects requests for another employer's listing.
+    @Test
+    void limitsReviewsToVisibleOwnedListings() {
+        Employer employer = Employer.builder().employerId(7).build();
+        when(users.findByUsername("employer")).thenReturn(Optional.of(User.builder().id(1L).build()));
+        when(employers.findByUserId(1)).thenReturn(Optional.of(employer));
+        when(jobs.findById(9)).thenReturn(Optional.of(JobPost.builder()
+                .employer(Employer.builder().employerId(8).build()).build()));
+        assertThrows(AccessDeniedException.class, () -> service.getJobComments("employer", 9));
+        verifyNoInteractions(reviews);
+        when(jobs.findById(3)).thenReturn(Optional.of(JobPost.builder().employer(employer).build()));
+        StoreReview visible = StoreReview.builder().status(ReviewStatus.VISIBLE).build();
+        StoreReview hidden = StoreReview.builder().status(ReviewStatus.HIDDEN).build();
+        StoreReview reported = StoreReview.builder().status(ReviewStatus.REPORTED).build();
+        when(reviews.findByEmploymentRecord_JobPost_JobPostIdOrderByCreatedAtDesc(3))
+                .thenReturn(List.of(visible, hidden, reported));
+        var response = mock(EmployerJobCommentResponse.class);
+        when(mapper.toCommentResponse(visible)).thenReturn(response);
+        assertEquals(List.of(response), service.getJobComments("employer", 3));
+        verify(mapper, never()).toCommentResponse(hidden);
+        verify(mapper, never()).toCommentResponse(reported);
     }
 
     // Sets up the authenticated employer and the locked store.
