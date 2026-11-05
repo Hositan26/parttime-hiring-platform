@@ -75,7 +75,10 @@ public class EmployerJobServiceImpl implements EmployerJobService {
     @Transactional(readOnly = true)
     public Page<EmployerJobListResponse> getEmployerJobs(String username, int page, int size, Integer storeId, JobStatus status, String keyword) {
         Employer employer = getEmployerByUsername(username);
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        if (page < 0 || size < 1 || size > 50) {
+            throw new BusinessException("Trang hoặc số lượng bản ghi không hợp lệ.");
+        }
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt", "jobPostId").descending());
         
         Specification<JobPost> spec = JobPostSpecification.filterEmployerJobs(employer.getEmployerId(), storeId, status, keyword);
         Page<JobPost> jobPosts = jobPostRepository.findAll(spec, pageable);
