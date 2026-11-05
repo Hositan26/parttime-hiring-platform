@@ -50,7 +50,7 @@ class ApplicationSubmissionTest {
     void protectsWithdrawalOwnershipAndState() {
         User candidate = User.builder().id(1L).build();
         when(users.findByUsername("candidate")).thenReturn(Optional.of(candidate));
-        JobApplication application = JobApplication.builder().applicant(User.builder().id(2L).build())
+        JobApplication application = JobApplication.builder().jobPost(JobPost.builder().title("Fixture").build()).applicant(User.builder().id(2L).build())
                 .status(ApplicationStatus.PENDING).build();
         when(applications.lockById(5)).thenReturn(Optional.of(application));
         assertThrows(AccessDeniedException.class, () -> service.withdrawApplication(5, "candidate"));
@@ -134,6 +134,7 @@ class ApplicationSubmissionTest {
     @Test
     void acceptsAvailableJob() {
         arrange();
+        when(applications.save(any())).thenAnswer(call -> call.getArgument(0));
         service.applyForJob(request(), "candidate");
         ArgumentCaptor<JobApplication> captor = ArgumentCaptor.forClass(JobApplication.class);
         verify(applications).save(captor.capture());

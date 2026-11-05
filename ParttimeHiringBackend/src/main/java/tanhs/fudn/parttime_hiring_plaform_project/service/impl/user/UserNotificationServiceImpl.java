@@ -26,6 +26,14 @@ public class UserNotificationServiceImpl implements UserNotificationService {
     // Saves notifications atomically with the application decision.
     @Transactional
     public void decision(JobApplication application) { notifications.save(mapper.decision(application)); }
+    // Stores a notification for the listing owner in the current transaction.
+    @Transactional
+    public void employerActivity(JobApplication application, String message) {
+        long ownerId = application.getJobPost().getEmployer().getUserId().longValue();
+        users.findById(ownerId).ifPresent(owner ->
+                notifications.save(mapper.employerActivity(owner, application.getApplicationId(), message)));
+    }
+
     // Bounds queries and derives recipient ownership from authentication.
     @Transactional(readOnly = true)
     public Page<UserNotificationResponse> list(String username, int page, int size) {

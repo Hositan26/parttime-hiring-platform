@@ -33,7 +33,7 @@ class RecruitmentInteractionTest {
         JobApplicationRepository applications = mock(JobApplicationRepository.class);
         RecruitmentInteractionRepository interactions = mock(RecruitmentInteractionRepository.class);
         var service = new RecruitmentInteractionServiceImpl(users, jobs, applications, interactions,
-                Mappers.getMapper(RecruitmentInteractionMapper.class));
+                Mappers.getMapper(RecruitmentInteractionMapper.class), mock(tanhs.fudn.parttime_hiring_plaform_project.service.user.UserNotificationService.class));
         User candidate = User.builder().id(1L).build(); User employer = User.builder().id(3L).build();
         JobApplication application = JobApplication.builder().applicationId(5).applicant(candidate).status(ApplicationStatus.PENDING)
                 .jobPost(JobPost.builder().employer(Employer.builder().userId(3).build()).build()).build();

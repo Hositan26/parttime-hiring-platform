@@ -71,6 +71,7 @@ function App() {
           <Route path="stores/:id" element={<EmployerStoreDetail />} />
           <Route path="jobs" element={<EmployerJobs />} />
           <Route path="applications" element={<EmployerApplications />} />
+          <Route path="notifications" element={<Notifications employer />} />
           <Route path="employees" element={<EmployerEmployees />} />
           <Route path="profile" element={<EmployerProfile />} />
           {/* Fallback for settings or missing pages */}

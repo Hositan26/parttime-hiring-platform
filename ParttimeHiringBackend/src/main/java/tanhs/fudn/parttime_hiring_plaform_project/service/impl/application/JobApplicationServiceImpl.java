@@ -59,6 +59,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         JobApplication application = ownedPendingApplication(id, username);
         application.setStatus(ApplicationStatus.WITHDRAWN);
         applicationRepository.save(application);
+        notifications.employerActivity(application, "Ứng viên đã rút đơn: " + application.getJobPost().getTitle());
     }
 
     // Locks the application and checks candidate ownership and pending state.
@@ -119,7 +120,8 @@ public class JobApplicationServiceImpl implements JobApplicationService {
 
         JobApplication application = applicationMapper.create(request, applicant, jobPost);
 
-        applicationRepository.save(application);
+        JobApplication saved = applicationRepository.save(application);
+        notifications.employerActivity(saved, "Có đơn ứng tuyển mới: " + jobPost.getTitle());
     }
 
     // Queries application history using the authenticated account identifier only.
