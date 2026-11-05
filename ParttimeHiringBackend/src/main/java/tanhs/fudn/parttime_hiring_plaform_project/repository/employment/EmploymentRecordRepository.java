@@ -1,5 +1,7 @@
 package tanhs.fudn.parttime_hiring_plaform_project.repository.employment;
 
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,6 +20,11 @@ public interface EmploymentRecordRepository extends JpaRepository<EmploymentReco
     // Retrieves a bounded history belonging exclusively to one account.
     @EntityGraph(attributePaths = {"store", "jobPost"})
     Page<EmploymentRecord> findByUser_Id(Long userId, Pageable pageable);
+
+    // Serializes concurrent updates to an employee's work status.
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select record from EmploymentRecord record where record.employmentRecordId = :id")
+    Optional<EmploymentRecord> lockById(@Param("id") Integer id);
 
     Optional<EmploymentRecord> findByApplication(JobApplication application);
 
