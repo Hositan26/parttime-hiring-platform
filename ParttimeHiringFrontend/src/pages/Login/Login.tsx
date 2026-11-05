@@ -25,12 +25,8 @@ export const Login: React.FC = () => {
     try {
       await login(username, password);
       await reload();
-      // Backend automatically sets HttpOnly cookie for session token
       
-      // Fetch user profile to check roles
-
       const user = await getMe();
-      
       const hasRole = (roleName: string) => user?.roles?.some((r: string) => r === roleName || r === `ROLE_${roleName}`);
 
       const returnTo = new URLSearchParams(window.location.search).get('returnTo');
@@ -44,7 +40,7 @@ export const Login: React.FC = () => {
         navigate('/jobs');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      setError(err instanceof Error ? err.message : "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
     } finally {
       setLoading(false);
     }
@@ -76,18 +72,19 @@ export const Login: React.FC = () => {
       </div>
 
       <form onSubmit={handleSubmit} className={styles.form}>
-        {error && <div className={styles.errorAlert}>{error}</div>}
+        {error && <div className={styles.errorAlert} role="alert">{error}</div>}
         
         <div className={styles.formGroup}>
-          <label className={styles.label}>Username</label>
+          <label className={styles.label}>Tên đăng nhập</label>
           <div className={styles.inputWrapper}>
             <User size={18} className={styles.inputIcon} />
             <input 
               type="text" 
               className={styles.input}
-              placeholder="Nhập username của bạn" 
+              placeholder="Nhập tên đăng nhập của bạn" 
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              autoComplete="username"
               required
             />
           </div>
@@ -106,12 +103,14 @@ export const Login: React.FC = () => {
               placeholder="Nhập mật khẩu" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
               required
             />
             <button 
               type="button" 
               className={styles.togglePasswordBtn} 
               onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -130,7 +129,7 @@ export const Login: React.FC = () => {
           {loading ? 'Đang đăng nhập...' : 'Đăng nhập tài khoản'}
         </button>
 
-        <Link to="#" className={styles.employerBtn}>
+        <Link to="/verify-business" className={styles.employerBtn}>
           <Sparkles size={16} /> Tôi là nhà tuyển dụng → Xác minh ngay
         </Link>
 
@@ -141,4 +140,3 @@ export const Login: React.FC = () => {
     </AuthLayout>
   );
 };
-

@@ -767,3 +767,47 @@
   border-radius: 4px;
   transition: width 0.3s ease;
 }
+
+
+/* RESPONSIVE MEDIA QUERIES FOR 768px AND 390px */
+@media (max-width: 1024px) {
+  .container {
+    grid-template-columns: 1fr;
+    padding: 20px 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .mainCard {
+    padding: 24px 16px;
+    border-radius: 16px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+  }
+
+  .grid2 {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .otpRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sendOtpBtn, .verifyOtpBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .submitBtn {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -2,7 +2,7 @@ import { registrationError } from '../../services/authValidation';
 import { apiBase } from '../../services/apiClient';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, Calendar, Eye, EyeOff } from 'lucide-react';
+import { User, Mail, Lock, Calendar, Eye, EyeOff, AtSign } from 'lucide-react';
 import { AuthLayout } from '../../components/Layout/AuthLayout';
 import styles from './Register.module.css';
 import { register } from '../../services/auth.service';
@@ -22,12 +22,19 @@ export const Register: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const validation = username && password && displayName && email
+    ? registrationError(username, password, displayName, email)
+    : '';
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    const validation = registrationError(username, password, displayName, email);
-    if (validation) { setError(validation); return; }
+    const validationMsg = registrationError(username, password, displayName, email);
+    if (validationMsg) { 
+      setError(validationMsg); 
+      return; 
+    }
     if (password !== confirmPassword) {
       setError('Mật khẩu xác nhận không khớp');
       return;
@@ -36,10 +43,9 @@ export const Register: React.FC = () => {
     setLoading(true);
     try {
       await register(username, password, displayName, dateOfBirth, email);
-      // Chuyển hướng sang login
       navigate('/login');
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration failed");
+      setError(err instanceof Error ? err.message : "Đăng ký thất bại. Vui lòng thử lại.");
     } finally {
       setLoading(false);
     }
@@ -71,9 +77,12 @@ export const Register: React.FC = () => {
       </div>
 
       <form onSubmit={handleSubmit} className={styles.form}>
-        <label className={styles.label}>Email<input className={styles.input} type="email" autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} required /></label>
-        {username && password && displayName && email && <p role="status">{registrationError(username, password, displayName, email)}</p>}
-        {error && <div className={styles.errorAlert}>{error}</div>}
+        {error && <div className={styles.errorAlert} role="alert">{error}</div>}
+        {validation && (
+          <div className={styles.errorAlert} style={{ backgroundColor: '#fffbeb', color: '#b45309', borderColor: '#fde68a' }}>
+            <p role="status">{validation}</p>
+          </div>
+        )}
         
         <div className={styles.formGroup}>
           <label className={styles.label}>Tên hiển thị</label>
@@ -85,22 +94,40 @@ export const Register: React.FC = () => {
               placeholder="Ví dụ: Nguyễn Văn A" 
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
+              autoComplete="name"
               required
             />
           </div>
         </div>
 
         <div className={styles.formGroup}>
-          <label className={styles.label}>Username</label>
+          <label className={styles.label}>Tên đăng nhập</label>
           <div className={styles.inputWrapper}>
-            <Mail size={18} className={styles.inputIcon} />
+            <AtSign size={18} className={styles.inputIcon} />
             <input 
               type="text" 
               className={styles.input}
-              placeholder="Nhập username" 
+              placeholder="Nhập tên đăng nhập (ví dụ: nguyenvana)" 
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              autoComplete="username"
               required
+            />
+          </div>
+        </div>
+
+        <div className={styles.formGroup}>
+          <label className={styles.label}>Email</label>
+          <div className={styles.inputWrapper}>
+            <Mail size={18} className={styles.inputIcon} />
+            <input 
+              className={styles.input} 
+              type="email" 
+              placeholder="email@example.com"
+              autoComplete="email" 
+              value={email} 
+              onChange={e => setEmail(e.target.value)} 
+              required 
             />
           </div>
         </div>
@@ -112,7 +139,6 @@ export const Register: React.FC = () => {
             <input 
               type="date" 
               className={styles.input}
-              placeholder="dd/mm/yyyy" 
               value={dateOfBirth}
               onChange={(e) => setDateOfBirth(e.target.value)}
             />
@@ -126,15 +152,17 @@ export const Register: React.FC = () => {
             <input 
               type={showPassword ? "text" : "password"}
               className={styles.input}
-              placeholder="Nhập mật khẩu" 
+              placeholder="Tối thiểu 8 ký tự" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete="new-password"
               required
             />
             <button 
               type="button" 
               className={styles.togglePasswordBtn} 
               onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -151,20 +179,22 @@ export const Register: React.FC = () => {
               placeholder="Nhập lại mật khẩu" 
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              autoComplete="new-password"
               required
             />
             <button 
               type="button" 
               className={styles.togglePasswordBtn} 
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              aria-label={showConfirmPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
             >
               {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
         </div>
 
-        <button type="submit" className={styles.primaryBtn} disabled={loading}>
-          {loading ? 'Đang tạo...' : 'Tạo tài khoản'}
+        <button type="submit" className={styles.primaryBtn} disabled={loading || Boolean(validation)}>
+          {loading ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}
         </button>
 
         <p className={styles.loginPrompt}>

@@ -1,10 +1,15 @@
 import { logout } from '../../services/auth.service';
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Store, Briefcase, FileText, User, Home, LogOut, Users, Bell } from 'lucide-react';
+import { LayoutDashboard, Store, Briefcase, FileText, User, Home, LogOut, Users, Bell, X } from 'lucide-react';
 import styles from './EmployerLayout.module.css';
 
-export const EmployerSidebar: React.FC = () => {
+interface EmployerSidebarProps {
+  isOpenMobile?: boolean;
+  onCloseMobile?: () => void;
+}
+
+export const EmployerSidebar: React.FC<EmployerSidebarProps> = ({ isOpenMobile = false, onCloseMobile }) => {
   const navigate = useNavigate();
   const menuItems = [
     { name: 'Tổng quan', path: '/employer/dashboard', icon: <LayoutDashboard className={styles.navItemIcon} /> },
@@ -16,51 +21,61 @@ export const EmployerSidebar: React.FC = () => {
     { name: 'Hồ sơ', path: '/employer/profile', icon: <User className={styles.navItemIcon} /> },
   ];
 
+  const handleLinkClick = () => {
+    if (onCloseMobile) onCloseMobile();
+  };
+
   return (
-    <aside className={styles.sidebar}>
-      <div className={styles.logoArea} style={{ padding: '24px 24px 12px 24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <div style={{ backgroundColor: 'var(--primary)', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <aside className={`${styles.sidebar} ${isOpenMobile ? styles.sidebarOpenMobile : ''}`}>
+      <div className={styles.logoArea}>
+        <div className={styles.logoBadge}>
           <Briefcase size={20} color="white" />
         </div>
-        <span style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-dark)', letterSpacing: '-0.5px' }}>JobPortal</span>
+        <div className={styles.logoTextWrapper}>
+          <span className={styles.logoBrand}>JobPortal</span>
+          <span className={styles.logoPortal}>Employer</span>
+        </div>
+        {onCloseMobile && (
+          <button className={styles.closeMobileBtn} onClick={onCloseMobile} aria-label="Đóng menu">
+            <X size={20} />
+          </button>
+        )}
       </div>
       
       <nav className={styles.navMenu}>
+        <div className={styles.menuGroupTitle}>QUẢN LÝ DOANH NGHIỆP</div>
         {menuItems.map((item) => (
           <NavLink 
             key={item.name} 
             to={item.path} 
+            onClick={handleLinkClick}
             className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}
           >
             {item.icon}
-            {item.name}
+            <span>{item.name}</span>
           </NavLink>
         ))}
 
-        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '20px', borderTop: '1px solid var(--border-color)' }}>
+        <div className={styles.sidebarBottomActions}>
           <button 
             className={styles.navItem} 
-            onClick={() => navigate('/jobs')}
-            style={{ width: '100%', background: 'none', textAlign: 'left', fontFamily: 'inherit', fontSize: '0.95rem' }}
+            onClick={() => { handleLinkClick(); navigate('/jobs'); }}
           >
             <Home className={styles.navItemIcon} />
-            Về trang chủ
+            <span>Về trang tìm việc</span>
           </button>
           <button 
-            className={styles.navItem} 
+            className={`${styles.navItem} ${styles.logoutNavBtn}`} 
             onClick={async () => {
               await logout();
-              localStorage.removeItem('role');
               navigate('/login');
             }}
-            style={{ width: '100%', background: 'none', textAlign: 'left', fontFamily: 'inherit', fontSize: '0.95rem', color: '#ef4444' }}
           >
-            <LogOut className={styles.navItemIcon} style={{ color: '#ef4444' }} />
-            Đăng xuất
+            <LogOut className={styles.navItemIcon} />
+            <span>Đăng xuất</span>
           </button>
         </div>
       </nav>
     </aside>
   );
 };
-

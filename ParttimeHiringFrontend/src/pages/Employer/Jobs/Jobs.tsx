@@ -243,6 +243,7 @@ export const Jobs: React.FC = () => {
           </div>
         </div>
         
+        <div className={styles.tableWrapper}>
         <table className={styles.table}>
           <thead>
             <tr>
@@ -260,11 +261,11 @@ export const Jobs: React.FC = () => {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={8} style={{ textAlign: 'center', padding: '40px 0' }}>Đang tải dữ liệu...</td>
+                <td colSpan={9} style={{ textAlign: 'center', padding: '40px 0' }}>Đang tải dữ liệu...</td>
               </tr>
             ) : jobs.length === 0 ? (
               <tr>
-                <td colSpan={8} style={{ padding: 0 }}>
+                <td colSpan={9} style={{ padding: 0 }}>
                   <div className={styles.emptyState}>
                     <div className={styles.emptyStateIcon}>
                       <Briefcase size={40} />
@@ -359,6 +360,7 @@ export const Jobs: React.FC = () => {
             ))}
           </tbody>
         </table>
+        </div>
 
         {totalPages > 1 && (
           <div className={styles.pagination}>

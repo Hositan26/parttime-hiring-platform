@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Phone, Calendar, Clock, Edit2, X, Save } from 'lucide-react';
+import { ArrowLeft, MapPin, Phone, Calendar, Clock, Edit2, X, Save, Camera, Trash2, AlertCircle, CheckCircle2, Users, Briefcase } from 'lucide-react';
 import { getStoreDetail, updateStore, updateStoreCover, getStoreEmployees, type EmployerStoreDetailDTO, type EmployeeResponseDTO } from '../../../services/storeApi';
 import styles from './StoreDetail.module.css';
 
@@ -12,6 +12,7 @@ export const StoreDetail: React.FC = () => {
   const [error, setError] = useState('');
   const [coverBusy, setCoverBusy] = useState(false);
   const [coverError, setCoverError] = useState('');
+  const [feedbackMsg, setFeedbackMsg] = useState('');
   
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -25,14 +26,17 @@ export const StoreDetail: React.FC = () => {
   const changeCover = async (file?: File) => {
     if (!id || coverBusy) return;
     setCoverError('');
+    setFeedbackMsg('');
     if (file && (!['image/jpeg', 'image/png'].includes(file.type) || file.size > 5 * 1024 * 1024)) {
-      setCoverError('Chọn ảnh JPEG hoặc PNG tối đa 5 MB.');
+      setCoverError('Vui lòng chọn ảnh JPEG hoặc PNG tối đa 5 MB.');
       return;
     }
     setCoverBusy(true);
     try {
       const coverImageUrl = await updateStoreCover(id, file);
       setData(current => current ? { ...current, coverImageUrl } : current);
+      setFeedbackMsg(file ? 'Cập nhật ảnh đại diện cửa hàng thành công!' : 'Đã gỡ ảnh đại diện cửa hàng.');
+      setTimeout(() => setFeedbackMsg(''), 3000);
     } catch (failure) {
       setCoverError(failure instanceof Error ? failure.message : 'Không thể cập nhật ảnh.');
     } finally {
@@ -101,9 +105,9 @@ export const StoreDetail: React.FC = () => {
   const getStatusText = (status: string) => {
     switch(status) {
       case 'HIRED': return 'Chuẩn bị đi làm';
-      case 'WORKING': return 'Đang làm';
+      case 'WORKING': return 'Đang làm việc';
       case 'QUIT': return 'Đã nghỉ việc';
-      case 'TERMINATED': return 'Bị đuổi việc';
+      case 'TERMINATED': return 'Bị sa thải';
       case 'COMPLETED': return 'Đã hoàn thành';
       default: return status;
     }
@@ -126,6 +130,8 @@ export const StoreDetail: React.FC = () => {
       setSaving(true);
       await updateStore(id, editData);
       setIsEditing(false);
+      setFeedbackMsg('Đã lưu thông tin cửa hàng thành công!');
+      setTimeout(() => setFeedbackMsg(''), 3000);
       fetchDetail();
     } catch (err: any) {
       alert(err.message || 'Cập nhật thất bại');
@@ -147,15 +153,21 @@ export const StoreDetail: React.FC = () => {
   };
 
   if (loading) {
-    return <div className={styles.loading}>Đang tải dữ liệu...</div>;
+    return (
+      <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-gray)' }}>
+        <div style={{ display: 'inline-block', width: '32px', height: '32px', border: '3px solid #E5E7EB', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', marginBottom: '12px' }}></div>
+        <p>Đang tải thông tin cửa hàng...</p>
+      </div>
+    );
   }
 
   if (error || !data) {
     return (
-      <div className={styles.error}>
-        <p>{error || 'Cửa hàng không tồn tại'}</p>
-        <button onClick={() => navigate('/employer/stores')} className={styles.btnSecondary}>
-          Quay lại danh sách
+      <div style={{ textAlign: 'center', padding: '60px 20px', maxWidth: '440px', margin: '0 auto' }}>
+        <AlertCircle size={40} color="var(--danger)" style={{ margin: '0 auto 12px' }} />
+        <h3>{error || 'Cửa hàng không tồn tại'}</h3>
+        <button onClick={() => navigate('/employer/stores')} className="btn-primary" style={{ marginTop: '16px' }}>
+          Quay lại danh sách cửa hàng
         </button>
       </div>
     );
@@ -165,85 +177,167 @@ export const StoreDetail: React.FC = () => {
     <div className={styles.storeDetailPage}>
       <div className={styles.header}>
         <div className={styles.headerLeft}>
-          <button className={styles.backBtn} onClick={() => navigate('/employer/stores')}>
+          <button className={styles.backBtn} onClick={() => navigate('/employer/stores')} aria-label="Quay lại">
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h1 className={styles.title}>Chi tiết cửa hàng</h1>
-            <p className={styles.subtitle}>ID: ST{data.storeId.toString().padStart(3, '0')}</p>
+            <h1 className={styles.title}>{data.name}</h1>
+            <p className={styles.subtitle}>Mã cơ sở: ST{data.storeId.toString().padStart(3, '0')}</p>
           </div>
         </div>
       </div>
+
+      {feedbackMsg && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', background: 'var(--success-light)', border: '1px solid #A7F3D0', borderRadius: 'var(--radius-md)', color: '#065F46', marginBottom: '1.25rem', fontSize: '0.875rem' }} role="status">
+          <CheckCircle2 size={16} color="var(--success)" />
+          <span>{feedbackMsg}</span>
+        </div>
+      )}
+
+      {coverError && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', background: 'var(--danger-light)', border: '1px solid #FECACA', borderRadius: 'var(--radius-md)', color: 'var(--danger)', marginBottom: '1.25rem', fontSize: '0.875rem' }} role="alert">
+          <AlertCircle size={16} />
+          <span>{coverError}</span>
+        </div>
+      )}
 
       <div className={styles.contentGrid}>
         {/* Cột trái: Thông tin cửa hàng */}
         <div className={styles.storeInfoCard}>
           <div className={styles.cardHeaderWithAction}>
             <div className={styles.storeLogoHeader}>
-              <img src={data.coverImageUrl || data.logo} alt="Ảnh đại diện cửa hàng" className={styles.storeLogo} />
-              <div>
-                <label>Ảnh đại diện
-                  <input type="file" accept="image/jpeg,image/png" disabled={coverBusy} onChange={event => {
-                    const file = event.currentTarget.files?.[0];
-                    event.currentTarget.value = '';
-                    if (file) void changeCover(file);
-                  }} />
-                </label>
-                {data.coverImageUrl && <button type="button" className="btn-outline" disabled={coverBusy} onClick={() => void changeCover()}>Xóa ảnh</button>}
-                {coverError && <p role="alert">{coverError}</p>}
+              <div style={{ position: 'relative' }}>
+                <img 
+                  src={data.coverImageUrl || data.logo || "https://cdn-icons-png.flaticon.com/512/3268/3268832.png"} 
+                  alt="Ảnh đại diện cửa hàng" 
+                  className={styles.storeLogo} 
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = "https://cdn-icons-png.flaticon.com/512/3268/3268832.png";
+                  }}
+                />
               </div>
+
               <div>
-                <h2 className={styles.storeName}>{data.name}</h2>
-                <span className={`${styles.statusBadge} ${data.status === 'ACTIVE' ? styles.statusActive : styles.statusInactive}`}>
-                  {data.status === 'ACTIVE' ? 'Đang hoạt động' : data.status === 'PAUSED' ? 'Tạm ngừng' : 'Chờ phê duyệt'}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <h2 className={styles.storeName} style={{ margin: 0 }}>{data.name}</h2>
+                  <span className={`${styles.statusBadge} ${data.status === 'ACTIVE' ? styles.statusActive : styles.statusInactive}`}>
+                    {data.status === 'ACTIVE' ? 'Đang hoạt động' : data.status === 'PAUSED' ? 'Tạm ngừng' : 'Chờ phê duyệt'}
+                  </span>
+                </div>
+                
+                {/* Image upload & delete controls */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+                  <label 
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: '4px 8px',
+                      backgroundColor: 'var(--bg-lighter)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: 'var(--radius-sm)',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      color: 'var(--text-gray)',
+                      cursor: coverBusy ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    <Camera size={13} color="var(--primary)" />
+                    <span>{coverBusy ? 'Đang xử lý...' : 'Đổi ảnh'}</span>
+                    <input 
+                      type="file" 
+                      accept="image/jpeg,image/png" 
+                      disabled={coverBusy} 
+                      style={{ display: 'none' }}
+                      onChange={event => {
+                        const file = event.currentTarget.files?.[0];
+                        event.currentTarget.value = '';
+                        if (file) void changeCover(file);
+                      }} 
+                    />
+                  </label>
+                  {data.coverImageUrl && (
+                    <button 
+                      type="button" 
+                      disabled={coverBusy} 
+                      onClick={() => void changeCover()}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: '4px 8px',
+                        backgroundColor: 'transparent',
+                        border: '1px solid #FECACA',
+                        borderRadius: 'var(--radius-sm)',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        color: 'var(--danger)',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <Trash2 size={13} /> Gỡ ảnh
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
             
-            {!isEditing && (
+            {!isEditing ? (
               <button className={styles.editBtn} onClick={() => setIsEditing(true)}>
-                <Edit2 size={16} /> Chỉnh sửa
+                <Edit2 size={15} /> Chỉnh sửa
               </button>
-            )}
-            {isEditing && (
+            ) : (
               <div className={styles.editActions}>
                 <button className={styles.cancelBtn} onClick={handleCancel} disabled={saving}>
-                  <X size={16} /> Hủy
+                  <X size={15} /> Hủy
                 </button>
                 <button className={styles.saveBtn} onClick={handleSave} disabled={saving}>
-                  {saving ? 'Đang lưu...' : <><Save size={16} /> Lưu</>}
+                  {saving ? 'Đang lưu...' : <><Save size={15} /> Lưu</>}
                 </button>
               </div>
             )}
           </div>
           
           <div className={styles.infoSection}>
-            <h3 className={styles.sectionTitle}>Thông tin liên hệ</h3>
+            <h3 className={styles.sectionTitle}>Thông tin liên hệ & Địa chỉ</h3>
             <div className={styles.detailListBox}>
               <div className={styles.detailBoxRow}>
-                <span className={styles.detailBoxLabel}><Phone size={16} style={{marginRight: '8px', verticalAlign: 'middle'}}/>Số điện thoại</span>
+                <span className={styles.detailBoxLabel}>
+                  <Phone size={15} style={{ marginRight: '6px', verticalAlign: 'middle', color: 'var(--text-light)' }}/>
+                  Số điện thoại
+                </span>
                 {isEditing ? (
                   <input 
                     type="text" 
                     className={styles.editInput} 
                     value={editData.phone} 
                     onChange={e => setEditData({...editData, phone: e.target.value})}
-                    placeholder="Số điện thoại"
+                    placeholder="Số điện thoại liên hệ"
                   />
                 ) : (
                   <span className={styles.detailBoxValue}>{data.phone || 'Chưa cập nhật'}</span>
                 )}
               </div>
+              
               <div className={styles.detailBoxRow}>
-                <span className={styles.detailBoxLabel}><MapPin size={16} style={{marginRight: '8px', verticalAlign: 'middle'}}/>Địa chỉ</span>
+                <span className={styles.detailBoxLabel}>
+                  <MapPin size={15} style={{ marginRight: '6px', verticalAlign: 'middle', color: 'var(--primary)' }}/>
+                  Địa chỉ đường
+                </span>
                 {isEditing ? (
-                  <input 
-                    type="text" 
-                    className={styles.editInput} 
-                    value={editData.address} 
-                    onChange={e => setEditData({...editData, address: e.target.value})}
-                    placeholder="Địa chỉ"
-                  />
+                  <div style={{ flex: 1 }}>
+                    <input 
+                      type="text" 
+                      className={styles.editInput} 
+                      value={editData.address} 
+                      onChange={e => setEditData({...editData, address: e.target.value})}
+                      placeholder="Số nhà, tên đường..."
+                    />
+                    <p style={{ margin: '6px 0 0', fontSize: '0.75rem', color: '#D97706', lineHeight: '1.4' }}>
+                      ⚠️ Lưu ý: Thay đổi địa chỉ đường sẽ yêu cầu quản trị viên phê duyệt lại trước khi cửa hàng tiếp tục hiển thị hoạt động.
+                    </p>
+                  </div>
                 ) : (
                   <span className={styles.detailBoxValue}>{data.address}</span>
                 )}
@@ -252,18 +346,18 @@ export const StoreDetail: React.FC = () => {
           </div>
 
           <div className={styles.infoSection}>
-            <h3 className={styles.sectionTitle}>Mô tả</h3>
+            <h3 className={styles.sectionTitle}>Mô tả cơ sở</h3>
             {isEditing ? (
               <textarea 
                 className={styles.editTextarea} 
                 value={editData.description} 
                 onChange={e => setEditData({...editData, description: e.target.value})}
-                placeholder="Mô tả cửa hàng..."
+                placeholder="Mô tả không gian làm việc, tiện ích tại cửa hàng..."
                 rows={4}
               />
             ) : (
               <p className={styles.descriptionText}>
-                {data.description || 'Chưa có mô tả cho cửa hàng này.'}
+                {data.description || 'Chưa có mô tả chi tiết cho cơ sở này.'}
               </p>
             )}
           </div>
@@ -276,13 +370,13 @@ export const StoreDetail: React.FC = () => {
               className={`${styles.tabBtn} ${activeTab === 'JOBS' ? styles.activeTab : ''}`}
               onClick={() => setActiveTab('JOBS')}
             >
-              Tin tuyển dụng ({data.jobs.length})
+              <Briefcase size={16} /> Tin tuyển dụng ({data.jobs.length})
             </button>
             <button 
               className={`${styles.tabBtn} ${activeTab === 'EMPLOYEES' ? styles.activeTab : ''}`}
               onClick={() => setActiveTab('EMPLOYEES')}
             >
-              Nhân sự
+              <Users size={16} /> Nhân sự cửa hàng
             </button>
           </div>
 
@@ -291,20 +385,20 @@ export const StoreDetail: React.FC = () => {
               <div className={styles.jobsCard}>
                 <div className={styles.jobsList}>
                   {data.jobs.length === 0 ? (
-                    <div className={styles.noJobs}>Chưa có tin tuyển dụng nào cho cửa hàng này.</div>
+                    <div className={styles.noJobs}>Chưa có tin tuyển dụng nào được gán cho cửa hàng này.</div>
                   ) : (
                     data.jobs.map(job => (
                       <div key={job.jobId} className={styles.jobItem}>
                         <div className={styles.jobInfo}>
                           <h4 className={styles.jobTitle}>{job.title}</h4>
                           <div className={styles.jobMeta}>
-                            <span className={styles.metaItem}><Calendar size={14} /> Tạo ngày: {new Date(job.createdAt).toLocaleDateString('vi-VN')}</span>
-                            <span className={styles.metaItem}><Clock size={14} /> Hạn chót: {job.expiredAt ? new Date(job.expiredAt).toLocaleDateString('vi-VN') : 'Không giới hạn'}</span>
+                            <span className={styles.metaItem}><Calendar size={13} /> Tạo ngày: {new Date(job.createdAt).toLocaleDateString('vi-VN')}</span>
+                            <span className={styles.metaItem}><Clock size={13} /> Hạn nộp: {job.expiredAt ? new Date(job.expiredAt).toLocaleDateString('vi-VN') : 'Không thời hạn'}</span>
                           </div>
                         </div>
                         <div className={styles.jobStats}>
                           <div className={styles.statBox}>
-                            <span className={styles.statBoxLabel}>Ứng tuyển</span>
+                            <span className={styles.statBoxLabel}>Đơn nộp</span>
                             <span className={styles.statBoxValue}>{job.applications}</span>
                           </div>
                           <span className={`${styles.jobStatus} ${job.status === 'ACTIVE' ? styles.statusACTIVE : job.status === 'PAUSED' ? styles.statusPAUSED : styles.statusCLOSED}`}>
@@ -324,10 +418,10 @@ export const StoreDetail: React.FC = () => {
                   <div className={styles.filterPills}>
                     <button className={`${styles.filterPill} ${employeeFilter === 'ALL' ? styles.activePill : ''}`} onClick={() => setEmployeeFilter('ALL')}>Tất cả</button>
                     <button className={`${styles.filterPill} ${employeeFilter === 'HIRED' ? styles.activePill : ''}`} onClick={() => setEmployeeFilter('HIRED')}>Chuẩn bị đi làm</button>
-                    <button className={`${styles.filterPill} ${employeeFilter === 'WORKING' ? styles.activePill : ''}`} onClick={() => setEmployeeFilter('WORKING')}>Đang làm</button>
+                    <button className={`${styles.filterPill} ${employeeFilter === 'WORKING' ? styles.activePill : ''}`} onClick={() => setEmployeeFilter('WORKING')}>Đang làm việc</button>
                     <button className={`${styles.filterPill} ${employeeFilter === 'COMPLETED' ? styles.activePill : ''}`} onClick={() => setEmployeeFilter('COMPLETED')}>Đã hoàn thành</button>
                     <button className={`${styles.filterPill} ${employeeFilter === 'QUIT' ? styles.activePill : ''}`} onClick={() => setEmployeeFilter('QUIT')}>Đã nghỉ việc</button>
-                    <button className={`${styles.filterPill} ${employeeFilter === 'TERMINATED' ? styles.activePill : ''}`} onClick={() => setEmployeeFilter('TERMINATED')}>Bị đuổi việc</button>
+                    <button className={`${styles.filterPill} ${employeeFilter === 'TERMINATED' ? styles.activePill : ''}`} onClick={() => setEmployeeFilter('TERMINATED')}>Bị sa thải</button>
                   </div>
                 </div>
                 
@@ -349,7 +443,7 @@ export const StoreDetail: React.FC = () => {
                               )}
                               <div className={styles.employeeInfo}>
                                 <h4 className={styles.employeeName}>{emp.displayName}</h4>
-                                <p className={styles.employeeJob}>{emp.jobTitle || 'Chưa rõ vị trí'} • {renderWorkDates(emp)}</p>
+                                <p className={styles.employeeJob}>{emp.jobTitle || 'Nhân viên'} • {renderWorkDates(emp)}</p>
                               </div>
                             </div>
                             <div className={styles.employeeActions}>
