@@ -2,6 +2,7 @@ package tanhs.fudn.parttime_hiring_plaform_project.employer;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.request.employer.job.UpdateEmployerJobRequest;
 import java.util.List;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.application.JobApplication;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.ApplicationStatus;
@@ -121,6 +122,29 @@ class EmployerJobPublicationTest {
         when(mapper.toApplicantResponse(withdrawn)).thenReturn(withdrawnResponse);
         when(mapper.toApplicantResponse(pending)).thenReturn(pendingResponse);
         assertEquals(List.of(withdrawnResponse, pendingResponse), service.getJobApplicants("employer", 3));
+    }
+
+    // Requires a future deadline and keeps expired listings closed to applicants.
+    @Test
+    void extendsDeadlineWithoutReopening() {
+        Employer employer = Employer.builder().employerId(7).build();
+        JobPost job = JobPost.builder().employer(employer).status(JobStatus.EXPIRED).build();
+        when(users.findByUsername("employer")).thenReturn(Optional.of(User.builder().id(1L).build()));
+        when(employers.findByUserId(1)).thenReturn(Optional.of(employer));
+        when(jobs.findById(3)).thenReturn(Optional.of(job));
+        when(jobs.save(job)).thenReturn(job);
+        var request = new UpdateEmployerJobRequest();
+        request.setExpiredAt(LocalDate.now().minusDays(1));
+        assertThrows(BusinessException.class, () -> service.updateEmployerJob("employer", 3, request));
+        request.setExpiredAt(LocalDate.now().plusDays(1));
+        request.setStatus(JobStatus.ACTIVE);
+        assertThrows(BusinessException.class, () -> service.updateEmployerJob("employer", 3, request));
+        verify(jobs, never()).save(any());
+        request.setStatus(null);
+        service.updateEmployerJob("employer", 3, request);
+        verify(mapper).updateEntityFromRequest(request, job);
+        verify(jobs).save(job);
+        assertEquals(JobStatus.EXPIRED, job.getStatus());
     }
 
     // Sets up the authenticated employer and the locked store.

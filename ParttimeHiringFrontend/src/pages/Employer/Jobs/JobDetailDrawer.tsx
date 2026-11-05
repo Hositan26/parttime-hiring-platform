@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, FileText, Users, DollarSign, Calendar, MapPin, Clock, Briefcase, User, Star, Edit, Save, Trash, MessageSquare, Image as ImageIcon, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, FileText, Users, DollarSign, Calendar, MapPin, Clock, Briefcase, User, Star, Edit, Save, Trash, MessageSquare, Image as ImageIcon, CheckCircle } from 'lucide-react';
 import styles from './JobDetailDrawer.module.css';
 import { getEmployerJobDetail, getJobApplicants, getJobComments, uploadJobImage, deleteJobImage, updateEmployerJob, type EmployerJobDetailDTO, type EmployerJobApplicantDTO, type EmployerJobCommentDTO } from '../../../services/employerJobApi';
 import { updateApplicationStatus } from '../../../services/application.service';
@@ -51,7 +51,6 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({ jobId, onClose
         genderRequirement: data.genderRequirement || 'ANY',
         minAge: data.minAge || 18,
         maxAge: data.maxAge || 60,
-        status: data.status || 'ACTIVE',
         categoryIds: data.categoryIds || [],
         shiftIds: data.shiftIds || []
       });
@@ -85,10 +84,9 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({ jobId, onClose
   const handleSave = async () => {
     // Validate date
     if (editForm.expiredAt) {
-      const selectedDate = new Date(editForm.expiredAt);
       const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      if (selectedDate < today) {
+      const localToday = new Date(today.getTime() - today.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
+      if (editForm.expiredAt < localToday) {
         alert('Hạn nộp không được chọn ngày trong quá khứ!');
         return;
       }
@@ -277,38 +275,6 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({ jobId, onClose
                   <span>Tổng quan công việc</span>
                 </div>
                 <div className={styles.overviewGrid}>
-                  {/* Status update logic when editing */}
-                  {isEditing && (
-                    <div className={styles.overviewItem} style={{ gridColumn: '1 / -1', backgroundColor: '#F8FAFC', padding: 12, borderRadius: 8, border: '1px solid #E2E8F0', flexDirection: 'column', alignItems: 'flex-start' }}>
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
-                        <AlertCircle size={18} color="#3B82F6" />
-                        <span className={styles.overviewLabel}>Trạng thái hoạt động</span>
-                      </div>
-                      {job.status === 'EXPIRED' ? (
-                        <div style={{ color: '#EF4444', fontSize: '0.9rem' }}>
-                          Tin đã hết hạn. Vui lòng gia hạn <b>Hạn nộp</b> ở bên dưới trước khi chuyển sang trạng thái HOẠT ĐỘNG.
-                        </div>
-                      ) : (
-                        <div className={styles.chipContainer}>
-                          <button
-                            type="button"
-                            className={`${styles.chipBtn} ${editForm.status === 'ACTIVE' ? styles.chipSelected : ''}`}
-                            onClick={() => setEditForm({...editForm, status: 'ACTIVE'})}
-                          >
-                            Đang hoạt động (ACTIVE)
-                          </button>
-                          <button
-                            type="button"
-                            className={`${styles.chipBtn} ${editForm.status === 'INACTIVE' ? styles.chipSelected : ''}`}
-                            onClick={() => setEditForm({...editForm, status: 'INACTIVE'})}
-                          >
-                            Tạm đóng (INACTIVE)
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
                   {/* CATEGORIES CHIPS */}
                   <div className={styles.overviewItem} style={{ gridColumn: '1 / -1', flexDirection: 'column', alignItems: 'flex-start' }}>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>

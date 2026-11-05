@@ -176,7 +176,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
         return employerJobMapper.toDetailResponse(jobPost, 0);
     }
 
-    // Updates recruitment details after checking employer ownership.
+    // Edits an owned listing without changing its recruitment state.
     @Transactional
     public EmployerJobDetailResponse updateEmployerJob(String username, Integer jobId, UpdateEmployerJobRequest request) {
         Employer employer = getEmployerByUsername(username);
@@ -187,19 +187,11 @@ public class EmployerJobServiceImpl implements EmployerJobService {
             throw new AccessDeniedException("Bạn không có quyền chỉnh sửa tin tuyển dụng này.");
         }
 
-        // Apply new status logic if provided
-        if (request.getStatus() != null) {
-            if (jobPost.getStatus() == JobStatus.EXPIRED && request.getStatus() == JobStatus.ACTIVE) {
-                if (request.getExpiredAt() != null && !request.getExpiredAt().isAfter(LocalDate.now())) {
-                    throw new RuntimeException("Không thể kích hoạt lại tin đã hết hạn. Vui lòng gia hạn ngày nộp hồ sơ.");
-                }
-            }
-            jobPost.setStatus(request.getStatus());
+        if (request.getStatus() != null && request.getStatus() != jobPost.getStatus()) {
+            throw new BusinessException("Hãy đổi trạng thái tin bằng thao tác riêng.");
         }
-
-        // If the date is explicitly set to past, auto change to EXPIRED
-        if (request.getExpiredAt() != null && request.getExpiredAt().isBefore(LocalDate.now())) {
-            jobPost.setStatus(JobStatus.EXPIRED);
+        if (request.getExpiredAt() == null || request.getExpiredAt().isBefore(LocalDate.now())) {
+            throw new BusinessException("Hạn nộp hồ sơ không được ở quá khứ.");
         }
 
         employerJobMapper.updateEntityFromRequest(request, jobPost);
