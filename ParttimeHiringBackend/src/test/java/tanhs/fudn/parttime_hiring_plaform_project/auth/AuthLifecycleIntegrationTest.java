@@ -40,6 +40,18 @@ class AuthLifecycleIntegrationTest {
                 .andExpect(jsonPath("$.result.totalStores").isNumber());
     }
 
+    // Revokes employer dashboard access and refresh credentials after logout.
+    @Test
+    void employerLogoutRevokesSession() throws Exception {
+        var login = postJson("/api/auth/login", "{\"username\":\"employer\",\"password\":\"employer\"}");
+        var access = cookie(login, "access_token");
+        var refresh = cookie(login, "refresh_token");
+        mvc.perform(get("/api/employer/dashboard/overview").cookie(access)).andExpect(status().isOk());
+        assertEquals(200, postJson("/api/auth/logout", "{}", access, refresh).getResponse().getStatus());
+        mvc.perform(get("/api/employer/dashboard/overview").cookie(access)).andExpect(status().isUnauthorized());
+        assertEquals(401, postJson("/api/auth/refresh", "{}", refresh).getResponse().getStatus());
+    }
+
     // Registers, authenticates, refreshes, and revokes a browser session end to end.
     @Test
     void completesAccountSessionLifecycle() throws Exception {
