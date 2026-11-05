@@ -1,5 +1,6 @@
 package tanhs.fudn.parttime_hiring_plaform_project.auth;
 import java.util.Optional;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.access.AccessDeniedException;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
@@ -30,5 +31,24 @@ class OwnershipUnitTest {
                 mock(EmploymentRecordMapper.class), stores);
         assertThrows(AccessDeniedException.class, () -> service.getEmploymentsByStore(99, "owner"));
         verifyNoInteractions(records);
+    }
+
+    // Reads only the requested store after ownership has been verified.
+    @Test
+    void permitsOwnedStore() {
+        var users = mock(UserRepository.class);
+        var employers = mock(EmployerRepository.class);
+        var stores = mock(StoreRepository.class);
+        var records = mock(EmploymentRecordRepository.class);
+        Employer owner = Employer.builder().employerId(10).build();
+        when(users.findByUsername("owner")).thenReturn(Optional.of(User.builder().id(1L).build()));
+        when(employers.findByUserId(1)).thenReturn(Optional.of(owner));
+        when(stores.findById(99)).thenReturn(Optional.of(Store.builder().employer(owner).build()));
+        when(records.findByStoreIdWithDetails(99)).thenReturn(List.of());
+        var service = new EmployerEmploymentServiceImpl(records, employers, users,
+                mock(EmploymentRecordMapper.class), stores);
+        assertEquals(List.of(), service.getEmploymentsByStore(99, "owner"));
+        verify(records).findByStoreIdWithDetails(99);
+        verifyNoMoreInteractions(records);
     }
 }
