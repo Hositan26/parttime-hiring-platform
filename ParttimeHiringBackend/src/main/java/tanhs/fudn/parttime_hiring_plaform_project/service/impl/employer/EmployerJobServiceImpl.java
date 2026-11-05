@@ -2,6 +2,9 @@ package tanhs.fudn.parttime_hiring_plaform_project.service.impl.employer;
 
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.EmployerStatus;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException;
+import tanhs.fudn.parttime_hiring_plaform_project.service.employer.StoreApprovalPolicy;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.job.JobPostSpecification;
 
 import tanhs.fudn.parttime_hiring_plaform_project.service.employer.EmployerJobService;
@@ -127,15 +130,25 @@ public class EmployerJobServiceImpl implements EmployerJobService {
         return applications.stream().map(employerJobMapper::toApplicantResponse).collect(Collectors.toList());
     }
 
-    // Creates a recruitment post for an owned store.
+    // Publishes recruitment only for an approved and operating store.
     @Transactional
     public EmployerJobDetailResponse createEmployerJob(String username, CreateEmployerJobRequest request) {
         Employer employer = getEmployerByUsername(username);
-        Store store = storeRepository.findById(request.getStoreId())
+        Store store = storeRepository.lockById(request.getStoreId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
 
         if (!store.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
             throw new AccessDeniedException("Bạn không có quyền tạo việc làm cho cửa hàng này.");
+        }
+
+        if (employer.getStatus() != EmployerStatus.ACTIVE) {
+            throw new BusinessException("Doanh nghiệp không hoạt động.");
+        }
+        if (!StoreApprovalPolicy.isApproved(store) || !Boolean.TRUE.equals(store.getIsActive())) {
+            throw new BusinessException("Chỉ cửa hàng đã duyệt và đang hoạt động mới được đăng tin.");
+        }
+        if (request.getExpiredAt() == null || request.getExpiredAt().isBefore(LocalDate.now())) {
+            throw new BusinessException("Hạn nộp hồ sơ không được ở quá khứ.");
         }
 
         JobPost jobPost = employerJobMapper.toEntity(request);
