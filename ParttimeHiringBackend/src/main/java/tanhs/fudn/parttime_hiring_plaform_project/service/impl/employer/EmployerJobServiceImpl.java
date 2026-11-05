@@ -258,12 +258,27 @@ public class EmployerJobServiceImpl implements EmployerJobService {
             throw new AccessDeniedException("Bạn không có quyền chỉnh sửa tin tuyển dụng này.");
         }
 
-        if (jobPost.getStatus() == JobStatus.EXPIRED && newStatus == JobStatus.ACTIVE) {
-            if (jobPost.getExpiredAt() != null && !jobPost.getExpiredAt().isAfter(LocalDateTime.now())) {
-                throw new RuntimeException("Không thể kích hoạt lại tin đã hết hạn. Vui lòng gia hạn ngày nộp hồ sơ.");
+        if (newStatus == null || newStatus == JobStatus.EXPIRED) {
+            throw new BusinessException("Trạng thái này không thể đặt thủ công.");
+        }
+        if (newStatus == jobPost.getStatus()) {
+            return;
+        }
+        if (newStatus == JobStatus.PAUSED && jobPost.getStatus() != JobStatus.ACTIVE) {
+            throw new BusinessException("Chỉ tin đang tuyển mới có thể tạm dừng.");
+        }
+        if (newStatus == JobStatus.ACTIVE) {
+            if (jobPost.getExpiredAt() == null || !jobPost.getExpiredAt().isAfter(LocalDateTime.now())) {
+                throw new BusinessException("Hãy gia hạn nộp hồ sơ trước khi mở lại tin.");
+            }
+            Store store = storeRepository.lockById(jobPost.getStore().getStoreId())
+                    .orElseThrow(() -> new BusinessException("Không tìm thấy cửa hàng."));
+            if (employer.getStatus() != EmployerStatus.ACTIVE || !StoreApprovalPolicy.isApproved(store)
+                    || !Boolean.TRUE.equals(store.getIsActive())) {
+                throw new BusinessException("Chỉ cửa hàng đã duyệt và đang hoạt động mới được mở lại tin.");
             }
         }
-        
+
         jobPost.setStatus(newStatus);
         jobPostRepository.save(jobPost);
     }
@@ -281,9 +296,14 @@ public class EmployerJobServiceImpl implements EmployerJobService {
 
         long applicationsCount = jobApplicationRepository.countByJobPost_JobPostId(jobId);
         if (applicationsCount > 0) {
-            throw new RuntimeException("Không thể xóa tin tuyển dụng đã có người ứng tuyển.");
+            throw new BusinessException("Không thể xóa tin tuyển dụng đã có người ứng tuyển.");
         }
 
-        jobPostRepository.delete(jobPost);
+        try {
+            jobPostRepository.delete(jobPost);
+            jobPostRepository.flush();
+        } catch (org.springframework.dao.DataIntegrityViolationException failure) {
+            throw new BusinessException("Tin tuyển dụng đã có dữ liệu liên quan. Hãy đóng tin để giữ lịch sử.");
+        }
     }
 }

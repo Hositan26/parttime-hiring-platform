@@ -25,7 +25,7 @@ const StatusDropdown: React.FC<{ status: string, onChange: (val: string) => void
         className={`${styles.statusBadge} ${status === 'ACTIVE' ? styles.statusActive : styles.statusClosed} ${styles.clickableBadge}`}
         onClick={() => setIsOpen(!isOpen)}
       >
-        {status === 'ACTIVE' ? 'ĐANG MỞ' : 'ĐÃ ĐÓNG'}
+        {status === 'ACTIVE' ? 'ĐANG MỞ' : status === 'PAUSED' ? 'TẠM DỪNG' : status === 'EXPIRED' ? 'HẾT HẠN' : 'ĐÃ ĐÓNG'}
       </div>
       {isOpen && (
         <div className={styles.customOptions}>
@@ -35,6 +35,11 @@ const StatusDropdown: React.FC<{ status: string, onChange: (val: string) => void
           >
             <span className={`${styles.statusBadge} ${styles.statusActive}`}>ĐANG MỞ</span>
           </div>
+          {status === 'ACTIVE' && (
+            <div className={styles.customOption} onClick={() => { onChange('PAUSED'); setIsOpen(false); }}>
+              <span className={styles.statusBadge}>TẠM DỪNG</span>
+            </div>
+          )}
           <div 
             className={styles.customOption}
             onClick={() => { onChange('CLOSED'); setIsOpen(false); }}
@@ -231,7 +236,8 @@ export const Jobs: React.FC = () => {
             >
               <option value="">Tất cả trạng thái</option>
               <option value="ACTIVE">Đang hoạt động</option>
-              <option value="INACTIVE">Đã đóng</option>
+              <option value="CLOSED">Đã đóng</option>
+              <option value="PAUSED">Tạm dừng</option>
               <option value="EXPIRED">Đã hết hạn</option>
             </select>
           </div>
@@ -337,11 +343,7 @@ export const Jobs: React.FC = () => {
                   )}
                 </td>
                 <td>
-                  {job.status === 'EXPIRED' || job.daysLeft === 'Đã hết hạn' ? (
-                    <div className={`${styles.statusBadge} ${styles.statusExpired}`}>HẾT HẠN</div>
-                  ) : (
-                    <StatusDropdown status={job.status} onChange={(val) => handleStatusChange(job.id, val)} />
-                  )}
+                  <StatusDropdown status={job.status} onChange={(val) => handleStatusChange(job.id, val)} />
                 </td>
                 <td>
                   <div className={styles.actionsCell}>

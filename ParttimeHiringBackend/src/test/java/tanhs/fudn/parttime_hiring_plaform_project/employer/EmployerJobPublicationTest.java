@@ -1,6 +1,7 @@
 package tanhs.fudn.parttime_hiring_plaform_project.employer;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.request.employer.job.UpdateEmployerJobRequest;
 import java.util.List;
@@ -145,6 +146,29 @@ class EmployerJobPublicationTest {
         verify(mapper).updateEntityFromRequest(request, job);
         verify(jobs).save(job);
         assertEquals(JobStatus.EXPIRED, job.getStatus());
+    }
+
+    // Requires valid recruitment conditions when a paused listing is reopened.
+    @Test
+    void pausesAndReopensAnEligibleListing() {
+        Employer owner = Employer.builder().employerId(7).status(EmployerStatus.ACTIVE).build();
+        Store store = Store.builder().storeId(3).employer(owner).isApproved(true).isActive(true).build();
+        prepare(owner, store);
+        JobPost job = JobPost.builder().employer(owner).store(store).status(JobStatus.ACTIVE)
+                .expiredAt(LocalDateTime.now().minusDays(1)).build();
+        when(jobs.findById(9)).thenReturn(Optional.of(job));
+        service.patchJobStatus("employer", 9, JobStatus.PAUSED);
+        assertEquals(JobStatus.PAUSED, job.getStatus());
+        assertThrows(BusinessException.class, () -> service.patchJobStatus("employer", 9, JobStatus.ACTIVE));
+        job.setExpiredAt(LocalDateTime.now().plusDays(1));
+        store.setIsActive(false);
+        assertThrows(BusinessException.class, () -> service.patchJobStatus("employer", 9, JobStatus.ACTIVE));
+        store.setIsActive(true);
+        service.patchJobStatus("employer", 9, JobStatus.ACTIVE);
+        assertEquals(JobStatus.ACTIVE, job.getStatus());
+        when(applications.countByJobPost_JobPostId(9)).thenReturn(1L);
+        assertThrows(BusinessException.class, () -> service.deleteJob("employer", 9));
+        verify(jobs, never()).delete(job);
     }
 
     // Sets up the authenticated employer and the locked store.
