@@ -43,6 +43,8 @@ public interface StoreMapper {
     @Mapping(target = "applications", source = "applicationsCount")
     EmployerStoreDetailResponse.StoreJobDTO toStoreJobDTO(JobPost jobPost, long applicationsCount);
 
+    // Keeps the editable street address separate from the formatted display address.
+    @Mapping(target = "streetAddress", source = "store.streetAddress")
     @Mapping(target = "name", source = "store.storeName")
     @Mapping(target = "phone", expression = "java(store.getPhoneContact() != null ? store.getPhoneContact() : employerPhone)")
     @Mapping(target = "address", expression = "java((store.getStreetAddress() != null ? store.getStreetAddress() : \"\") + \", \" + (store.getWard() != null ? store.getWard() : \"\") + \", \" + (store.getDistrict() != null ? store.getDistrict() : \"\") + \", \" + (store.getCity() != null ? store.getCity() : \"\"))")

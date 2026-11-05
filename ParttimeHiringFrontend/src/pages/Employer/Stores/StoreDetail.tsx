@@ -29,7 +29,7 @@ export const StoreDetail: React.FC = () => {
       setEditData({
         name: result.name || '',
         phone: result.phone || '',
-        address: result.address || '',
+        address: result.streetAddress || '',
         description: result.description || ''
       });
     } catch (err: any) {
@@ -120,7 +120,7 @@ export const StoreDetail: React.FC = () => {
       setEditData({
         name: data.name || '',
         phone: data.phone || '',
-        address: data.address || '',
+        address: data.streetAddress || '',
         description: data.description || ''
       });
     }
@@ -169,7 +169,7 @@ export const StoreDetail: React.FC = () => {
               </div>
             </div>
             
-            {data.status !== 'PENDING' && !isEditing && (
+            {!isEditing && (
               <button className={styles.editBtn} onClick={() => setIsEditing(true)}>
                 <Edit2 size={16} /> Chỉnh sửa
               </button>

@@ -64,6 +64,7 @@ export interface EmployerStoreDetailDTO {
   storeId: number;
   name: string;
   phone: string;
+  streetAddress?: string | null;
   address: string;
   description: string;
   status: string;

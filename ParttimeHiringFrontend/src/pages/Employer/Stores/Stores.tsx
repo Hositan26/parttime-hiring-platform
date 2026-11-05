@@ -196,8 +196,7 @@ export const Stores: React.FC = () => {
                       <button className={styles.actionBtn} onClick={() => navigate(`/employer/stores/${store.storeId}`)}>
                         <Eye size={18} />
                       </button>
-                      {store.status !== 'PENDING' && (
-                        <button 
+                      <button
                           className={`${styles.actionBtn} ${styles.danger}`} 
                           onClick={() => handleDelete(store.storeId)}
                           style={{ color: '#ef4444', borderColor: '#fee2e2', backgroundColor: '#fef2f2' }}
@@ -205,7 +204,6 @@ export const Stores: React.FC = () => {
                         >
                           <Trash2 size={18} />
                         </button>
-                      )}
                     </div>
                   </td>
                 </tr>

@@ -26,6 +26,9 @@ public interface EmploymentRecordRepository extends JpaRepository<EmploymentReco
     @Query("select record from EmploymentRecord record where record.employmentRecordId = :id")
     Optional<EmploymentRecord> lockById(@Param("id") Integer id);
 
+    // Checks whether a store has employment history before deletion.
+    boolean existsByStore_StoreId(Integer storeId);
+
     Optional<EmploymentRecord> findByApplication(JobApplication application);
 
     @Query("SELECT er FROM EmploymentRecord er LEFT JOIN FETCH er.user LEFT JOIN FETCH er.jobPost LEFT JOIN FETCH er.application LEFT JOIN FETCH er.store WHERE er.store.storeId = :storeId ORDER BY er.createdAt DESC")

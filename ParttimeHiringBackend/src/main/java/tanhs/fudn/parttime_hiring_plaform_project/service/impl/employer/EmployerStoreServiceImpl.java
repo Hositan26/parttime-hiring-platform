@@ -31,6 +31,9 @@ import tanhs.fudn.parttime_hiring_plaform_project.repository.employment.Employme
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.employer.store.EmployeeResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.employment.EmploymentRecord;
 import java.util.Comparator;
+import java.util.Objects;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -94,51 +97,46 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
         log.info("Xóa cửa hàng ID: {} bởi username: {}", storeId, username);
         Employer employer = getEmployerByUsername(username);
         
-        Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
+        Store store = storeRepository.lockById(storeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cửa hàng."));
         
         if (!store.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
             throw new AccessDeniedException("Bạn không có quyền xóa cửa hàng này.");
         }
         
-        if (!store.getIsActive()) {
-            throw new RuntimeException("Cửa hàng đang chờ phê duyệt không thể bị xóa.");
+        if (jobPostRepository.countByStore_StoreId(storeId) > 0
+                || jobApplicationRepository.countByStoreId(storeId) > 0
+                || employmentRecordRepository.existsByStore_StoreId(storeId)) {
+            throw new BusinessException("Cửa hàng đã có dữ liệu tuyển dụng hoặc nhân sự. Hãy tạm ngừng hoạt động.");
         }
-        
-        long jobsCount = jobPostRepository.countByStore_StoreId(storeId);
-        if (jobsCount > 0) {
-            throw new RuntimeException("Không thể xóa cửa hàng đang có tin tuyển dụng.");
-        }
-        
+
         storeRepository.delete(store);
     }
 
-    // Updates owned store details and requests a new review.
+    // Requests new approval when an owned store changes its address.
     @Transactional
     public void updateStore(String username, Integer storeId, UpdateStoreRequest request) {
         log.info("Cập nhật cửa hàng ID: {} bởi username: {}", storeId, username);
         Employer employer = getEmployerByUsername(username);
         
         Store store = storeRepository.lockById(storeId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cửa hàng."));
         
         if (!store.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
             throw new AccessDeniedException("Bạn không có quyền chỉnh sửa cửa hàng này.");
         }
         
-        if (!store.getIsActive()) {
-            throw new RuntimeException("Cửa hàng đang chờ phê duyệt không thể chỉnh sửa.");
-        }
-        
+        boolean addressChanged = !Objects.equals(store.getStreetAddress(), request.getAddress());
         store.setStoreName(request.getName());
         store.setPhoneContact(request.getPhone());
         store.setStreetAddress(request.getAddress());
         store.setDescription(request.getDescription());
         
-        // Khi cập nhật thông tin, tự động chuyển về trạng thái chờ phê duyệt
-        store.setIsActive(false);
-        store.setIsApproved(false);
-        
+        if (addressChanged) {
+            store.setIsActive(false);
+            store.setIsApproved(false);
+        }
+
         storeRepository.save(store);
     }
 
