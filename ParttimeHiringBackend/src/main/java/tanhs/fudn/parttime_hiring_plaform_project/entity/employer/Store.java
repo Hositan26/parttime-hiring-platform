@@ -43,6 +43,9 @@ public class Store {
     @Column(name = "street_address")
     private String streetAddress;
 
+    @Column(name = "is_approved")
+    private Boolean isApproved;
+
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 

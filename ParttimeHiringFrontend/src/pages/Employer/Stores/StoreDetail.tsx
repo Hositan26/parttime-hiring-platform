@@ -164,12 +164,12 @@ export const StoreDetail: React.FC = () => {
               <div>
                 <h2 className={styles.storeName}>{data.name}</h2>
                 <span className={`${styles.statusBadge} ${data.status === 'ACTIVE' ? styles.statusActive : styles.statusInactive}`}>
-                  {data.status === 'ACTIVE' ? 'Đang hoạt động' : 'Chờ phê duyệt'}
+                  {data.status === 'ACTIVE' ? 'Đang hoạt động' : data.status === 'PAUSED' ? 'Tạm ngừng' : 'Chờ phê duyệt'}
                 </span>
               </div>
             </div>
             
-            {data.status !== 'INACTIVE' && !isEditing && (
+            {data.status !== 'PENDING' && !isEditing && (
               <button className={styles.editBtn} onClick={() => setIsEditing(true)}>
                 <Edit2 size={16} /> Chỉnh sửa
               </button>

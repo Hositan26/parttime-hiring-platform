@@ -1,6 +1,7 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.employer;
 
 import org.springframework.security.access.AccessDeniedException;
+import tanhs.fudn.parttime_hiring_plaform_project.service.employer.StoreApprovalPolicy;
 
 import tanhs.fudn.parttime_hiring_plaform_project.service.employer.EmployerStoreService;
 
@@ -118,7 +119,7 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
         log.info("Cập nhật cửa hàng ID: {} bởi username: {}", storeId, username);
         Employer employer = getEmployerByUsername(username);
         
-        Store store = storeRepository.findById(storeId)
+        Store store = storeRepository.lockById(storeId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
         
         if (!store.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
@@ -136,6 +137,7 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
         
         // Khi cập nhật thông tin, tự động chuyển về trạng thái chờ phê duyệt
         store.setIsActive(false);
+        store.setIsApproved(false);
         
         storeRepository.save(store);
     }
@@ -154,6 +156,7 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
                 .ward(request.getWard())
                 .streetAddress(request.getStreetAddress())
                 .description(request.getDescription())
+                .isApproved(false)
                 .isActive(false) 
                 .build();
                 
@@ -168,14 +171,14 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
         log.info("Thay đổi trạng thái cửa hàng ID: {} bởi username: {}", storeId, username);
         Employer employer = getEmployerByUsername(username);
         
-        Store store = storeRepository.findById(storeId)
+        Store store = storeRepository.lockById(storeId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng."));
         
         if (!store.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
             throw new AccessDeniedException("Bạn không có quyền thay đổi trạng thái cửa hàng này.");
         }
         
-        store.setIsActive(!store.getIsActive());
+        StoreApprovalPolicy.toggleActivity(store);
         store = storeRepository.save(store);
         
         long jobCount = jobPostRepository.countByStore_StoreId(storeId);

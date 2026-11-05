@@ -1,3 +1,4 @@
+import { toggleStoreStatus } from '../../../services/storeApi';
 import React, { useState, useEffect } from 'react';
 import { Plus, Store, BriefcaseBusiness, Clock, Search, MapPin, Phone, Eye, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import { getEmployerStores, deleteStore, type EmployerStoreListDTO } from '../../../services/storeApi';
@@ -40,6 +41,18 @@ export const Stores: React.FC = () => {
   };
 
 
+
+  const changeActivity = async (storeId: string | number) => {
+    try {
+      setLoading(true);
+      await toggleStoreStatus(storeId);
+      await fetchData();
+    } catch (failure) {
+      window.alert(failure instanceof Error ? failure.message : 'Không thể đổi trạng thái cửa hàng.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDelete = async (storeId: string | number) => {
     if (!window.confirm('Bạn có chắc chắn muốn xóa cửa hàng này? Nếu cửa hàng đang có tin tuyển dụng sẽ không thể xóa.')) return;
@@ -170,15 +183,20 @@ export const Stores: React.FC = () => {
                   <td style={{textAlign: 'center', fontWeight: '600'}}>{store.applications}</td>
                   <td>
                     <span className={`${styles.statusBadge} ${store.status === 'ACTIVE' ? styles.statusActive : styles.statusInactive}`}>
-                        {store.status === 'ACTIVE' ? 'Đang hoạt động' : 'Chờ phê duyệt'}
+                        {store.status === 'ACTIVE' ? 'Đang hoạt động' : store.status === 'PAUSED' ? 'Tạm ngừng' : 'Chờ phê duyệt'}
                     </span>
                   </td>
                   <td>
                     <div className={styles.actionCell}>
+                      {store.status !== 'PENDING' && (
+                        <button className={styles.actionBtn} disabled={loading} onClick={() => void changeActivity(store.storeId)}>
+                          {store.status === 'ACTIVE' ? 'Tạm ngừng' : 'Bật'}
+                        </button>
+                      )}
                       <button className={styles.actionBtn} onClick={() => navigate(`/employer/stores/${store.storeId}`)}>
                         <Eye size={18} />
                       </button>
-                      {store.status !== 'INACTIVE' && (
+                      {store.status !== 'PENDING' && (
                         <button 
                           className={`${styles.actionBtn} ${styles.danger}`} 
                           onClick={() => handleDelete(store.storeId)}
