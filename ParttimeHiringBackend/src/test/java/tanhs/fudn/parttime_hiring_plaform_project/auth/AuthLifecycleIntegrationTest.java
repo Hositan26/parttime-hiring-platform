@@ -30,6 +30,16 @@ class AuthLifecycleIntegrationTest {
     @Autowired PasswordResetTokenRepository resets;
     @Autowired tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminUserService administration;
 
+    // Allows a password-authenticated employer to open the recruitment dashboard.
+    @Test
+    void employerLoginOpensDashboard() throws Exception {
+        var login = postJson("/api/auth/login", "{\"username\":\"employer\",\"password\":\"employer\"}");
+        assertEquals(200, login.getResponse().getStatus());
+        mvc.perform(get("/api/employer/dashboard/overview").cookie(cookie(login, "access_token")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result.totalStores").isNumber());
+    }
+
     // Registers, authenticates, refreshes, and revokes a browser session end to end.
     @Test
     void completesAccountSessionLifecycle() throws Exception {
