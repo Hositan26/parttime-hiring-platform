@@ -36,7 +36,13 @@ export const Applications: React.FC = () => {
       if (!isConfirmed) return;
     }
     try {
-      await updateApplicationStatus(id, status);
+      const rejectionReason = status === 'REJECTED' ? window.prompt('Nhập lý do từ chối để gửi cho ứng viên (tối đa 500 ký tự):') : undefined;
+      if (rejectionReason === null) return;
+      if (status === 'REJECTED' && (!rejectionReason?.trim() || rejectionReason.trim().length > 500)) {
+        window.alert('Vui lòng nhập lý do từ chối từ 1 đến 500 ký tự.');
+        return;
+      }
+      await updateApplicationStatus(id, status, rejectionReason?.trim());
       setRevision(value => value + 1);
     } catch (error) {
       console.error(error);

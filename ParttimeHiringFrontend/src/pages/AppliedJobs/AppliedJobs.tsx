@@ -117,6 +117,9 @@ export const AppliedJobs: React.FC = () => {
                     <Clock size={16} className={styles.footerIcon} />
                     <span>Đã nộp: {formatDate(app.appliedAt)}</span>
                   </div>
+                  {app.status === 'REJECTED' && app.rejectionReason && (
+                    <div className={styles.footerItem}>Lý do từ chối: {app.rejectionReason}</div>
+                  )}
                   {app.note && (
                     <div className={styles.footerItem}>
                       <span>Ghi chú: {app.note}</span>

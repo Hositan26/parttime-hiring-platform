@@ -149,9 +149,9 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                 .collect(Collectors.toList());
     }
 
-    // Updates an owned application and synchronizes employment records.
+    // Records an owned hiring decision and preserves finalized acceptances.
     @Transactional
-    public void updateApplicationStatus(Integer applicationId, ApplicationStatus status, String username) {
+    public void updateApplicationStatus(Integer applicationId, ApplicationStatus status, String rejectionReason, String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -174,7 +174,14 @@ public class JobApplicationServiceImpl implements JobApplicationService {
             throw new BusinessException("This application decision is not allowed");
         }
 
-        // Cập nhật trạng thái
+        String reason = rejectionReason == null ? "" : rejectionReason.strip();
+        if (status == ApplicationStatus.REJECTED && (reason.isBlank() || reason.length() > 500)) {
+            throw new BusinessException("Vui lòng nhập lý do từ chối từ 1 đến 500 ký tự.");
+        }
+        if (oldStatus == status && (status == ApplicationStatus.ACCEPTED || application.getRejectionReason() != null)) {
+            return;
+        }
+        application.setRejectionReason(status == ApplicationStatus.REJECTED ? reason : null);
         application.setStatus(status);
         applicationRepository.save(application);
         if (oldStatus != status) notifications.decision(application);

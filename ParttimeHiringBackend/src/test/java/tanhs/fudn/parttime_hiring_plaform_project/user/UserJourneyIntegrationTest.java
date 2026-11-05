@@ -66,7 +66,7 @@ class UserJourneyIntegrationTest {
         applicationService.applyForJob(JobApplicationRequest.builder().jobPostId(job.getJobPostId()).contactPhone("0901234567").note("Available weekends").build(), username);
         var application = applications.findByApplicant_IdOrderByAppliedAtDesc(candidate.getId()).get(0);
         assertEquals("Customer service", profiles.applicationProfile(recruiter.getUsername(), application.getApplicationId()).getSkills());
-        applicationService.updateApplicationStatus(application.getApplicationId(), ApplicationStatus.ACCEPTED, recruiter.getUsername());
+        applicationService.updateApplicationStatus(application.getApplicationId(), ApplicationStatus.ACCEPTED, null, recruiter.getUsername());
         assertEquals(1, notifications.list(username, 0, 20).getTotalElements());
         var notification = notifications.list(username, 0, 20).getContent().get(0);
         notifications.read(username, notification.getId());

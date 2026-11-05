@@ -19,6 +19,7 @@ export interface JobApplicationRequest {
 }
 
 export interface JobApplicationResponse {
+    rejectionReason?: string | null;
     applicationId: number;
     jobPostId: number;
     jobTitle: string;
@@ -104,14 +105,14 @@ export const getEmployerApplications = async (storeId?: number, status?: string)
     return data.result;
 };
 
-export const updateApplicationStatus = async (applicationId: number, status: string): Promise<void> => {
+export const updateApplicationStatus = async (applicationId: number, status: string, rejectionReason?: string): Promise<void> => {
     const response = await apiFetch(`${apiBase}/employer/applications/${applicationId}/status`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json'
         },
         credentials: 'include',
-        body: JSON.stringify({ status })
+        body: JSON.stringify({ status, rejectionReason })
     });
     
     if (!response.ok) {

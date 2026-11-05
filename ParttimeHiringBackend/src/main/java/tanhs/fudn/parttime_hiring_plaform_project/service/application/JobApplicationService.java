@@ -16,5 +16,6 @@ public interface JobApplicationService {
     void applyForJob(JobApplicationRequest request, String username);
     List<JobApplicationResponse> getMyApplications(String username);
     List<EmployerApplicationResponse> getApplicationsForEmployer(String username, Integer storeId, ApplicationStatus status);
-    void updateApplicationStatus(Integer applicationId, ApplicationStatus status, String username);
+    // Records a hiring decision and requires feedback for rejection.
+    void updateApplicationStatus(Integer applicationId, ApplicationStatus status, String rejectionReason, String username);
 }
