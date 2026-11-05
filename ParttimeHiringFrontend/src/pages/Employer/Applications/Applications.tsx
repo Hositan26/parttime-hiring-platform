@@ -1,7 +1,8 @@
+import { matchesEmployerSearch } from '../../../services/employerSearch';
 import { useApiResource } from '../../../services/usePagedResource';
 import { apiBase } from '../../../services/apiClient';
 import React, { useEffect, useState } from 'react';
-import { Users, Clock, CheckCircle2, XCircle, Eye, MapPin, Search, ChevronLeft, ChevronRight, CheckCircle, X, ExternalLink } from 'lucide-react';
+import { Users, Clock, CheckCircle2, XCircle, Eye, MapPin, Search, CheckCircle, X, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Applications.module.css';
 import { updateApplicationStatus, type EmployerApplicationResponse } from '../../../services/application.service';
@@ -14,6 +15,7 @@ export const Applications: React.FC = () => {
   const [selectedProfile, setSelectedProfile] = useState<EmployerApplicationResponse | null>(null);
   
   const [selectedStoreId, setSelectedStoreId] = useState<number>(0);
+  const [search, setSearch] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
 
   const [revision, setRevision] = useState(0);
@@ -22,6 +24,8 @@ export const Applications: React.FC = () => {
   if (selectedStatus !== 'all') params.set('status', selectedStatus);
   const { data, loading, error } = useApiResource<EmployerApplicationResponse[]>(`${apiBase}/employer/applications?${params}`, revision);
   const applications = data || [];
+  const visibleApplications = applications.filter(application =>
+    matchesEmployerSearch(search, application.applicantName, application.jobTitle, application.storeName));
   useEffect(() => {
     getEmployerStores('newest').then(response => setStores(response.stores)).catch(console.error);
   }, []);
@@ -119,7 +123,7 @@ export const Applications: React.FC = () => {
         <div className={styles.tableToolbar}>
           <div className={styles.searchBox}>
             <Search size={18} color="var(--text-light)" />
-            <input type="text" placeholder="Tìm kiếm ứng viên, job, store..." />
+            <input type="search" aria-label="Tìm kiếm đơn ứng tuyển" placeholder="Tìm kiếm ứng viên, job, store..." value={search} onChange={event => setSearch(event.target.value)} />
           </div>
           <div className={styles.filtersGroup}>
             <select 
@@ -159,9 +163,9 @@ export const Applications: React.FC = () => {
           <tbody>
             {loading ? (
               <tr><td colSpan={6} style={{ textAlign: 'center', padding: '30px' }}>Đang tải...</td></tr>
-            ) : applications.length === 0 ? (
-              <tr><td colSpan={6} style={{ textAlign: 'center', padding: '30px' }}>Chưa có đơn ứng tuyển nào.</td></tr>
-            ) : applications.map((app) => (
+            ) : visibleApplications.length === 0 ? (
+              <tr><td colSpan={6} style={{ textAlign: 'center', padding: '30px' }}>{search.trim() ? 'Không tìm thấy đơn phù hợp.' : 'Chưa có đơn ứng tuyển nào.'}</td></tr>
+            ) : visibleApplications.map((app) => (
               <tr key={app.applicationId}>
                 <td>
                   <div className={styles.candidateInfo}>
@@ -253,19 +257,7 @@ export const Applications: React.FC = () => {
           </tbody>
         </table>
 
-        {applications.length > 10 && (
-          <div className={styles.pagination}>
-            <div>Hiển thị 1 - {Math.min(10, applications.length)} trong số {applications.length} đơn ứng tuyển</div>
-            <div className={styles.pageControls}>
-              <select className={styles.select} style={{marginRight: '8px', padding: '6px 10px'}}>
-                <option>10 / trang</option>
-              </select>
-              <button className={styles.pageBtn}><ChevronLeft size={16} /></button>
-              <button className={`${styles.pageBtn} ${styles.active}`}>1</button>
-              <button className={styles.pageBtn}><ChevronRight size={16} /></button>
-            </div>
-          </div>
-        )}
+
       </div>
 
       {/* Premium Profile Modal */}
