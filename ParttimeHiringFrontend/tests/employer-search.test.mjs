@@ -10,3 +10,10 @@ test('matches candidate, job, or store names without case or accent sensitivity'
   assert.equal(matchesEmployerSearch('Hà Nội', ...fields), false);
   assert.equal(matchesEmployerSearch('Huế', null, undefined), false);
 });
+
+test('matches employee, job and store fields when employment details are incomplete', () => {
+  assert.equal(matchesEmployerSearch('nguyen', 'Nguyễn Linh', null, 'Hải Châu'), true);
+  assert.equal(matchesEmployerSearch('hai chau', 'Nguyễn Linh', null, 'Hải Châu'), true);
+  assert.equal(matchesEmployerSearch('phuc vu', 'Nguyễn Linh', 'Phục vụ', 'Hải Châu'), true);
+  assert.equal(matchesEmployerSearch('phuc vu', 'Nguyễn Linh', null, 'Hải Châu'), false);
+});

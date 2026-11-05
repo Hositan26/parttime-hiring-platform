@@ -1,3 +1,4 @@
+import { matchesEmployerSearch } from '../../../services/employerSearch';
 import { useEffect, useState } from 'react';
 import { Users, CheckCircle2, XCircle, Eye, MapPin, Search, X, UserMinus } from 'lucide-react';
 import styles from './Employees.module.css';
@@ -12,6 +13,7 @@ export default function Employees() {
   const [selectedProfile, setSelectedProfile] = useState<EmployerEmploymentResponse | null>(null);
   
   const [selectedStoreId, setSelectedStoreId] = useState<number>(0);
+  const [search, setSearch] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
 
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -89,10 +91,9 @@ export default function Employees() {
     }
   };
 
-  const filteredEmployments = employments.filter(app => {
-    if (selectedStatus === 'all') return true;
-    return app.workStatus === selectedStatus;
-  });
+  const filteredEmployments = employments.filter(record =>
+    (selectedStatus === 'all' || record.workStatus === selectedStatus)
+    && matchesEmployerSearch(search, record.employeeName, record.jobTitle, record.storeName));
 
   const workingCount = employments.filter(a => a.workStatus === 'WORKING').length;
   const inactiveCount = employments.filter(a => a.workStatus === 'QUIT' || a.workStatus === 'TERMINATED').length;
@@ -141,7 +142,7 @@ export default function Employees() {
         <div className={styles.tableToolbar}>
           <div className={styles.searchBox}>
             <Search size={18} color="var(--text-light)" />
-            <input type="text" placeholder="Tìm kiếm nhân viên, job, store..." />
+            <input type="search" aria-label="Tìm kiếm nhân sự" placeholder="Tìm kiếm nhân viên, job, store..." value={search} onChange={event => setSearch(event.target.value)} />
           </div>
           <div className={styles.filtersGroup}>
             <select 
