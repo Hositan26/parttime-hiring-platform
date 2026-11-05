@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import java.security.Principal;
+import java.io.IOException;
+import org.springframework.web.multipart.MultipartFile;
 
 import tanhs.fudn.parttime_hiring_plaform_project.service.employer.EmployerStoreService;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.request.employer.store.CreateStoreRequest;
@@ -29,6 +31,20 @@ import tanhs.fudn.parttime_hiring_plaform_project.dto.response.common.ApiRespons
 public class EmployerStoreController {
 
     EmployerStoreService employerStoreService;
+
+    // Uploads a validated cover image for the authenticated store owner.
+    @PutMapping(value = "/{id}/cover", consumes = "multipart/form-data")
+    public ResponseEntity<ApiResponse<String>> uploadCover(Principal principal, @PathVariable Integer id,
+            @RequestParam("file") MultipartFile file) throws IOException {
+        return ResponseEntity.ok(ApiResponse.success(employerStoreService.uploadCover(principal.getName(), id, file)));
+    }
+
+    // Removes the cover of a store owned by the authenticated employer.
+    @DeleteMapping("/{id}/cover")
+    public ResponseEntity<ApiResponse<Void>> removeCover(Principal principal, @PathVariable Integer id) {
+        employerStoreService.removeCover(principal.getName(), id);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")

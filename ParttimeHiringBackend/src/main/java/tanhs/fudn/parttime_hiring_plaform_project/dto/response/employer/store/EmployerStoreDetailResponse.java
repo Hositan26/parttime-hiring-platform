@@ -21,6 +21,7 @@ public class EmployerStoreDetailResponse {
     private String description;
     private String status;
     private String logo;
+    private String coverImageUrl;
     
     private List<StoreJobDTO> jobs;
     

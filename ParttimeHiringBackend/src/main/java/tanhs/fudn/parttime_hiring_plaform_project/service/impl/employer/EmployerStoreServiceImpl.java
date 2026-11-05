@@ -31,6 +31,10 @@ import tanhs.fudn.parttime_hiring_plaform_project.repository.employment.Employme
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.employer.store.EmployeeResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.employment.EmploymentRecord;
 import java.util.Comparator;
+import java.io.IOException;
+import org.springframework.web.multipart.MultipartFile;
+import tanhs.fudn.parttime_hiring_plaform_project.service.common.CloudinaryService;
+import tanhs.fudn.parttime_hiring_plaform_project.util.ImageUploads;
 import java.util.Objects;
 import tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException;
 import tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException;
@@ -50,6 +54,37 @@ public class EmployerStoreServiceImpl implements EmployerStoreService {
     JobApplicationRepository jobApplicationRepository;
     StoreMapper storeMapper;
     EmploymentRecordRepository employmentRecordRepository;
+    CloudinaryService cloudinary;
+
+    // Validates ownership and image contents before sending a cover to storage.
+    @Transactional(rollbackFor = IOException.class)
+    public String uploadCover(String username, Integer storeId, MultipartFile file) throws IOException {
+        Store store = lockOwnedStore(username, storeId);
+        ImageUploads.validate(file);
+        String url = cloudinary.uploadFile(file, "store_covers").getUrl();
+        store.setCoverImageUrl(url);
+        storeRepository.save(store);
+        return url;
+    }
+
+    // Removes the displayed cover without modifying verification documents.
+    @Transactional
+    public void removeCover(String username, Integer storeId) {
+        Store store = lockOwnedStore(username, storeId);
+        store.setCoverImageUrl(null);
+        storeRepository.save(store);
+    }
+
+    // Locks a store and rejects attempts to change another employer's data.
+    private Store lockOwnedStore(String username, Integer storeId) {
+        Employer owner = getEmployerByUsername(username);
+        Store store = storeRepository.lockById(storeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy cửa hàng."));
+        if (!owner.getEmployerId().equals(store.getEmployer().getEmployerId())) {
+            throw new AccessDeniedException("Bạn không có quyền chỉnh sửa cửa hàng này.");
+        }
+        return store;
+    }
 
     private Employer getEmployerByUsername(String username) {
         User user = userRepository.findByUsername(username)

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Phone, Calendar, Clock, Edit2, X, Save } from 'lucide-react';
-import { getStoreDetail, updateStore, getStoreEmployees, type EmployerStoreDetailDTO, type EmployeeResponseDTO } from '../../../services/storeApi';
+import { getStoreDetail, updateStore, updateStoreCover, getStoreEmployees, type EmployerStoreDetailDTO, type EmployeeResponseDTO } from '../../../services/storeApi';
 import styles from './StoreDetail.module.css';
 
 export const StoreDetail: React.FC = () => {
@@ -10,6 +10,8 @@ export const StoreDetail: React.FC = () => {
   const [data, setData] = useState<EmployerStoreDetailDTO | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [coverBusy, setCoverBusy] = useState(false);
+  const [coverError, setCoverError] = useState('');
   
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -19,6 +21,24 @@ export const StoreDetail: React.FC = () => {
   const [employees, setEmployees] = useState<EmployeeResponseDTO[]>([]);
   const [employeeFilter, setEmployeeFilter] = useState<string>('ALL');
   const [loadingEmployees, setLoadingEmployees] = useState(false);
+
+  const changeCover = async (file?: File) => {
+    if (!id || coverBusy) return;
+    setCoverError('');
+    if (file && (!['image/jpeg', 'image/png'].includes(file.type) || file.size > 5 * 1024 * 1024)) {
+      setCoverError('Chọn ảnh JPEG hoặc PNG tối đa 5 MB.');
+      return;
+    }
+    setCoverBusy(true);
+    try {
+      const coverImageUrl = await updateStoreCover(id, file);
+      setData(current => current ? { ...current, coverImageUrl } : current);
+    } catch (failure) {
+      setCoverError(failure instanceof Error ? failure.message : 'Không thể cập nhật ảnh.');
+    } finally {
+      setCoverBusy(false);
+    }
+  };
 
   const fetchDetail = async () => {
     try {
@@ -160,7 +180,18 @@ export const StoreDetail: React.FC = () => {
         <div className={styles.storeInfoCard}>
           <div className={styles.cardHeaderWithAction}>
             <div className={styles.storeLogoHeader}>
-              <img src={data.logo} alt="Store Logo" className={styles.storeLogo} />
+              <img src={data.coverImageUrl || data.logo} alt="Ảnh đại diện cửa hàng" className={styles.storeLogo} />
+              <div>
+                <label>Ảnh đại diện
+                  <input type="file" accept="image/jpeg,image/png" disabled={coverBusy} onChange={event => {
+                    const file = event.currentTarget.files?.[0];
+                    event.currentTarget.value = '';
+                    if (file) void changeCover(file);
+                  }} />
+                </label>
+                {data.coverImageUrl && <button type="button" className="btn-outline" disabled={coverBusy} onClick={() => void changeCover()}>Xóa ảnh</button>}
+                {coverError && <p role="alert">{coverError}</p>}
+              </div>
               <div>
                 <h2 className={styles.storeName}>{data.name}</h2>
                 <span className={`${styles.statusBadge} ${data.status === 'ACTIVE' ? styles.statusActive : styles.statusInactive}`}>

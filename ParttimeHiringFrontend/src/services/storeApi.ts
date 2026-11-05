@@ -64,6 +64,7 @@ export interface EmployerStoreDetailDTO {
   storeId: number;
   name: string;
   phone: string;
+  coverImageUrl?: string | null;
   streetAddress?: string | null;
   address: string;
   description: string;
@@ -177,4 +178,13 @@ export const toggleStoreStatus = async (storeId: string | number): Promise<Emplo
   
   const data: ApiResponse<EmployerStoreDTO> = await response.json();
   return data.result;
+};
+
+export const updateStoreCover = async (storeId: string, file?: File): Promise<string | null> => {
+  const body = file ? new FormData() : undefined;
+  if (file && body) body.append('file', file);
+  const response = await apiFetch(`${apiBase}/employer/stores/${storeId}/cover`, { method: file ? 'PUT' : 'DELETE', body });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(payload?.message || 'Không thể cập nhật ảnh cửa hàng.');
+  return payload?.result || null;
 };
