@@ -45,6 +45,14 @@ class RoleAccessIntegrationTest {
         mvc.perform(get("/api/users/me")).andExpect(status().isUnauthorized())
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.code").value("UNAUTHORIZED"));
     }
+    // Requires employer authentication for direct dashboard and recruitment requests.
+    @Test
+    void employerRoutesRequireAuthentication() throws Exception {
+        mvc.perform(get("/api/employer/dashboard/overview")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/employer/jobs")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/employer/jobs").cookie(cookie("employer"))).andExpect(status().isOk());
+    }
+
     // Signs test credentials for persisted development identities in isolated H2.
     private Cookie cookie(String username) {
         return new Cookie("access_token", tokens.generateTokenForUser(users.findByUsername(username).orElseThrow()));
