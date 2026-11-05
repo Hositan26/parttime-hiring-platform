@@ -627,7 +627,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({ jobId, onClose
                           <h4>{app.name}</h4>
                           <p>Nộp ngày: {app.appliedDate}</p>
                           <div className={`${styles.appStatusBadge} ${styles['appStatus' + app.status]}`}>
-                            {app.status === 'PENDING' ? 'CHỜ DUYỆT' : app.status === 'ACCEPTED' ? 'ĐÃ CHẤP NHẬN' : 'ĐÃ TỪ CHỐI'}
+                            {app.status === 'PENDING' ? 'CHỜ DUYỆT' : app.status === 'ACCEPTED' ? 'ĐÃ CHẤP NHẬN' : app.status === 'WITHDRAWN' ? 'ĐÃ RÚT ĐƠN' : 'ĐÃ TỪ CHỐI'}
                           </div>
                         </div>
                         <div className={styles.applicantActions}>

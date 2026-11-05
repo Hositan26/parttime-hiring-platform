@@ -3,6 +3,9 @@ package tanhs.fudn.parttime_hiring_plaform_project.employer;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.List;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.application.JobApplication;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.ApplicationStatus;
+import tanhs.fudn.parttime_hiring_plaform_project.dto.response.employer.job.EmployerJobApplicantResponse;
 import org.springframework.security.access.AccessDeniedException;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.ReviewStatus;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.review.StoreReview;
@@ -34,10 +37,11 @@ class EmployerJobPublicationTest {
     private final EmployerRepository employers = mock(EmployerRepository.class);
     private final StoreRepository stores = mock(StoreRepository.class);
     private final JobPostRepository jobs = mock(JobPostRepository.class);
+    private final JobApplicationRepository applications = mock(JobApplicationRepository.class);
     private final StoreReviewRepository reviews = mock(StoreReviewRepository.class);
     private final EmployerJobMapper mapper = mock(EmployerJobMapper.class);
     private final EmployerJobServiceImpl service = new EmployerJobServiceImpl(users, employers, jobs, stores,
-            reviews, mock(JobApplicationRepository.class),
+            reviews, applications,
             mock(JobCategoryRepository.class), mock(WorkShiftRepository.class), mapper);
 
     // Prevents pending, paused, and inactive businesses from publishing jobs.
@@ -95,6 +99,28 @@ class EmployerJobPublicationTest {
         assertEquals(List.of(response), service.getJobComments("employer", 3));
         verify(mapper, never()).toCommentResponse(hidden);
         verify(mapper, never()).toCommentResponse(reported);
+    }
+
+    // Preserves withdrawn applications in history and blocks foreign job identifiers.
+    @Test
+    void listsApplicantsOnlyForOwnedJob() {
+        Employer owner = Employer.builder().employerId(7).build();
+        when(users.findByUsername("employer")).thenReturn(Optional.of(User.builder().id(1L).build()));
+        when(employers.findByUserId(1)).thenReturn(Optional.of(owner));
+        when(jobs.findById(9)).thenReturn(Optional.of(JobPost.builder()
+                .employer(Employer.builder().employerId(8).build()).build()));
+        assertThrows(AccessDeniedException.class, () -> service.getJobApplicants("employer", 9));
+        verifyNoInteractions(applications);
+
+        when(jobs.findById(3)).thenReturn(Optional.of(JobPost.builder().employer(owner).build()));
+        JobApplication withdrawn = JobApplication.builder().status(ApplicationStatus.WITHDRAWN).build();
+        JobApplication pending = JobApplication.builder().status(ApplicationStatus.PENDING).build();
+        when(applications.findByJobPost_JobPostIdOrderByAppliedAtDesc(3)).thenReturn(List.of(withdrawn, pending));
+        var withdrawnResponse = mock(EmployerJobApplicantResponse.class);
+        var pendingResponse = mock(EmployerJobApplicantResponse.class);
+        when(mapper.toApplicantResponse(withdrawn)).thenReturn(withdrawnResponse);
+        when(mapper.toApplicantResponse(pending)).thenReturn(pendingResponse);
+        assertEquals(List.of(withdrawnResponse, pendingResponse), service.getJobApplicants("employer", 3));
     }
 
     // Sets up the authenticated employer and the locked store.

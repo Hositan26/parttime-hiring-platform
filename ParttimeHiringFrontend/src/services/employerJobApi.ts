@@ -23,7 +23,7 @@ export interface EmployerJobApplicantDTO {
   appliedTime: string;
   note: string;
   jobTitle: string;
-  status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'WITHDRAWN';
 }
 
 export interface EmployerJobImageDTO {
