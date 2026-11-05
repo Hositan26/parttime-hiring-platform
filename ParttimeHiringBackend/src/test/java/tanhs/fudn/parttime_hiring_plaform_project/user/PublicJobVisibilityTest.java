@@ -51,6 +51,28 @@ class PublicJobVisibilityTest {
         assertEquals(0, matches());
     }
 
+    // Checks title search, literal wildcard handling and employer isolation.
+    @Test
+    void filtersEmployerTitles() {
+        Employer employer = Employer.builder().userId(777778).companyName("Visibility fixture")
+                .status(EmployerStatus.ACTIVE).build();
+        entityManager.persist(employer);
+        Store store = Store.builder().employer(employer).storeName("Visibility store")
+                .city("Test City").isActive(true).build();
+        entityManager.persist(store);
+        JobPost job = JobPost.builder().employer(employer).store(store).title("Recruitment 50% evening")
+                .jobDescription("Test description").hourlyWageMin(BigDecimal.valueOf(25000))
+                .currency("VND").vacancyCount(1).genderRequirement(GenderRequirement.values()[0])
+                .employmentType(EmploymentType.values()[0]).status(JobStatus.ACTIVE).build();
+        entityManager.persist(job);
+        entityManager.flush();
+        Integer id = employer.getEmployerId();
+        assertEquals(1, jobs.count(JobPostSpecification.filterEmployerJobs(id, store.getStoreId(), JobStatus.ACTIVE, "  RECRUITMENT  ")));
+        assertEquals(1, jobs.count(JobPostSpecification.filterEmployerJobs(id, null, null, "50%")));
+        assertEquals(0, jobs.count(JobPostSpecification.filterEmployerJobs(id, null, null, "50_")));
+        assertEquals(0, jobs.count(JobPostSpecification.filterEmployerJobs(id + 1, null, null, "Recruitment")));
+    }
+
     // Runs the same visibility specification used by list and search endpoints.
     private long matches() {
         entityManager.flush();

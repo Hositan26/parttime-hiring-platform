@@ -67,12 +67,13 @@ public class EmployerJobServiceImpl implements EmployerJobService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhà tuyển dụng."));
     }
 
+    // Applies employer and title filters before reading a page.
     @Transactional(readOnly = true)
-    public Page<EmployerJobListResponse> getEmployerJobs(String username, int page, int size, Integer storeId, JobStatus status) {
+    public Page<EmployerJobListResponse> getEmployerJobs(String username, int page, int size, Integer storeId, JobStatus status, String keyword) {
         Employer employer = getEmployerByUsername(username);
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         
-        Specification<JobPost> spec = JobPostSpecification.filterEmployerJobs(employer.getEmployerId(), storeId, status);
+        Specification<JobPost> spec = JobPostSpecification.filterEmployerJobs(employer.getEmployerId(), storeId, status, keyword);
         Page<JobPost> jobPosts = jobPostRepository.findAll(spec, pageable);
         
         return jobPosts.map(job -> {

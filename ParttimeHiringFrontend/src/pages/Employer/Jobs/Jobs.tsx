@@ -81,6 +81,7 @@ export const Jobs: React.FC = () => {
   const [selectedStoreId, setSelectedStoreId] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
+  const jobsRequest = useRef(0);
 
   const fetchStores = async () => {
     try {
@@ -92,18 +93,20 @@ export const Jobs: React.FC = () => {
   };
 
   const fetchJobs = async () => {
+    const request = ++jobsRequest.current;
     try {
       setLoading(true);
       const storeIdParam = selectedStoreId ? parseInt(selectedStoreId) : undefined;
       const statusParam = selectedStatus ? selectedStatus : undefined;
-      const data = await getEmployerJobs(page, 10, storeIdParam, statusParam);
+      const data = await getEmployerJobs(page, 10, storeIdParam, statusParam, searchQuery);
+      if (request !== jobsRequest.current) return;
       setJobs(data?.content || []);
       setTotalJobs(data?.totalElements || 0);
       setTotalPages(data?.totalPages || 0);
     } catch (error) {
       console.error('Failed to fetch jobs:', error);
     } finally {
-      setLoading(false);
+      if (request === jobsRequest.current) setLoading(false);
     }
   };
 
@@ -113,7 +116,7 @@ export const Jobs: React.FC = () => {
 
   useEffect(() => {
     fetchJobs();
-  }, [page, selectedStoreId, selectedStatus]);
+  }, [page, selectedStoreId, selectedStatus, searchQuery]);
 
   const activeJobs = jobs.filter(j => j.status === 'ACTIVE').length;
   const closedJobs = jobs.filter(j => j.status === 'CLOSED' || j.status === 'EXPIRED').length;
@@ -208,7 +211,7 @@ export const Jobs: React.FC = () => {
         <div className={styles.tableToolbar}>
           <div className={styles.searchBox}>
             <Search size={18} color="var(--text-light)" />
-            <input type="text" placeholder="Tìm kiếm job theo tiêu đề..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+            <input type="text" placeholder="Tìm kiếm job theo tiêu đề..." value={searchQuery} onChange={e => { setPage(0); setSearchQuery(e.target.value); }} />
           </div>
           <div className={styles.filtersGroup}>
             <select 

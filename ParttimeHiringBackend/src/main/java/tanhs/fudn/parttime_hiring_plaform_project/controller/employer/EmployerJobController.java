@@ -33,16 +33,18 @@ public class EmployerJobController {
     EmployerJobService employerJobService;
     CloudinaryService cloudinaryService;
 
+    // Lists owned jobs with filters applied before pagination.
     @GetMapping
     public ResponseEntity<ApiResponse<Page<EmployerJobListResponse>>> getEmployerJobs(
             Principal principal,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Integer storeId,
-            @RequestParam(required = false) JobStatus status
+            @RequestParam(required = false) JobStatus status,
+            @RequestParam(required = false) String keyword
     ) {
         return ResponseEntity.ok(ApiResponse.success(
-                employerJobService.getEmployerJobs(principal.getName(), page, size, storeId, status)
+                employerJobService.getEmployerJobs(principal.getName(), page, size, storeId, status, keyword)
         ));
     }
 
