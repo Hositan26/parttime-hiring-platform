@@ -297,9 +297,10 @@ export const AdminVerifications: React.FC = () => {
                               onChange={e => setRejectReason(e.target.value)}
                               rows={3}
                             />
+                            {!rejectReason.trim() && <p role="alert">Vui lòng nhập lý do từ chối.</p>}
                             <div className={styles.rejectActions}>
                               <button onClick={() => setRejectMode(false)} className={styles.btnCancel}>Hủy</button>
-                              <button onClick={handleRejectSubmit} className={styles.btnRejectConfirm} disabled={processing}>
+                              <button onClick={handleRejectSubmit} className={styles.btnRejectConfirm} disabled={processing || !rejectReason.trim()}>
                                 Xác nhận từ chối
                               </button>
                             </div>

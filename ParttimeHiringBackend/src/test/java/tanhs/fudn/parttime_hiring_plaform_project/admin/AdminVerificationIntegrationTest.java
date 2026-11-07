@@ -18,6 +18,31 @@ class AdminVerificationIntegrationTest {
     @Autowired EmployerVerificationRepository verifications;
     @Autowired UserRepository users;
 
+    // Preserves rejection notes and refuses decisions on already reviewed applications.
+    @Test
+    void rejectionRequiresVisibleReasonAndCannotBeOverwritten() {
+        var record = submission();
+        assertThrows(tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException.class,
+                () -> service.rejectVerification(record.getVerificationId(), "   ", "admin"));
+        service.rejectVerification(record.getVerificationId(), "  Missing readable license  ", "admin");
+        var rejected = verifications.findById(record.getVerificationId()).orElseThrow();
+        assertEquals("Missing readable license", rejected.getRejectionReason());
+        assertEquals(VerificationStatus.REJECTED, rejected.getVerificationStatus());
+        assertThrows(tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException.class,
+                () -> service.approveVerification(record.getVerificationId(), "admin"));
+    }
+
+    // Grants employer access atomically while retaining existing administrator privileges.
+    @Test
+    void approvalCreatesEmployerAndRetainsExistingRoles() {
+        var record = submission();
+        service.approveVerification(record.getVerificationId(), "admin");
+        assertEquals(VerificationStatus.APPROVED, verifications.findById(record.getVerificationId()).orElseThrow().getVerificationStatus());
+        var account = users.findByUsername("admin").orElseThrow();
+        assertTrue(account.getRoles().stream().anyMatch(role -> role.getRoleName().equals("EMPLOYER")));
+        assertTrue(account.getRoles().stream().anyMatch(role -> role.getRoleName().equals("ADMIN")));
+    }
+
     // Finds business documents by company or tax code before pagination.
     @Test
     void searchesCompanyAndTaxCodeWithinStatus() {

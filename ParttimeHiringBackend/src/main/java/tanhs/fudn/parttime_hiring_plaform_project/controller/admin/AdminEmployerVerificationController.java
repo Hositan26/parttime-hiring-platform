@@ -34,6 +34,7 @@ public class AdminEmployerVerificationController {
         return ResponseEntity.ok(ApiResponse.success(verifications));
     }
 
+    // Returns confidential verification documents to administrators only.
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<VerificationDetailResponse>> getVerificationDetail(
@@ -43,6 +44,7 @@ public class AdminEmployerVerificationController {
         return ResponseEntity.ok(ApiResponse.success(detail));
     }
 
+    // Grants employer privileges after a manual document approval.
     @PostMapping("/{id}/approve")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> approveVerification(
@@ -53,11 +55,12 @@ public class AdminEmployerVerificationController {
         return ResponseEntity.ok(ApiResponse.success("Duyệt hồ sơ xác minh thành công"));
     }
 
+    // Rejects submissions with a mandatory applicant-visible reason.
     @PostMapping("/{id}/reject")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> rejectVerification(
             @PathVariable Integer id,
-            @RequestBody RejectVerificationRequest request,
+            @jakarta.validation.Valid @RequestBody RejectVerificationRequest request,
             Principal principal
     ) {
         adminVerificationService.rejectVerification(id, request.getReason(), principal.getName());
