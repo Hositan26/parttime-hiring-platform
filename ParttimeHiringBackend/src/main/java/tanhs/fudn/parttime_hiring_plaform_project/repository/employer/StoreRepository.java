@@ -9,6 +9,14 @@ import org.springframework.data.repository.query.Param;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.employer.Store;
 
 public interface StoreRepository extends JpaRepository<Store, Integer> {
+    // Searches store names and filters approval independently from activity.
+    @Query("select s from Store s where (:active is null or s.isActive = :active) "
+            + "and (:approved is null or s.isApproved = :approved) "
+            + "and lower(s.storeName) like lower(concat('%', :query, '%'))")
+    org.springframework.data.domain.Page<Store> searchAdministration(@Param("query") String query,
+            @Param("active") Boolean active, @Param("approved") Boolean approved,
+            org.springframework.data.domain.Pageable pageable);
+
     // Counts stores awaiting independent approval.
     long countByIsApproved(Boolean approved);
 

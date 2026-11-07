@@ -16,21 +16,17 @@ import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminStoreServic
 public class AdminStoreServiceImpl implements AdminStoreService {
 
     private final StoreRepository storeRepository;
+    private final tanhs.fudn.parttime_hiring_plaform_project.repository.job.JobPostRepository jobs;
+    private final tanhs.fudn.parttime_hiring_plaform_project.repository.employment.EmploymentRecordRepository employments;
     private final tanhs.fudn.parttime_hiring_plaform_project.mapper.AdminStoreMapper mapper;
 
     // Lists stores with independent approval and operational states.
     @Override
     @Transactional(readOnly = true)
-    public Page<AdminStoreResponse> getAllStores(int page, int size, Boolean isActive) {
-        Page<Store> stores;
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("storeId").descending());
-        
-        if (isActive != null) {
-            stores = storeRepository.findByIsActive(isActive, pageRequest);
-        } else {
-            stores = storeRepository.findAll(pageRequest);
-        }
-
+    public Page<AdminStoreResponse> getAllStores(int page, int size, Boolean isActive, String query, Boolean approved) {
+        if (page < 0 || size < 1 || size > 50) throw new IllegalArgumentException("Invalid pagination");
+        var stores = storeRepository.searchAdministration(query == null ? "" : query.trim(), isActive, approved,
+                PageRequest.of(page, size, Sort.by("storeId").descending()));
         return stores.map(mapper::toResponse);
     }
 
@@ -60,12 +56,15 @@ public class AdminStoreServiceImpl implements AdminStoreService {
         return mapper.toResponse(storeRepository.save(store));
     }
 
+    // Refuses deletion when recruitment or employment history references the store.
     @Override
     @Transactional
     public void deleteStore(Integer storeId) {
-        if (!storeRepository.existsById(storeId)) {
-            throw new RuntimeException("Không tìm thấy cửa hàng/chi nhánh");
+        var store = storeRepository.lockById(storeId)
+                .orElseThrow(() -> new tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException("Store not found"));
+        if (jobs.countByStore_StoreId(storeId) > 0 || employments.existsByStore_StoreId(storeId)) {
+            throw new tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException("Store has recruitment or employment history; disable it instead");
         }
-        storeRepository.deleteById(storeId);
+        storeRepository.delete(store);
     }
 }

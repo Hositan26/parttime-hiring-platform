@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Store as StoreIcon, Search, ChevronLeft, ChevronRight, CheckCircle2, XCircle, PowerOff } from 'lucide-react';
-import { getAdminStores, updateAdminStoreStatus, updateAdminStoreApproval, type AdminStoreResponse } from '../../../services/adminStore.service';
+import { getAdminStores, updateAdminStoreStatus, updateAdminStoreApproval, deleteAdminStore, type AdminStoreResponse } from '../../../services/adminStore.service';
 import styles from '../Verifications/AdminVerifications.module.css'; // Reusing styles
 
 export const AdminStores: React.FC = () => {
+  const [query, setQuery] = useState('');
+  const [approved, setApproved] = useState('');
+  const [error, setError] = useState('');
   const [stores, setStores] = useState<AdminStoreResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
@@ -13,19 +16,19 @@ export const AdminStores: React.FC = () => {
   const fetchList = async (pageNum: number, status: boolean | '') => {
     try {
       setLoading(true);
-      const data = await getAdminStores(status, pageNum, 10);
+      const data = await getAdminStores(status, pageNum, 10, query, approved);
       setStores(data.content || []);
       setTotalPages(data.totalPages || 1);
       setLoading(false);
     } catch (error) {
-      console.error(error);
+      setError(error instanceof Error ? error.message : 'Không tải được cửa hàng');
       setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchList(page, statusFilter);
-  }, [page, statusFilter]);
+  }, [page, statusFilter, query, approved]);
 
   const handleToggleStatus = async (storeId: number, currentStatus: boolean) => {
     let newStatus = !currentStatus;
@@ -67,7 +70,7 @@ export const AdminStores: React.FC = () => {
         <div className={styles.filterSection}>
           <div className={styles.searchBox}>
             <Search size={20} className={styles.searchIcon} />
-            <input type="text" placeholder="Tìm tên cửa hàng..." className={styles.searchInput} />
+            <input type="text" value={query} onChange={event => { setQuery(event.target.value); setPage(0); }} placeholder="Tìm tên cửa hàng..." className={styles.searchInput} />
           </div>
           
           <div className={styles.tabs}>
@@ -83,6 +86,10 @@ export const AdminStores: React.FC = () => {
           </div>
         </div>
 
+        <select aria-label="Phê duyệt" className="input-base" value={approved} onChange={event => { setApproved(event.target.value); setPage(0); }}>
+          <option value="">Tất cả phê duyệt</option><option value="false">Chờ duyệt</option><option value="true">Đã duyệt</option>
+        </select>
+        {error && <p role="alert">{error}</p>}
         {loading ? (
           <div className={styles.emptyState}>Đang tải dữ liệu...</div>
         ) : stores.length === 0 ? (
@@ -119,6 +126,11 @@ export const AdminStores: React.FC = () => {
                         try { await updateAdminStoreApproval(store.storeId, !store.isApproved); fetchList(page, statusFilter); }
                         catch (error) { alert(error instanceof Error ? error.message : 'Thao tác thất bại'); }
                       }}>{store.isApproved ? 'Thu hồi duyệt' : 'Phê duyệt'}</button>
+                      <button className="btn-outline" onClick={async () => {
+                        if (!window.confirm('Xóa cửa hàng không có lịch sử tuyển dụng?')) return;
+                        try { await deleteAdminStore(store.storeId); fetchList(page, statusFilter); }
+                        catch (error) { alert(error instanceof Error ? error.message : 'Không xóa được'); }
+                      }}>Xóa</button>
                       <button disabled={!store.isApproved && !store.isActive}
                         className={styles.actionBtn}
                         onClick={() => handleToggleStatus(store.storeId, store.isActive)}

@@ -19,7 +19,9 @@ class AdminStoreApprovalTest {
         var store = Store.builder().storeId(1).isApproved(false).isActive(false).build();
         when(stores.lockById(1)).thenReturn(Optional.of(store));
         when(stores.save(store)).thenReturn(store);
-        var service = new AdminStoreServiceImpl(stores, Mappers.getMapper(AdminStoreMapper.class));
+        var jobs = mock(tanhs.fudn.parttime_hiring_plaform_project.repository.job.JobPostRepository.class);
+        var employment = mock(tanhs.fudn.parttime_hiring_plaform_project.repository.employment.EmploymentRecordRepository.class);
+        var service = new AdminStoreServiceImpl(stores, jobs, employment, Mappers.getMapper(AdminStoreMapper.class));
         assertThrows(BusinessException.class, () -> service.updateStoreStatus(1, true));
         service.updateStoreApproval(1, true);
         assertFalse(store.getIsActive());
@@ -28,5 +30,8 @@ class AdminStoreApprovalTest {
         service.updateStoreApproval(1, false);
         assertTrue(store.getIsActive());
         assertFalse(store.getIsApproved());
+        when(jobs.countByStore_StoreId(1)).thenReturn(2L);
+        assertThrows(BusinessException.class, () -> service.deleteStore(1));
+        verify(stores, never()).delete(store);
     }
 }
