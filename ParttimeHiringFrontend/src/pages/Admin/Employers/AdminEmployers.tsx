@@ -1,51 +1,37 @@
-import React, { useState, useEffect } from 'react';
+import { usePagedResource } from '../../../services/usePagedResource';
+import { apiBase } from '../../../services/apiClient';
+import React, { useState } from 'react';
 import { Briefcase, Search, ChevronLeft, ChevronRight, CheckCircle2, XCircle } from 'lucide-react';
-import { getEmployers, updateEmployerStatus, type AdminEmployerResponse } from '../../../services/adminEmployer.service';
+import { updateEmployerStatus, type AdminEmployerResponse } from '../../../services/adminEmployer.service';
 import { banUser, unbanUser } from '../../../services/adminUser.service';
 import styles from '../Verifications/AdminVerifications.module.css';
 
 export const AdminEmployers: React.FC = () => {
   const [query, setQuery] = useState('');
-  const [error, setError] = useState('');
-  const [employers, setEmployers] = useState<AdminEmployerResponse[]>([]);
-  const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchList = async (pageNum: number) => {
-    try {
-      setLoading(true);
-      const data = await getEmployers(pageNum, 10, query);
-      setEmployers(data.content || []);
-      setTotalPages(data.totalPages || 1);
-      setLoading(false);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Không tải được doanh nghiệp');
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchList(page);
-  }, [page, query]);
+  const [revision, setRevision] = useState(0);
+  const { data, loading, error: loadError } = usePagedResource<AdminEmployerResponse>(`${apiBase}/admin/employers?page=${page}&size=10&query=${encodeURIComponent(query)}`, revision);
+  const employers = data?.content || [];
+  const totalPages = Math.max(1, data?.totalPages || 0);
 
   const handleToggleStatus = async (employerId: number, currentStatus: string) => {
-    let newStatus = currentStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
+    const newStatus = currentStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
     if (!window.confirm(`Bạn muốn chuyển trạng thái doanh nghiệp này thành ${newStatus}?`)) return;
-    
+
     try {
       await updateEmployerStatus(employerId, newStatus);
       alert('Đã cập nhật trạng thái doanh nghiệp');
-      fetchList(page);
-    } catch (error: any) {
-      alert(error.message);
+      setRevision(value => value + 1);
+    } catch (error: unknown) {
+      alert(error instanceof Error ? error.message : 'Thao tác thất bại');
     }
   };
 
   const handleToggleUserBan = async (employer: AdminEmployerResponse) => {
     const action = employer.isActive ? 'khóa' : 'mở khóa';
     if (!window.confirm(`Bạn có chắc chắn muốn ${action} TÀI KHOẢN ĐĂNG NHẬP của doanh nghiệp này?`)) return;
-    
+
     try {
       if (employer.isActive) {
         await banUser(employer.userId);
@@ -53,9 +39,9 @@ export const AdminEmployers: React.FC = () => {
         await unbanUser(employer.userId);
       }
       alert(`Đã ${action} tài khoản thành công!`);
-      fetchList(page);
-    } catch (err: any) {
-      alert(`Lỗi: ${err.message}`);
+      setRevision(value => value + 1);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Thao tác thất bại');
     }
   };
 
@@ -88,7 +74,7 @@ export const AdminEmployers: React.FC = () => {
         </div>
       </div>
 
-      {error && <p role="alert">{error}</p>}
+      {loadError && <p role="alert">{loadError}</p>}
       <div className={styles.tableCard}>
         {loading ? (
           <div className={styles.loadingState}>Đang tải dữ liệu...</div>
@@ -116,7 +102,7 @@ export const AdminEmployers: React.FC = () => {
                     <td>#{e.employerId}</td>
                     <td>
                       <div style={{ fontWeight: 600 }}>{e.companyName || '-'}</div>
-                      <div style={{ fontSize: '0.8rem', color: '#64748b' }}>User: {e.username}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-gray)' }}>User: {e.username}</div>
                     </td>
                     <td>{e.representativeName || '-'}</td>
                     <td>
@@ -126,14 +112,14 @@ export const AdminEmployers: React.FC = () => {
                     <td>{getStatusBadge(e.status)}</td><td><span className={e.isActive ? 'badge-success' : 'badge-danger'}>{e.isActive ? 'Hoạt động' : 'Bị khóa'}</span></td>
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                        <button 
+                        <button
                           onClick={() => handleToggleStatus(e.employerId, e.status)}
                           style={{
                             padding: '6px 12px',
                             border: 'none',
                             borderRadius: '6px',
                             cursor: 'pointer',
-                            backgroundColor: e.status === 'ACTIVE' ? '#eab308' : '#10b981',
+                            backgroundColor: e.status === 'ACTIVE' ? '#eab308' : 'var(--primary)',
                             color: 'white',
                             fontWeight: 500,
                             fontSize: '0.8rem'
@@ -143,14 +129,14 @@ export const AdminEmployers: React.FC = () => {
                           {e.status === 'ACTIVE' ? 'Tạm ngưng hồ sơ' : 'Kích hoạt hồ sơ'}
                         </button>
 
-                        <button 
+                        <button
                           onClick={() => handleToggleUserBan(e)}
                           style={{
                             padding: '6px 12px',
                             border: 'none',
                             borderRadius: '6px',
                             cursor: 'pointer',
-                            backgroundColor: e.isActive ? '#ef4444' : '#64748b',
+                            backgroundColor: e.isActive ? '#ef4444' : 'var(--text-gray)',
                             color: 'white',
                             fontWeight: 500,
                             fontSize: '0.8rem'
@@ -165,7 +151,7 @@ export const AdminEmployers: React.FC = () => {
                 ))}
               </tbody>
             </table>
-            
+
             <div className={styles.pagination}>
               <button disabled={page === 0} onClick={() => setPage(p => p - 1)} className={styles.pageBtn}>
                 <ChevronLeft size={16} />

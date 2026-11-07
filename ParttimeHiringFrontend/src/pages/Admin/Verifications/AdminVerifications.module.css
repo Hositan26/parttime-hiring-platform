@@ -420,3 +420,16 @@
   color: white;
   cursor: pointer;
 }
+
+.tableCard, .contentCard { overflow-x: auto; }
+.filtersCard, .filterSection { flex-wrap: wrap; gap: 16px; }
+.searchBox { min-width: min(240px, 100%); }
+.table { min-width: 680px; }
+@media (max-width: 680px) {
+  .filtersCard, .filterSection { align-items: stretch; flex-direction: column; }
+  .searchBox { width: 100%; }
+  .tabs { flex-wrap: wrap; }
+  .modalContent { width: 100%; max-width: 100%; }
+  .infoGrid, .docsGrid { grid-template-columns: 1fr; }
+  .modalBody { padding: 16px; }
+}

@@ -18,6 +18,37 @@ class AdminVerificationIntegrationTest {
     @Autowired EmployerVerificationRepository verifications;
     @Autowired UserRepository users;
 
+    @Autowired tanhs.fudn.parttime_hiring_plaform_project.service.employer.EmployerVerificationService submissions;
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    tanhs.fudn.parttime_hiring_plaform_project.service.common.CloudinaryService storage;
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    tanhs.fudn.parttime_hiring_plaform_project.service.user.UserEmailVerificationService emailProof;
+
+    // Submits documents, returns rejection notes, and grants employer access after resubmission.
+    @Test
+    void completesSubmissionDecisionAndApplicantResult() throws Exception {
+        org.mockito.Mockito.when(storage.uploadFile(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyString()))
+                .thenReturn(tanhs.fudn.parttime_hiring_plaform_project.dto.response.common.CloudinaryResponse.builder()
+                        .url("https://example.invalid/qa.png").publicId("qa-document").build());
+        var bytes = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(new java.awt.image.BufferedImage(2, 2, java.awt.image.BufferedImage.TYPE_INT_RGB), "png", bytes);
+        var file = new org.springframework.mock.web.MockMultipartFile("file", "qa.png", "image/png", bytes.toByteArray());
+        var request = new tanhs.fudn.parttime_hiring_plaform_project.dto.request.user.VerifyBusinessRequest();
+        request.setStoreName("Submission Workflow"); request.setRepresentativeName("QA Representative");
+        request.setEmail("submission@example.invalid"); request.setPhone("0901234567"); request.setAddress("QA Address");
+        request.setOtpCode("123456"); request.setStoreFrontImage(file); request.setIdCardFront(file); request.setIdCardBack(file);
+        submissions.submitVerification(request, "admin");
+        var first = verifications.findFirstByUserIdOrderByVerificationIdDesc(users.findByUsername("admin").orElseThrow().getId()).orElseThrow();
+        service.rejectVerification(first.getVerificationId(), "Please upload readable documents", "admin");
+        assertEquals("Please upload readable documents", submissions.getMyVerificationStatus("admin").getRejectionReason());
+        submissions.submitVerification(request, "admin");
+        var second = verifications.findFirstByUserIdOrderByVerificationIdDesc(users.findByUsername("admin").orElseThrow().getId()).orElseThrow();
+        assertNotEquals(first.getVerificationId(), second.getVerificationId());
+        service.approveVerification(second.getVerificationId(), "admin");
+        assertEquals("APPROVED", submissions.getMyVerificationStatus("admin").getStatus());
+        org.mockito.Mockito.verify(emailProof, org.mockito.Mockito.times(2)).verifyOtp("submission@example.invalid", "123456", "admin");
+    }
+
     // Preserves rejection notes and refuses decisions on already reviewed applications.
     @Test
     void rejectionRequiresVisibleReasonAndCannotBeOverwritten() {

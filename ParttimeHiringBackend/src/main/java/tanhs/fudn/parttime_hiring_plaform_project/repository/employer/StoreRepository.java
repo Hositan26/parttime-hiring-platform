@@ -1,5 +1,7 @@
 package tanhs.fudn.parttime_hiring_plaform_project.repository.employer;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import java.util.Optional;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,9 +15,9 @@ public interface StoreRepository extends JpaRepository<Store, Integer> {
     @Query("select s from Store s where (:active is null or s.isActive = :active) "
             + "and (:approved is null or s.isApproved = :approved) "
             + "and lower(s.storeName) like lower(concat('%', :query, '%'))")
-    org.springframework.data.domain.Page<Store> searchAdministration(@Param("query") String query,
+    Page<Store> searchAdministration(@Param("query") String query,
             @Param("active") Boolean active, @Param("approved") Boolean approved,
-            org.springframework.data.domain.Pageable pageable);
+            Pageable pageable);
 
     // Counts stores awaiting independent approval.
     long countByIsApproved(Boolean approved);
@@ -27,5 +29,5 @@ public interface StoreRepository extends JpaRepository<Store, Integer> {
 
     long countByEmployer_EmployerId(Integer employerId);
     java.util.List<Store> findByEmployer_EmployerId(Integer employerId);
-    org.springframework.data.domain.Page<Store> findByIsActive(Boolean isActive, org.springframework.data.domain.Pageable pageable);
+    Page<Store> findByIsActive(Boolean isActive, Pageable pageable);
 }

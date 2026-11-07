@@ -31,6 +31,7 @@ public class AdminEmployerController {
         return ResponseEntity.ok(ApiResponse.success(employers));
     }
 
+    // Changes business standing independently from account login access.
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<AdminEmployerResponse>> updateStatus(

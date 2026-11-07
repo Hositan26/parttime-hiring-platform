@@ -39,6 +39,7 @@ public class AdminJobPostController {
         return ResponseEntity.ok(ApiResponse.success(adminJobPostService.getDetail(id)));
     }
 
+    // Removes or restores listings after checking publication eligibility.
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<AdminJobPostResponse>> updateStatus(
@@ -54,6 +55,7 @@ public class AdminJobPostController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    // Deletes only listings without dependent recruitment history.
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> deleteJobPost(@PathVariable Integer id) {

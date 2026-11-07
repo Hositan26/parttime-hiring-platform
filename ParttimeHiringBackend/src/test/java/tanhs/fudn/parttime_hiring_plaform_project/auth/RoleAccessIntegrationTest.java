@@ -19,6 +19,7 @@ class RoleAccessIntegrationTest {
     @Autowired MockMvc mvc;
     @Autowired UserRepository users;
     @Autowired JwtTokenProvider tokens;
+    @Autowired tanhs.fudn.parttime_hiring_plaform_project.repository.identity.RoleRepository roles;
 
     // Allows administrators authenticated through real access cookies.
     @Test
@@ -60,6 +61,19 @@ class RoleAccessIntegrationTest {
             mvc.perform(get("/api/admin/" + resource)).andExpect(status().isUnauthorized());
             mvc.perform(get("/api/admin/" + resource).cookie(cookie("employer")))
                     .andExpect(status().isForbidden());
+        }
+    }
+
+    // Rejects candidate authorities across every administration resource group.
+    @Test
+    @org.springframework.transaction.annotation.Transactional
+    void candidatesCannotAccessAdministrationResources() throws Exception {
+        var role = roles.findById("USER").orElseGet(() -> roles.save(new tanhs.fudn.parttime_hiring_plaform_project.entity.identity.Role("USER", "Candidate")));
+        var candidate = users.save(tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User.builder()
+                .username("admin_access_candidate").displayName("Candidate").roles(java.util.Set.of(role)).build());
+        var access = new Cookie("access_token", tokens.generateTokenForUser(candidate));
+        for (String resource : new String[]{"dashboard/stats", "users", "employers", "stores", "jobs", "categories", "shifts", "reviews", "job-reports", "verifications"}) {
+            mvc.perform(get("/api/admin/" + resource).cookie(access)).andExpect(status().isForbidden());
         }
     }
 

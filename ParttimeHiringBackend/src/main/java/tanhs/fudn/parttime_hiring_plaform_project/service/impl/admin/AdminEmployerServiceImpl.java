@@ -1,5 +1,6 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.admin;
 
+import tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -39,7 +40,7 @@ public class AdminEmployerServiceImpl implements AdminEmployerService {
             throw new IllegalArgumentException("Choose ACTIVE or SUSPENDED");
         }
         if (employer.getStatus() == EmployerStatus.PENDING_VERIFICATION) {
-            throw new tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException("Review verification documents first");
+            throw new BusinessException("Review verification documents first");
         }
         employer.setStatus(status);
         return response(employerRepository.save(employer));

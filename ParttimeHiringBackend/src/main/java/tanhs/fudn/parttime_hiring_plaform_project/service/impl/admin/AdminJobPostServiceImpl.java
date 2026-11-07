@@ -1,5 +1,13 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.admin;
 
+import lombok.extern.slf4j.Slf4j;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.EmployerStatus;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException;
+import tanhs.fudn.parttime_hiring_plaform_project.mapper.AdminJobPostMapper;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.job.SavedJobRepository;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.application.RecruitmentInteractionRepository;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.application.JobApplicationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -12,15 +20,16 @@ import tanhs.fudn.parttime_hiring_plaform_project.entity.job.JobPost;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.job.JobPostRepository;
 import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminJobPostService;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminJobPostServiceImpl implements AdminJobPostService {
 
     private final JobPostRepository jobPostRepository;
-    private final tanhs.fudn.parttime_hiring_plaform_project.repository.application.JobApplicationRepository applications;
-    private final tanhs.fudn.parttime_hiring_plaform_project.repository.application.RecruitmentInteractionRepository interactions;
-    private final tanhs.fudn.parttime_hiring_plaform_project.repository.job.SavedJobRepository favorites;
-    private final tanhs.fudn.parttime_hiring_plaform_project.mapper.AdminJobPostMapper mapper;
+    private final JobApplicationRepository applications;
+    private final RecruitmentInteractionRepository interactions;
+    private final SavedJobRepository favorites;
+    private final AdminJobPostMapper mapper;
 
     // Searches listing titles with bounded pagination and exact backend states.
     @Override
@@ -35,7 +44,7 @@ public class AdminJobPostServiceImpl implements AdminJobPostService {
     @Transactional(readOnly = true)
     public AdminJobPostResponse getDetail(Integer jobId) {
         return mapper.toResponse(jobPostRepository.findById(jobId)
-                .orElseThrow(() -> new tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException("Job not found")));
+                .orElseThrow(() -> new ResourceNotFoundException("Job not found")));
     }
 
     // Updates a listing publication state for administration moderation.
@@ -44,7 +53,7 @@ public class AdminJobPostServiceImpl implements AdminJobPostService {
     public AdminJobPostResponse updateJobPostStatus(Integer jobId, JobStatus status) {
         JobPost jobPost = jobPostRepository.findById(jobId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng"));
-        
+
         if (status != JobStatus.ACTIVE && status != JobStatus.PAUSED) {
             throw new IllegalArgumentException("Moderation supports PAUSED removal or ACTIVE restoration");
         }
@@ -54,8 +63,8 @@ public class AdminJobPostServiceImpl implements AdminJobPostService {
                     || (jobPost.getPublishedAt() != null && jobPost.getPublishedAt().isAfter(now))
                     || !Boolean.TRUE.equals(jobPost.getStore().getIsApproved())
                     || !Boolean.TRUE.equals(jobPost.getStore().getIsActive())
-                    || jobPost.getEmployer().getStatus() != tanhs.fudn.parttime_hiring_plaform_project.entity.enums.EmployerStatus.ACTIVE) {
-                throw new tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException("Listing is not eligible for restoration");
+                    || jobPost.getEmployer().getStatus() != EmployerStatus.ACTIVE) {
+                throw new BusinessException("Listing is not eligible for restoration");
             }
         }
         jobPost.setModerationBlocked(status == JobStatus.PAUSED);
@@ -70,10 +79,10 @@ public class AdminJobPostServiceImpl implements AdminJobPostService {
     @Transactional
     public void deleteJobPost(Integer jobId) {
         var job = jobPostRepository.findById(jobId)
-                .orElseThrow(() -> new tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException("Job not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Job not found"));
         if (applications.countByJobPost_JobPostId(jobId) > 0 || interactions.existsByJobPost_JobPostId(jobId)
                 || favorites.existsByJobPost_JobPostId(jobId)) {
-            throw new tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException("Listing has dependent history; remove it from publication instead");
+            throw new BusinessException("Listing has dependent history; remove it from publication instead");
         }
         jobPostRepository.delete(job);
     }

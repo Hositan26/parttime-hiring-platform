@@ -35,6 +35,7 @@ public class AdminReviewController {
         return ResponseEntity.ok(ApiResponse.success(adminReviewService.updateVisibility(id, visible)));
     }
 
+    // Deletes the review while retaining the associated employment record.
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteReview(@PathVariable Integer id) {

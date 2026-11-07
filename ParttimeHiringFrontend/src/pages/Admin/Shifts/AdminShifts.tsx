@@ -1,35 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import { usePagedResource } from '../../../services/usePagedResource';
+import { apiBase } from '../../../services/apiClient';
+import React, { useState } from 'react';
 import { Clock, Search, ChevronLeft, ChevronRight, Edit3, Trash2, Plus } from 'lucide-react';
-import { getShifts, createShift, updateShift, deleteShift, type AdminShift } from '../../../services/adminShift.service';
+import { createShift, updateShift, deleteShift, type AdminShift } from '../../../services/adminShift.service';
 import styles from '../Verifications/AdminVerifications.module.css';
 
 export const AdminShifts: React.FC = () => {
   const [query, setQuery] = useState('');
-  const [error, setError] = useState('');
-  const [shifts, setShifts] = useState<AdminShift[]>([]);
-  const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingShift, setEditingShift] = useState<AdminShift | null>(null);
   const [formData, setFormData] = useState({ shiftName: '', startTime: '08:00:00', endTime: '12:00:00', isFlexible: false });
 
-  const fetchList = async (pageNum: number) => {
-    try {
-      setLoading(true);
-      const data = await getShifts(pageNum, 10, query);
-      setShifts(data.content || []);
-      setTotalPages(data.totalPages || 1);
-      setLoading(false);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Không tải được ca làm');
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchList(page);
-  }, [page, query]);
+  const [revision, setRevision] = useState(0);
+  const { data, loading, error: loadError } = usePagedResource<AdminShift>(`${apiBase}/admin/shifts?page=${page}&size=10&query=${encodeURIComponent(query)}`, revision);
+  const shifts = data?.content || [];
+  const totalPages = Math.max(1, data?.totalPages || 0);
 
   const handleAdd = () => {
     setEditingShift(null);
@@ -56,9 +42,9 @@ export const AdminShifts: React.FC = () => {
         await createShift(formData);
       }
       setIsModalOpen(false);
-      fetchList(page);
-    } catch (err: any) {
-      alert(err.message);
+      setRevision(value => value + 1);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Thao tác thất bại');
     }
   };
 
@@ -66,9 +52,9 @@ export const AdminShifts: React.FC = () => {
     if (!window.confirm('Bạn có chắc muốn xóa ca làm việc này?')) return;
     try {
       await deleteShift(id);
-      fetchList(page);
-    } catch (err: any) {
-      alert(err.message);
+      setRevision(value => value + 1);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Thao tác thất bại');
     }
   };
 
@@ -89,7 +75,7 @@ export const AdminShifts: React.FC = () => {
         </button>
       </div>
 
-      {error && <p role="alert">{error}</p>}
+      {loadError && <p role="alert">{loadError}</p>}
       <div className={styles.tableCard}>
         {loading ? (
           <div className={styles.loadingState}>Đang tải dữ liệu...</div>
@@ -116,10 +102,10 @@ export const AdminShifts: React.FC = () => {
                   <tr key={s.shiftId}>
                     <td>#{s.shiftId}</td>
                     <td style={{ fontWeight: 600 }}>{s.shiftName}</td>
-                    <td style={{ color: '#64748b' }}>{s.startTime}</td>
-                    <td style={{ color: '#64748b' }}>{s.endTime}</td>
+                    <td style={{ color: 'var(--text-gray)' }}>{s.startTime}</td>
+                    <td style={{ color: 'var(--text-gray)' }}>{s.endTime}</td>
                     <td>
-                      {s.isFlexible ? 
+                      {s.isFlexible ?
                         <span className={`${styles.badge} ${styles.badgeWarning}`}>Có</span> :
                         <span className={`${styles.badge} ${styles.badgeSuccess}`}>Không</span>
                       }
@@ -136,7 +122,7 @@ export const AdminShifts: React.FC = () => {
                 ))}
               </tbody>
             </table>
-            
+
             <div className={styles.pagination}>
               <button disabled={page === 0} onClick={() => setPage(p => p - 1)} className={styles.pageBtn}>
                 <ChevronLeft size={16} />
@@ -156,39 +142,39 @@ export const AdminShifts: React.FC = () => {
             <h2 className={styles.modalTitle}>{editingShift ? 'Sửa ca làm việc' : 'Thêm ca làm việc'}</h2>
             <div className={styles.formGroup}>
               <label className={styles.label}>Tên ca làm việc (*)</label>
-              <input 
-                type="text" 
-                className={styles.input} 
-                value={formData.shiftName} 
-                onChange={(e) => setFormData({...formData, shiftName: e.target.value})} 
+              <input
+                type="text"
+                className={styles.input}
+                maxLength={255} value={formData.shiftName}
+                onChange={(e) => setFormData({...formData, shiftName: e.target.value})}
                 placeholder="VD: Ca Sáng"
               />
             </div>
             <div style={{ display: 'flex', gap: '12px' }}>
               <div className={styles.formGroup} style={{ flex: 1 }}>
                 <label className={styles.label}>Giờ bắt đầu</label>
-                <input 
-                  type="time" 
+                <input
+                  type="time"
                   step="1"
-                  className={styles.input} 
-                  value={formData.startTime} 
-                  onChange={(e) => setFormData({...formData, startTime: e.target.value})} 
+                  className={styles.input}
+                  value={formData.startTime}
+                  onChange={(e) => setFormData({...formData, startTime: e.target.value})}
                 />
               </div>
               <div className={styles.formGroup} style={{ flex: 1 }}>
                 <label className={styles.label}>Giờ kết thúc</label>
-                <input 
-                  type="time" 
+                <input
+                  type="time"
                   step="1"
-                  className={styles.input} 
-                  value={formData.endTime} 
-                  onChange={(e) => setFormData({...formData, endTime: e.target.value})} 
+                  className={styles.input}
+                  value={formData.endTime}
+                  onChange={(e) => setFormData({...formData, endTime: e.target.value})}
                 />
               </div>
             </div>
             <div className={styles.formGroup} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 id="isFlexible"
                 checked={formData.isFlexible}
                 onChange={(e) => setFormData({...formData, isFlexible: e.target.checked})}

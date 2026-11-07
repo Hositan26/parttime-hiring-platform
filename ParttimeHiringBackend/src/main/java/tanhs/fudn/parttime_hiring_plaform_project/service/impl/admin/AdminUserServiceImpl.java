@@ -1,5 +1,7 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.admin;
 
+import lombok.extern.slf4j.Slf4j;
+import tanhs.fudn.parttime_hiring_plaform_project.mapper.AdminUserMapper;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.RefreshSessionRepository;
 
 import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminUserService;
@@ -11,7 +13,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.admin.user.AdminUserResponse;
-import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.Role;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.UserRepository;
 import tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.context.SecurityContextHolder;
 import tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminUserServiceImpl implements AdminUserService {
@@ -27,7 +29,7 @@ public class AdminUserServiceImpl implements AdminUserService {
     private final UserRepository userRepository;
     private final RefreshSessionRepository sessions;
 
-    private final tanhs.fudn.parttime_hiring_plaform_project.mapper.AdminUserMapper mapper;
+    private final AdminUserMapper mapper;
 
     // Searches accounts with bounded pagination and optional activity filters.
     @Transactional(readOnly = true)

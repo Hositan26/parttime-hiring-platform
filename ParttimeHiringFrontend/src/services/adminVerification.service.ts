@@ -23,6 +23,7 @@ export interface VerificationDetailResponse {
   representativeName: string;
   taxCode: string;
   websiteFanpageUrl: string;
+  rejectionReason?: string;
   storeFrontImageUrl: string;
   idCardFrontUrl: string;
   idCardBackUrl: string;

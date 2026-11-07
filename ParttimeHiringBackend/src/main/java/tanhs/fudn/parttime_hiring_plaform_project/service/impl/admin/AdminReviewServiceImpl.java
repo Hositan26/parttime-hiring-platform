@@ -1,5 +1,6 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.admin;
 
+import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -13,6 +14,7 @@ import tanhs.fudn.parttime_hiring_plaform_project.repository.review.StoreReviewR
 import tanhs.fudn.parttime_hiring_plaform_project.mapper.AdminReviewMapper;
 import tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException;
 
+@Slf4j
 @Service @RequiredArgsConstructor @Transactional(readOnly = true)
 public class AdminReviewServiceImpl implements AdminReviewService {
     private final StoreReviewRepository reviewRepository;

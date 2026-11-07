@@ -1,5 +1,11 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.admin;
 
+import lombok.extern.slf4j.Slf4j;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException;
+import tanhs.fudn.parttime_hiring_plaform_project.mapper.AdminStoreMapper;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.employment.EmploymentRecordRepository;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.job.JobPostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -11,14 +17,15 @@ import tanhs.fudn.parttime_hiring_plaform_project.entity.employer.Store;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.employer.StoreRepository;
 import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminStoreService;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminStoreServiceImpl implements AdminStoreService {
 
     private final StoreRepository storeRepository;
-    private final tanhs.fudn.parttime_hiring_plaform_project.repository.job.JobPostRepository jobs;
-    private final tanhs.fudn.parttime_hiring_plaform_project.repository.employment.EmploymentRecordRepository employments;
-    private final tanhs.fudn.parttime_hiring_plaform_project.mapper.AdminStoreMapper mapper;
+    private final JobPostRepository jobs;
+    private final EmploymentRecordRepository employments;
+    private final AdminStoreMapper mapper;
 
     // Lists stores with independent approval and operational states.
     @Override
@@ -35,7 +42,7 @@ public class AdminStoreServiceImpl implements AdminStoreService {
     @Transactional
     public AdminStoreResponse updateStoreApproval(Integer storeId, Boolean approved) {
         Store store = storeRepository.lockById(storeId)
-                .orElseThrow(() -> new tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException("Store not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Store not found"));
         if (approved == null) throw new IllegalArgumentException("Approval is required");
         store.setIsApproved(approved);
         return mapper.toResponse(storeRepository.save(store));
@@ -47,10 +54,10 @@ public class AdminStoreServiceImpl implements AdminStoreService {
     public AdminStoreResponse updateStoreStatus(Integer storeId, Boolean isActive) {
         Store store = storeRepository.lockById(storeId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng/chi nhánh"));
-        
+
         if (isActive == null) throw new IllegalArgumentException("Activity is required");
         if (isActive && !Boolean.TRUE.equals(store.getIsApproved())) {
-            throw new tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException("Approve the store before activating it");
+            throw new BusinessException("Approve the store before activating it");
         }
         store.setIsActive(isActive);
         return mapper.toResponse(storeRepository.save(store));
@@ -61,9 +68,9 @@ public class AdminStoreServiceImpl implements AdminStoreService {
     @Transactional
     public void deleteStore(Integer storeId) {
         var store = storeRepository.lockById(storeId)
-                .orElseThrow(() -> new tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException("Store not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Store not found"));
         if (jobs.countByStore_StoreId(storeId) > 0 || employments.existsByStore_StoreId(storeId)) {
-            throw new tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException("Store has recruitment or employment history; disable it instead");
+            throw new BusinessException("Store has recruitment or employment history; disable it instead");
         }
         storeRepository.delete(store);
     }

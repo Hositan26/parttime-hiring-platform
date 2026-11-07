@@ -1,35 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import { usePagedResource } from '../../../services/usePagedResource';
+import { apiBase } from '../../../services/apiClient';
+import React, { useState } from 'react';
 import { List, Search, ChevronLeft, ChevronRight, Edit3, Trash2, Plus } from 'lucide-react';
-import { getCategories, createCategory, updateCategory, deleteCategory, type AdminCategory } from '../../../services/adminCategory.service';
+import { createCategory, updateCategory, deleteCategory, type AdminCategory } from '../../../services/adminCategory.service';
 import styles from '../Verifications/AdminVerifications.module.css';
 
 export const AdminCategories: React.FC = () => {
   const [query, setQuery] = useState('');
-  const [error, setError] = useState('');
-  const [categories, setCategories] = useState<AdminCategory[]>([]);
-  const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<AdminCategory | null>(null);
   const [formData, setFormData] = useState({ categoryName: '', description: '', isActive: true });
 
-  const fetchList = async (pageNum: number) => {
-    try {
-      setLoading(true);
-      const data = await getCategories(pageNum, 10, query);
-      setCategories(data.content || []);
-      setTotalPages(data.totalPages || 1);
-      setLoading(false);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Không tải được ngành nghề');
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchList(page);
-  }, [page, query]);
+  const [revision, setRevision] = useState(0);
+  const { data, loading, error: loadError } = usePagedResource<AdminCategory>(`${apiBase}/admin/categories?page=${page}&size=10&query=${encodeURIComponent(query)}`, revision);
+  const categories = data?.content || [];
+  const totalPages = Math.max(1, data?.totalPages || 0);
 
   const handleAdd = () => {
     setEditingCategory(null);
@@ -55,9 +41,9 @@ export const AdminCategories: React.FC = () => {
         await createCategory(formData);
       }
       setIsModalOpen(false);
-      fetchList(page);
-    } catch (err: any) {
-      alert(err.message);
+      setRevision(value => value + 1);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Thao tác thất bại');
     }
   };
 
@@ -65,9 +51,9 @@ export const AdminCategories: React.FC = () => {
     if (!window.confirm('Bạn có chắc muốn xóa ngành nghề này?')) return;
     try {
       await deleteCategory(id);
-      fetchList(page);
-    } catch (err: any) {
-      alert(err.message);
+      setRevision(value => value + 1);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Thao tác thất bại');
     }
   };
 
@@ -88,7 +74,7 @@ export const AdminCategories: React.FC = () => {
         </button>
       </div>
 
-      {error && <p role="alert">{error}</p>}
+      {loadError && <p role="alert">{loadError}</p>}
       <div className={styles.tableCard}>
         {loading ? (
           <div className={styles.loadingState}>Đang tải dữ liệu...</div>
@@ -115,10 +101,10 @@ export const AdminCategories: React.FC = () => {
                   <tr key={c.categoryId}>
                     <td>#{c.categoryId}</td>
                     <td style={{ fontWeight: 600 }}>{c.categoryName}</td>
-                    <td style={{ color: '#64748b' }}>{c.slug}</td>
-                    <td style={{ color: '#64748b' }}>{c.description || '-'}</td>
+                    <td style={{ color: 'var(--text-gray)' }}>{c.slug}</td>
+                    <td style={{ color: 'var(--text-gray)' }}>{c.description || '-'}</td>
                     <td>
-                      {c.isActive ? 
+                      {c.isActive ?
                         <span className={`${styles.badge} ${styles.badgeSuccess}`}>Hoạt động</span> :
                         <span className={`${styles.badge} ${styles.badgeDanger}`}>Ẩn</span>
                       }
@@ -135,7 +121,7 @@ export const AdminCategories: React.FC = () => {
                 ))}
               </tbody>
             </table>
-            
+
             <div className={styles.pagination}>
               <button disabled={page === 0} onClick={() => setPage(p => p - 1)} className={styles.pageBtn}>
                 <ChevronLeft size={16} />
@@ -155,27 +141,27 @@ export const AdminCategories: React.FC = () => {
             <h2 className={styles.modalTitle}>{editingCategory ? 'Sửa ngành nghề' : 'Thêm ngành nghề'}</h2>
             <div className={styles.formGroup}>
               <label className={styles.label}>Tên ngành nghề (*)</label>
-              <input 
-                type="text" 
-                className={styles.input} 
-                value={formData.categoryName} 
-                onChange={(e) => setFormData({...formData, categoryName: e.target.value})} 
+              <input
+                type="text"
+                className={styles.input}
+                maxLength={255} value={formData.categoryName}
+                onChange={(e) => setFormData({...formData, categoryName: e.target.value})}
                 placeholder="VD: IT - Phần mềm"
               />
             </div>
             <div className={styles.formGroup}>
               <label className={styles.label}>Mô tả</label>
-              <textarea 
-                className={styles.input} 
-                value={formData.description} 
-                onChange={(e) => setFormData({...formData, description: e.target.value})} 
+              <textarea
+                className={styles.input}
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
                 placeholder="Mô tả ngành nghề..."
                 rows={3}
               />
             </div>
             <div className={styles.formGroup} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 id="isActive"
                 checked={formData.isActive}
                 onChange={(e) => setFormData({...formData, isActive: e.target.checked})}

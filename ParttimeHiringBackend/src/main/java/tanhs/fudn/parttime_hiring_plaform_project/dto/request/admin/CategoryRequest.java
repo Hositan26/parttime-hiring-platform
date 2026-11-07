@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 public class CategoryRequest {
     @NotBlank(message = "Tên danh mục không được để trống")
+    @jakarta.validation.constraints.Size(max = 255)
     private String categoryName;
     private String description;
     private Boolean isActive;

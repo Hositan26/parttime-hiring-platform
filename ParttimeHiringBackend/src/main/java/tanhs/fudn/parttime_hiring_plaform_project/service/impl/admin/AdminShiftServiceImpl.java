@@ -1,5 +1,8 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.admin;
 
+import lombok.extern.slf4j.Slf4j;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.job.JobPostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -15,13 +18,14 @@ import tanhs.fudn.parttime_hiring_plaform_project.mapper.WorkShiftMapper;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.job.WorkShiftRepository;
 import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminShiftService;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminShiftServiceImpl implements AdminShiftService {
 
     private final WorkShiftRepository shiftRepository;
     private final WorkShiftMapper shiftMapper;
-    private final tanhs.fudn.parttime_hiring_plaform_project.repository.job.JobPostRepository jobs;
+    private final JobPostRepository jobs;
 
     // Searches catalog names with bounded pagination.
     @Override
@@ -53,10 +57,10 @@ public class AdminShiftServiceImpl implements AdminShiftService {
     public ShiftResponse updateShift(Integer id, ShiftRequest request) {
         WorkShift shift = shiftRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy ca làm việc với id: " + id));
-        
+
         validate(request, id);
         shiftMapper.updateEntity(shift, request);
-        
+
         WorkShift updated = shiftRepository.save(shift);
         return shiftMapper.toResponse(updated);
     }
@@ -69,7 +73,7 @@ public class AdminShiftServiceImpl implements AdminShiftService {
             throw new ResourceNotFoundException("Không tìm thấy ca làm việc để xóa");
         }
         if (jobs.existsByShifts_ShiftId(id)) {
-            throw new tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException("Shift is used by job listings");
+            throw new BusinessException("Shift is used by job listings");
         }
         shiftRepository.deleteById(id);
     }
@@ -84,7 +88,7 @@ public class AdminShiftServiceImpl implements AdminShiftService {
         }
         if (shiftRepository.findByShiftNameIgnoreCase(request.getShiftName())
                 .map(value -> !value.getShiftId().equals(id)).orElse(false)) {
-            throw new tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException("Shift name already exists");
+            throw new BusinessException("Shift name already exists");
         }
     }
 }

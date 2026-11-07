@@ -1,41 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import { usePagedResource } from '../../../services/usePagedResource';
+import { apiBase } from '../../../services/apiClient';
+import React, { useState } from 'react';
 import { Star, Search, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
-import { getReviews, deleteReview, updateReviewVisibility, type AdminReviewResponse } from '../../../services/adminReview.service';
+import { deleteReview, updateReviewVisibility, type AdminReviewResponse } from '../../../services/adminReview.service';
 import styles from '../Verifications/AdminVerifications.module.css';
 
 export const AdminReviews: React.FC = () => {
   const [query, setQuery] = useState('');
   const [error, setError] = useState('');
-  const [reviews, setReviews] = useState<AdminReviewResponse[]>([]);
-  const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchList = async (pageNum: number) => {
-    try {
-      setLoading(true);
-      const data = await getReviews(pageNum, 10, query);
-      setReviews(data.content || []);
-      setTotalPages(data.totalPages || 1);
-      setLoading(false);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Không tải được đánh giá');
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchList(page);
-  }, [page, query]);
+  const [revision, setRevision] = useState(0);
+  const { data, loading, error: loadError } = usePagedResource<AdminReviewResponse>(`${apiBase}/admin/reviews?page=${page}&size=10&query=${encodeURIComponent(query)}`, revision);
+  const reviews = data?.content || [];
+  const totalPages = Math.max(1, data?.totalPages || 0);
 
   const handleDelete = async (id: number) => {
     if (!window.confirm('Bạn có chắc muốn xóa đánh giá này khỏi hệ thống?')) return;
     try {
       await deleteReview(id);
       alert('Xóa thành công!');
-      fetchList(page);
-    } catch (err: any) {
-      alert(err.message);
+      setRevision(value => value + 1);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Thao tác thất bại');
     }
   };
 
@@ -59,7 +46,7 @@ export const AdminReviews: React.FC = () => {
         </div>
       </div>
 
-      {error && <p role="alert">{error}</p>}
+      {(error || loadError) && <p role="alert">{error || loadError}</p>}
       <div className={styles.tableCard}>
         {loading ? (
           <div className={styles.loadingState}>Đang tải dữ liệu...</div>
@@ -88,7 +75,7 @@ export const AdminReviews: React.FC = () => {
                     <td style={{ fontWeight: 600 }}>{r.storeName}</td>
                     <td>
                       <div>{r.reviewerName}</div>
-                      <div style={{ fontSize: '0.8rem', color: '#64748b' }}>@{r.reviewerUsername}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-gray)' }}>@{r.reviewerUsername}</div>
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: '2px' }}>{renderStars(r.rating)}</div>
@@ -100,7 +87,7 @@ export const AdminReviews: React.FC = () => {
                     <td style={{ textAlign: 'right' }}>
                       <button className="btn-outline" onClick={async () => {
                         if (!window.confirm(r.status === 'VISIBLE' ? 'Ẩn đánh giá này?' : 'Khôi phục đánh giá này?')) return;
-                        try { await updateReviewVisibility(r.reviewId, r.status !== 'VISIBLE'); fetchList(page); }
+                        try { await updateReviewVisibility(r.reviewId, r.status !== 'VISIBLE'); setRevision(value => value + 1); }
                         catch (error) { setError(error instanceof Error ? error.message : 'Thao tác thất bại'); }
                       }}>{r.status === 'VISIBLE' ? 'Ẩn' : 'Khôi phục'}</button>
                       <button onClick={() => handleDelete(r.reviewId)} className={styles.actionBtn} style={{ color: '#dc2626', background: '#fee2e2' }}>
@@ -111,7 +98,7 @@ export const AdminReviews: React.FC = () => {
                 ))}
               </tbody>
             </table>
-            
+
             <div className={styles.pagination}>
               <button disabled={page === 0} onClick={() => setPage(p => p - 1)} className={styles.pageBtn}>
                 <ChevronLeft size={16} />

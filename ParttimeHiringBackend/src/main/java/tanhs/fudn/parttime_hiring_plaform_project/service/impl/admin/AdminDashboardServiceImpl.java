@@ -1,5 +1,6 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.admin;
 
+import lombok.extern.slf4j.Slf4j;
 import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminDashboardService;
 
 
@@ -20,6 +21,7 @@ import java.time.LocalDateTime;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.UserRepository;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.job.JobPostRepository;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminDashboardServiceImpl implements AdminDashboardService {

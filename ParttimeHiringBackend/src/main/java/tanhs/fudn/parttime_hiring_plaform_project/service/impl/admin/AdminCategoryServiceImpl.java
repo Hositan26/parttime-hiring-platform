@@ -1,5 +1,8 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.admin;
 
+import lombok.extern.slf4j.Slf4j;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.job.JobPostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -15,14 +18,16 @@ import tanhs.fudn.parttime_hiring_plaform_project.mapper.JobCategoryMapper;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.job.JobCategoryRepository;
 import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminCategoryService;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminCategoryServiceImpl implements AdminCategoryService {
 
     private final JobCategoryRepository categoryRepository;
     private final JobCategoryMapper categoryMapper;
-    private final tanhs.fudn.parttime_hiring_plaform_project.repository.job.JobPostRepository jobs;
+    private final JobPostRepository jobs;
 
+    // Searches category names with bounded pagination.
     @Override
     @Transactional(readOnly = true)
     public Page<CategoryResponse> getCategories(int page, int size, String query) {
@@ -52,11 +57,11 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
     public CategoryResponse updateCategory(Integer id, CategoryRequest request) {
         JobCategory category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy ngành nghề với id: " + id));
-        
+
         validate(request, id);
         categoryMapper.updateEntity(category, request);
         category.setSlug(generateSlug(request.getCategoryName()));
-        
+
         JobCategory updated = categoryRepository.save(category);
         return categoryMapper.toResponse(updated);
     }
@@ -69,7 +74,7 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
             throw new ResourceNotFoundException("Không tìm thấy ngành nghề để xóa");
         }
         if (jobs.existsByCategories_CategoryId(id)) {
-            throw new tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException("Category is used by job listings; deactivate it instead");
+            throw new BusinessException("Category is used by job listings; deactivate it instead");
         }
         categoryRepository.deleteById(id);
     }
@@ -86,7 +91,7 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
                 .map(value -> !value.getCategoryId().equals(id)).orElse(false);
         boolean slugConflict = categoryRepository.findBySlug(slug)
                 .map(value -> !value.getCategoryId().equals(id)).orElse(false);
-        if (nameConflict || slugConflict) throw new tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException("Category name or slug already exists");
+        if (nameConflict || slugConflict) throw new BusinessException("Category name or slug already exists");
     }
 
     // Normalizes Vietnamese names into stable URL-safe category slugs.

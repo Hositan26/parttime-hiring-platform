@@ -1,5 +1,6 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.employer;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.EmployerStatus;
@@ -79,10 +80,10 @@ public class EmployerJobServiceImpl implements EmployerJobService {
             throw new BusinessException("Trang hoặc số lượng bản ghi không hợp lệ.");
         }
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt", "jobPostId").descending());
-        
+
         Specification<JobPost> spec = JobPostSpecification.filterEmployerJobs(employer.getEmployerId(), storeId, status, keyword);
         Page<JobPost> jobPosts = jobPostRepository.findAll(spec, pageable);
-        
+
         return jobPosts.map(job -> {
             int applicantsCount = (int) jobApplicationRepository.countByJobPost_JobPostId(job.getJobPostId());
             return employerJobMapper.toListResponse(job, applicantsCount);
@@ -110,7 +111,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
         Employer employer = getEmployerByUsername(username);
         JobPost jobPost = jobPostRepository.findById(jobId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng."));
-        
+
         if (!jobPost.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
             throw new AccessDeniedException("Bạn không có quyền xem đánh giá của tin tuyển dụng này.");
         }
@@ -128,7 +129,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
         Employer employer = getEmployerByUsername(username);
         JobPost jobPost = jobPostRepository.findById(jobId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng."));
-        
+
         if (!jobPost.getEmployer().getEmployerId().equals(employer.getEmployerId())) {
             throw new AccessDeniedException("Bạn không có quyền xem ứng viên của tin tuyển dụng này.");
         }
@@ -230,7 +231,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
                 .sortOrder(jobPost.getImages() != null ? jobPost.getImages().size() : 0)
                 .jobPost(jobPost)
                 .build();
-        
+
         jobPost.getImages().add(newImage);
         jobPostRepository.save(jobPost);
     }
@@ -308,7 +309,7 @@ public class EmployerJobServiceImpl implements EmployerJobService {
         try {
             jobPostRepository.delete(jobPost);
             jobPostRepository.flush();
-        } catch (org.springframework.dao.DataIntegrityViolationException failure) {
+        } catch (DataIntegrityViolationException failure) {
             throw new BusinessException("Tin tuyển dụng đã có dữ liệu liên quan. Hãy đóng tin để giữ lịch sử.");
         }
     }
