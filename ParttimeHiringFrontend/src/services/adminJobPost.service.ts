@@ -1,8 +1,7 @@
 import { apiFetch, apiBase } from './apiClient';
 export const JobStatus = {
-  PENDING: 'PENDING',
   ACTIVE: 'ACTIVE',
-  REJECTED: 'REJECTED',
+  PAUSED: 'PAUSED',
   CLOSED: 'CLOSED',
   EXPIRED: 'EXPIRED'
 } as const;
@@ -16,10 +15,13 @@ export interface AdminJobPostResponse {
   title: string;
   storeName: string;
   address: string;
-  employerName: string;
-  salaryMin: number;
-  salaryMax: number;
-  headcount: number;
+  companyName: string;
+  description: string;
+  requirements: string;
+  benefits: string;
+  hourlyWageMin: number;
+  hourlyWageMax: number;
+  vacancyCount: number;
   expiredAt: string;
   status: JobStatusType;
 }
@@ -30,8 +32,9 @@ export interface AdminJobPostListResponse {
   totalElements: number;
 }
 
-export const getAdminJobPosts = async (status: JobStatusType, page: number = 0, size: number = 10): Promise<AdminJobPostListResponse> => {
+export const getAdminJobPosts = async (status: JobStatusType | '', page: number = 0, size: number = 10, query = ''): Promise<AdminJobPostListResponse> => {
   const params = new URLSearchParams({
+    query,
     page: page.toString(),
     size: size.toString()
   });
@@ -67,5 +70,12 @@ export const updateAdminJobPostStatus = async (jobId: number, status: JobStatusT
   }
   
   const data = await response.json();
+  return data.result;
+};
+
+export const getAdminJobDetail = async (id: number): Promise<AdminJobPostResponse> => {
+  const response = await apiFetch(`${API_URL}/${id}`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Không tải được chi tiết');
   return data.result;
 };

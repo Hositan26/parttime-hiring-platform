@@ -19,15 +19,24 @@ public class AdminJobPostController {
 
     private final AdminJobPostService adminJobPostService;
 
+    // Searches titles and filters the persisted publication state.
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<AdminJobPostResponse>>> getAllJobPosts(
             @RequestParam(required = false) JobStatus status,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String query
     ) {
-        Page<AdminJobPostResponse> jobPosts = adminJobPostService.getAllJobPosts(page, size, status);
+        Page<AdminJobPostResponse> jobPosts = adminJobPostService.getAllJobPosts(page, size, status, query);
         return ResponseEntity.ok(ApiResponse.success(jobPosts));
+    }
+
+    // Reads listing details for administrative moderation in every publication state.
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<AdminJobPostResponse>> detail(@PathVariable Integer id) {
+        return ResponseEntity.ok(ApiResponse.success(adminJobPostService.getDetail(id)));
     }
 
     @PutMapping("/{id}/status")

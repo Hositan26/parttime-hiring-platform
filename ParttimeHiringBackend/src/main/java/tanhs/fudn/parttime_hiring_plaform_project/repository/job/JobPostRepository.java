@@ -11,6 +11,12 @@ import tanhs.fudn.parttime_hiring_plaform_project.entity.job.JobPost;
 @Repository
 public interface JobPostRepository extends JpaRepository<JobPost, Integer>, JpaSpecificationExecutor<JobPost> {
     
+    // Searches titles with the exact backend publication state.
+    @Query("select j from JobPost j where (:status is null or j.status = :status) and lower(j.title) like lower(concat('%', :query, '%'))")
+    org.springframework.data.domain.Page<JobPost> searchAdministration(@Param("query") String query,
+            @Param("status") tanhs.fudn.parttime_hiring_plaform_project.entity.enums.JobStatus status,
+            org.springframework.data.domain.Pageable pageable);
+
     long countByEmployer_EmployerId(Integer employerId);
     long countByStore_StoreId(Integer storeId);
     java.util.List<JobPost> findByStore_StoreId(Integer storeId);
