@@ -6,6 +6,7 @@ export interface AdminStoreResponse {
   storeName: string;
   phoneContact: string;
   address: string;
+  isApproved: boolean;
   isActive: boolean;
   createdAt: string;
   employerId: number;
@@ -47,5 +48,13 @@ export const updateAdminStoreStatus = async (id: number, isActive: boolean) => {
   }
   
   const data = await response.json();
+  return data.result;
+};
+
+export const updateAdminStoreApproval = async (id: number, isApproved: boolean) => {
+  const response = await apiFetch(`${API_URL}/${id}/approval`, { method: 'PUT',
+    headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isApproved }) });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Không cập nhật được phê duyệt');
   return data.result;
 };

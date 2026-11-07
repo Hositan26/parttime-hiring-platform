@@ -51,7 +51,7 @@ class JobAvailabilityPolicyTest {
     // Builds a recruitable job for boundary checks.
     private JobPost job() {
         return JobPost.builder().status(JobStatus.ACTIVE)
-                .store(Store.builder().isActive(true).build())
+                .store(Store.builder().isActive(true).isApproved(true).build())
                 .employer(Employer.builder().status(EmployerStatus.ACTIVE).build()).build();
     }
 }

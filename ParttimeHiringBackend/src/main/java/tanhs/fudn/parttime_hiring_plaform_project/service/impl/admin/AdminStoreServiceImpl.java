@@ -16,7 +16,9 @@ import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminStoreServic
 public class AdminStoreServiceImpl implements AdminStoreService {
 
     private final StoreRepository storeRepository;
+    private final tanhs.fudn.parttime_hiring_plaform_project.mapper.AdminStoreMapper mapper;
 
+    // Lists stores with independent approval and operational states.
     @Override
     @Transactional(readOnly = true)
     public Page<AdminStoreResponse> getAllStores(int page, int size, Boolean isActive) {
@@ -29,54 +31,33 @@ public class AdminStoreServiceImpl implements AdminStoreService {
             stores = storeRepository.findAll(pageRequest);
         }
 
-        return stores.map(store -> {
-            String address = "";
-            if (store.getStreetAddress() != null) address += store.getStreetAddress() + ", ";
-            if (store.getWard() != null) address += store.getWard() + ", ";
-            if (store.getDistrict() != null) address += store.getDistrict() + ", ";
-            if (store.getCity() != null) address += store.getCity();
-            if (address.endsWith(", ")) address = address.substring(0, address.length() - 2);
-
-            return AdminStoreResponse.builder()
-                .storeId(store.getStoreId())
-                .storeName(store.getStoreName())
-                .phoneContact(store.getPhoneContact())
-                .address(address)
-                .isActive(store.getIsActive())
-                .createdAt(store.getCreatedAt())
-                .employerId(store.getEmployer().getEmployerId())
-                .companyName(store.getEmployer().getCompanyName())
-                .build();
-        });
+        return stores.map(mapper::toResponse);
     }
 
+    // Changes approval without enabling or disabling employer-controlled activity.
+    @Override
+    @Transactional
+    public AdminStoreResponse updateStoreApproval(Integer storeId, Boolean approved) {
+        Store store = storeRepository.lockById(storeId)
+                .orElseThrow(() -> new tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException("Store not found"));
+        if (approved == null) throw new IllegalArgumentException("Approval is required");
+        store.setIsApproved(approved);
+        return mapper.toResponse(storeRepository.save(store));
+    }
+
+    // Updates activity only after the store has passed administrative approval.
     @Override
     @Transactional
     public AdminStoreResponse updateStoreStatus(Integer storeId, Boolean isActive) {
         Store store = storeRepository.lockById(storeId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng/chi nhánh"));
         
-        store.setIsApproved(Boolean.TRUE.equals(isActive));
-        store.setIsActive(Boolean.TRUE.equals(isActive));
-        storeRepository.save(store);
-
-        String address = "";
-        if (store.getStreetAddress() != null) address += store.getStreetAddress() + ", ";
-        if (store.getWard() != null) address += store.getWard() + ", ";
-        if (store.getDistrict() != null) address += store.getDistrict() + ", ";
-        if (store.getCity() != null) address += store.getCity();
-        if (address.endsWith(", ")) address = address.substring(0, address.length() - 2);
-
-        return AdminStoreResponse.builder()
-                .storeId(store.getStoreId())
-                .storeName(store.getStoreName())
-                .phoneContact(store.getPhoneContact())
-                .address(address)
-                .isActive(store.getIsActive())
-                .createdAt(store.getCreatedAt())
-                .employerId(store.getEmployer().getEmployerId())
-                .companyName(store.getEmployer().getCompanyName())
-                .build();
+        if (isActive == null) throw new IllegalArgumentException("Activity is required");
+        if (isActive && !Boolean.TRUE.equals(store.getIsApproved())) {
+            throw new tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException("Approve the store before activating it");
+        }
+        store.setIsActive(isActive);
+        return mapper.toResponse(storeRepository.save(store));
     }
 
     @Override

@@ -29,6 +29,15 @@ public class AdminStoreController {
         return ResponseEntity.ok(ApiResponse.success(stores));
     }
 
+    // Reviews a store independently from its current operational state.
+    @PutMapping("/{id}/approval")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<AdminStoreResponse>> updateApproval(@PathVariable Integer id,
+            @RequestBody Map<String, Boolean> payload) {
+        return ResponseEntity.ok(ApiResponse.success(adminStoreService.updateStoreApproval(id, payload.get("isApproved"))));
+    }
+
+    // Changes operational state without changing the approval decision.
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<AdminStoreResponse>> updateStatus(

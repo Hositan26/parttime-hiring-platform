@@ -52,7 +52,7 @@ class UserJourneyIntegrationTest {
         User candidate = account("candidate"); User recruiter = account("recruiter");
         Employer employer = Employer.builder().userId(recruiter.getId().intValue()).companyName("Journey employer").status(EmployerStatus.ACTIVE).build();
         database.persist(employer);
-        Store store = Store.builder().employer(employer).storeName("Journey store").city("Journey City").isActive(true).build();
+        Store store = Store.builder().employer(employer).storeName("Journey store").city("Journey City").isActive(true).isApproved(true).build();
         database.persist(store);
         JobPost job = JobPost.builder().employer(employer).store(store).title("Journey job").jobDescription("Description")
                 .hourlyWageMin(BigDecimal.valueOf(25000)).currency("VND").vacancyCount(2)

@@ -14,6 +14,7 @@ public class JobAvailabilityPolicy {
                 && (job.getPublishedAt() == null || !job.getPublishedAt().isAfter(now))
                 && (job.getExpiredAt() == null || job.getExpiredAt().isAfter(now))
                 && job.getStore() != null && Boolean.TRUE.equals(job.getStore().getIsActive())
+                && Boolean.TRUE.equals(job.getStore().getIsApproved())
                 && job.getEmployer() != null && job.getEmployer().getStatus() == EmployerStatus.ACTIVE;
     }
 }

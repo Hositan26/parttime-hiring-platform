@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Store as StoreIcon, Search, ChevronLeft, ChevronRight, CheckCircle2, XCircle, PowerOff } from 'lucide-react';
-import { getAdminStores, updateAdminStoreStatus, type AdminStoreResponse } from '../../../services/adminStore.service';
+import { getAdminStores, updateAdminStoreStatus, updateAdminStoreApproval, type AdminStoreResponse } from '../../../services/adminStore.service';
 import styles from '../Verifications/AdminVerifications.module.css'; // Reusing styles
 
 export const AdminStores: React.FC = () => {
@@ -100,7 +100,7 @@ export const AdminStores: React.FC = () => {
                   <th>Trực thuộc công ty</th>
                   <th>Địa chỉ</th>
                   <th>SĐT Liên hệ</th>
-                  <th>Trạng thái</th>
+                  <th>Phê duyệt</th><th>Hoạt động</th>
                   <th style={{ textAlign: 'right' }}>Thao tác</th>
                 </tr>
               </thead>
@@ -112,9 +112,14 @@ export const AdminStores: React.FC = () => {
                     <td>{store.companyName}</td>
                     <td>{store.address}</td>
                     <td>{store.phoneContact || '-'}</td>
-                    <td>{getStatusBadge(store.isActive)}</td>
+                    <td><span className={store.isApproved ? 'badge-success' : 'badge-warning'}>{store.isApproved ? 'Đã duyệt' : 'Chờ duyệt'}</span></td><td>{getStatusBadge(store.isActive)}</td>
                     <td style={{ textAlign: 'right' }}>
-                      <button 
+                      <button className="btn-outline" onClick={async () => {
+                        if (!window.confirm(store.isApproved ? 'Thu hồi phê duyệt cửa hàng?' : 'Duyệt địa chỉ cửa hàng này?')) return;
+                        try { await updateAdminStoreApproval(store.storeId, !store.isApproved); fetchList(page, statusFilter); }
+                        catch (error) { alert(error instanceof Error ? error.message : 'Thao tác thất bại'); }
+                      }}>{store.isApproved ? 'Thu hồi duyệt' : 'Phê duyệt'}</button>
+                      <button disabled={!store.isApproved && !store.isActive}
                         className={styles.actionBtn}
                         onClick={() => handleToggleStatus(store.storeId, store.isActive)}
                         style={{ color: store.isActive ? '#ef4444' : '#10b981' }}

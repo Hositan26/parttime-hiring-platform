@@ -19,7 +19,7 @@ class StoreApprovalPolicyTest {
     // Retains approval when an active legacy store is paused and resumed.
     @Test
     void preservesLegacyApproval() {
-        Store store = Store.builder().isActive(true).build();
+        Store store = Store.builder().isActive(true).isApproved(true).build();
         StoreApprovalPolicy.toggleActivity(store);
         assertEquals("PAUSED", StoreApprovalPolicy.status(store));
         assertTrue(store.getIsApproved());

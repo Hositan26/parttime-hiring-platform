@@ -5,6 +5,8 @@ import tanhs.fudn.parttime_hiring_plaform_project.dto.response.admin.store.Admin
 
 public interface AdminStoreService {
     Page<AdminStoreResponse> getAllStores(int page, int size, Boolean isActive);
+    // Changes approval independently from employer-controlled activity.
+    AdminStoreResponse updateStoreApproval(Integer storeId, Boolean approved);
     AdminStoreResponse updateStoreStatus(Integer storeId, Boolean isActive);
     void deleteStore(Integer storeId);
 }
