@@ -1,72 +1,47 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.admin;
 
-import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminEmployerService;
-
-
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminEmployerService;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.admin.employer.AdminEmployerResponse;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.employer.Employer;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.EmployerStatus;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.employer.EmployerRepository;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.UserRepository;
-import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
+import tanhs.fudn.parttime_hiring_plaform_project.mapper.AdminEmployerMapper;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException;
 
-@Service
-@RequiredArgsConstructor
+@Service @RequiredArgsConstructor @Slf4j
+@Transactional(readOnly = true)
 public class AdminEmployerServiceImpl implements AdminEmployerService {
-
     private final EmployerRepository employerRepository;
     private final UserRepository userRepository;
+    private final AdminEmployerMapper mapper;
 
-    public Page<AdminEmployerResponse> getAllEmployers(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "employerId"));
-        Page<Employer> employers = employerRepository.findAll(pageable);
-
-        return employers.map(employer -> {
-            User user = userRepository.findById(employer.getUserId().longValue()).orElse(null);
-            String username = user != null ? user.getUsername() : "N/A";
-            Boolean isActive = user != null ? user.getIsActive() : true;
-            return AdminEmployerResponse.builder()
-                .employerId(employer.getEmployerId())
-                .companyName(employer.getCompanyName())
-                .representativeName(employer.getRepresentativeName())
-                .emailContact(employer.getEmailContact())
-                .phoneContact(employer.getPhoneContact())
-                .website(employer.getWebsite())
-                .status(employer.getStatus())
-                .userId(employer.getUserId().longValue())
-                .username(username)
-                .isActive(isActive)
-                .build();
-        });
+    // Searches company names before applying bounded account pagination.
+    public Page<AdminEmployerResponse> getAllEmployers(int page, int size, String query) {
+        if (page < 0 || size < 1 || size > 50) throw new IllegalArgumentException("Invalid pagination");
+        return employerRepository.findByCompanyNameContainingIgnoreCase(query == null ? "" : query.trim(),
+                PageRequest.of(page, size, Sort.by("employerId").descending())).map(this::response);
     }
 
+    // Changes business standing without deleting recruitment or employment history.
+    @Transactional
     public AdminEmployerResponse updateEmployerStatus(Integer employerId, EmployerStatus status) {
         Employer employer = employerRepository.findById(employerId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Employer"));
+                .orElseThrow(() -> new ResourceNotFoundException("Employer not found"));
         employer.setStatus(status);
-        employerRepository.save(employer);
-        
-        User user = userRepository.findById(employer.getUserId().longValue()).orElse(null);
-        String username = user != null ? user.getUsername() : "N/A";
-        Boolean isActive = user != null ? user.getIsActive() : true;
-                
-        return AdminEmployerResponse.builder()
-                .employerId(employer.getEmployerId())
-                .companyName(employer.getCompanyName())
-                .representativeName(employer.getRepresentativeName())
-                .emailContact(employer.getEmailContact())
-                .phoneContact(employer.getPhoneContact())
-                .website(employer.getWebsite())
-                .status(employer.getStatus())
-                .userId(employer.getUserId().longValue())
-                .username(username)
-                .isActive(isActive)
-                .build();
+        return response(employerRepository.save(employer));
+    }
+
+    // Maps account login state independently from business standing.
+    private AdminEmployerResponse response(Employer employer) {
+        return mapper.toResponse(employer, userRepository.findById(employer.getUserId().longValue())
+                .orElseThrow(() -> new ResourceNotFoundException("Employer account not found")));
     }
 }

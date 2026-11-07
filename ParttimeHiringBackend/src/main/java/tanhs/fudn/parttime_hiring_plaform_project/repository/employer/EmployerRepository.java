@@ -6,6 +6,8 @@ import java.util.Optional;
 import java.time.LocalDateTime;
 
 public interface EmployerRepository extends JpaRepository<Employer, Integer> {
+    // Searches company names before applying administration pagination.
+    org.springframework.data.domain.Page<Employer> findByCompanyNameContainingIgnoreCase(String query, org.springframework.data.domain.Pageable pageable);
     Optional<Employer> findByUserId(Integer userId);
     boolean existsByUserId(Integer userId);
     

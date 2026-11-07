@@ -5,6 +5,8 @@ import { banUser, unbanUser } from '../../../services/adminUser.service';
 import styles from '../Verifications/AdminVerifications.module.css';
 
 export const AdminEmployers: React.FC = () => {
+  const [query, setQuery] = useState('');
+  const [error, setError] = useState('');
   const [employers, setEmployers] = useState<AdminEmployerResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
@@ -13,19 +15,19 @@ export const AdminEmployers: React.FC = () => {
   const fetchList = async (pageNum: number) => {
     try {
       setLoading(true);
-      const data = await getEmployers(pageNum, 10);
+      const data = await getEmployers(pageNum, 10, query);
       setEmployers(data.content || []);
       setTotalPages(data.totalPages || 1);
       setLoading(false);
     } catch (error) {
-      console.error(error);
+      setError(error instanceof Error ? error.message : 'Không tải được doanh nghiệp');
       setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchList(page);
-  }, [page]);
+  }, [page, query]);
 
   const handleToggleStatus = async (employerId: number, currentStatus: string) => {
     let newStatus = currentStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
@@ -82,10 +84,11 @@ export const AdminEmployers: React.FC = () => {
       <div className={styles.filtersCard}>
         <div className={styles.searchBox}>
           <Search size={18} />
-          <input type="text" placeholder="Tìm tên doanh nghiệp..." className={styles.searchInput} />
+          <input type="text" value={query} onChange={event => { setQuery(event.target.value); setPage(0); }} placeholder="Tìm tên doanh nghiệp..." className={styles.searchInput} />
         </div>
       </div>
 
+      {error && <p role="alert">{error}</p>}
       <div className={styles.tableCard}>
         {loading ? (
           <div className={styles.loadingState}>Đang tải dữ liệu...</div>
@@ -103,7 +106,7 @@ export const AdminEmployers: React.FC = () => {
                   <th>Công ty</th>
                   <th>Người đại diện</th>
                   <th>Liên hệ</th>
-                  <th>Trạng thái</th>
+                  <th>Doanh nghiệp</th><th>Tài khoản đăng nhập</th>
                   <th style={{ textAlign: 'right' }}>Khóa/Mở khóa</th>
                 </tr>
               </thead>
@@ -120,7 +123,7 @@ export const AdminEmployers: React.FC = () => {
                       <div style={{ fontSize: '0.85rem' }}>{e.emailContact}</div>
                       <div style={{ fontSize: '0.85rem' }}>{e.phoneContact}</div>
                     </td>
-                    <td>{getStatusBadge(e.status)}</td>
+                    <td>{getStatusBadge(e.status)}</td><td><span className={e.isActive ? 'badge-success' : 'badge-danger'}>{e.isActive ? 'Hoạt động' : 'Bị khóa'}</span></td>
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                         <button 

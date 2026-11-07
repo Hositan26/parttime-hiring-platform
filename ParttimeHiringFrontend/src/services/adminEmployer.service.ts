@@ -14,8 +14,8 @@ export interface AdminEmployerResponse {
   username: string;
 }
 
-export const getEmployers = async (page = 0, size = 10) => {
-  const response = await apiFetch(`${API_URL}?page=${page}&size=${size}`, {
+export const getEmployers = async (page = 0, size = 10, query = '') => {
+  const response = await apiFetch(`${API_URL}?page=${page}&size=${size}&query=${encodeURIComponent(query)}`, {
     method: 'GET',
     credentials: 'include'
   });
