@@ -17,6 +17,20 @@ class AdminEmployerSearchIntegrationTest {
     @Autowired EmployerRepository employers;
     @Autowired UserRepository users;
 
+    // Suspends recruitment while keeping account identity and employer records intact.
+    @Test
+    void suspensionAndReactivationPreserveBusinessIdentity() {
+        var user = users.findByUsername("employer").orElseThrow();
+        var employer = employers.findByUserId(user.getId().intValue()).orElseThrow();
+        var id = employer.getEmployerId();
+        var result = service.updateEmployerStatus(id, EmployerStatus.SUSPENDED);
+        assertEquals(EmployerStatus.SUSPENDED, result.getStatus());
+        assertTrue(result.getIsActive());
+        assertEquals(EmployerStatus.ACTIVE, service.updateEmployerStatus(id, EmployerStatus.ACTIVE).getStatus());
+        assertEquals(id, employers.findByUserId(user.getId().intValue()).orElseThrow().getEmployerId());
+        assertThrows(IllegalArgumentException.class, () -> service.updateEmployerStatus(id, EmployerStatus.PENDING_VERIFICATION));
+    }
+
     // Keeps login state visible independently from matching company standing.
     @Test
     void filtersCompanyNamesAndMapsIndependentAccountState() {

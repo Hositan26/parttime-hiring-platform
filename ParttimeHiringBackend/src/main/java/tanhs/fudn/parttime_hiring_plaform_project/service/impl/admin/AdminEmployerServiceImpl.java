@@ -35,6 +35,12 @@ public class AdminEmployerServiceImpl implements AdminEmployerService {
     public AdminEmployerResponse updateEmployerStatus(Integer employerId, EmployerStatus status) {
         Employer employer = employerRepository.findById(employerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Employer not found"));
+        if (status == null || (status != EmployerStatus.ACTIVE && status != EmployerStatus.SUSPENDED)) {
+            throw new IllegalArgumentException("Choose ACTIVE or SUSPENDED");
+        }
+        if (employer.getStatus() == EmployerStatus.PENDING_VERIFICATION) {
+            throw new tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException("Review verification documents first");
+        }
         employer.setStatus(status);
         return response(employerRepository.save(employer));
     }
