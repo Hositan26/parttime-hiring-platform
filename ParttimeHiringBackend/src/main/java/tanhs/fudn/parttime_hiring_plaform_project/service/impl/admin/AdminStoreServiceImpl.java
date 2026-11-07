@@ -1,5 +1,11 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.admin;
 
+import lombok.extern.slf4j.Slf4j;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException;
+import tanhs.fudn.parttime_hiring_plaform_project.mapper.AdminStoreMapper;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.employment.EmploymentRecordRepository;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.job.JobPostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -11,80 +17,61 @@ import tanhs.fudn.parttime_hiring_plaform_project.entity.employer.Store;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.employer.StoreRepository;
 import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminStoreService;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminStoreServiceImpl implements AdminStoreService {
 
     private final StoreRepository storeRepository;
+    private final JobPostRepository jobs;
+    private final EmploymentRecordRepository employments;
+    private final AdminStoreMapper mapper;
 
+    // Lists stores with independent approval and operational states.
     @Override
     @Transactional(readOnly = true)
-    public Page<AdminStoreResponse> getAllStores(int page, int size, Boolean isActive) {
-        Page<Store> stores;
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("storeId").descending());
-        
-        if (isActive != null) {
-            stores = storeRepository.findByIsActive(isActive, pageRequest);
-        } else {
-            stores = storeRepository.findAll(pageRequest);
-        }
-
-        return stores.map(store -> {
-            String address = "";
-            if (store.getStreetAddress() != null) address += store.getStreetAddress() + ", ";
-            if (store.getWard() != null) address += store.getWard() + ", ";
-            if (store.getDistrict() != null) address += store.getDistrict() + ", ";
-            if (store.getCity() != null) address += store.getCity();
-            if (address.endsWith(", ")) address = address.substring(0, address.length() - 2);
-
-            return AdminStoreResponse.builder()
-                .storeId(store.getStoreId())
-                .storeName(store.getStoreName())
-                .phoneContact(store.getPhoneContact())
-                .address(address)
-                .isActive(store.getIsActive())
-                .createdAt(store.getCreatedAt())
-                .employerId(store.getEmployer().getEmployerId())
-                .companyName(store.getEmployer().getCompanyName())
-                .build();
-        });
+    public Page<AdminStoreResponse> getAllStores(int page, int size, Boolean isActive, String query, Boolean approved) {
+        if (page < 0 || size < 1 || size > 50) throw new IllegalArgumentException("Invalid pagination");
+        var stores = storeRepository.searchAdministration(query == null ? "" : query.trim(), isActive, approved,
+                PageRequest.of(page, size, Sort.by("storeId").descending()));
+        return stores.map(mapper::toResponse);
     }
 
+    // Changes approval without enabling or disabling employer-controlled activity.
+    @Override
+    @Transactional
+    public AdminStoreResponse updateStoreApproval(Integer storeId, Boolean approved) {
+        Store store = storeRepository.lockById(storeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Store not found"));
+        if (approved == null) throw new IllegalArgumentException("Approval is required");
+        store.setIsApproved(approved);
+        return mapper.toResponse(storeRepository.save(store));
+    }
+
+    // Updates activity only after the store has passed administrative approval.
     @Override
     @Transactional
     public AdminStoreResponse updateStoreStatus(Integer storeId, Boolean isActive) {
         Store store = storeRepository.lockById(storeId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cửa hàng/chi nhánh"));
-        
-        store.setIsApproved(Boolean.TRUE.equals(isActive));
-        store.setIsActive(Boolean.TRUE.equals(isActive));
-        storeRepository.save(store);
 
-        String address = "";
-        if (store.getStreetAddress() != null) address += store.getStreetAddress() + ", ";
-        if (store.getWard() != null) address += store.getWard() + ", ";
-        if (store.getDistrict() != null) address += store.getDistrict() + ", ";
-        if (store.getCity() != null) address += store.getCity();
-        if (address.endsWith(", ")) address = address.substring(0, address.length() - 2);
-
-        return AdminStoreResponse.builder()
-                .storeId(store.getStoreId())
-                .storeName(store.getStoreName())
-                .phoneContact(store.getPhoneContact())
-                .address(address)
-                .isActive(store.getIsActive())
-                .createdAt(store.getCreatedAt())
-                .employerId(store.getEmployer().getEmployerId())
-                .companyName(store.getEmployer().getCompanyName())
-                .build();
+        if (isActive == null) throw new IllegalArgumentException("Activity is required");
+        if (isActive && !Boolean.TRUE.equals(store.getIsApproved())) {
+            throw new BusinessException("Approve the store before activating it");
+        }
+        store.setIsActive(isActive);
+        return mapper.toResponse(storeRepository.save(store));
     }
 
+    // Refuses deletion when recruitment or employment history references the store.
     @Override
     @Transactional
     public void deleteStore(Integer storeId) {
-        if (!storeRepository.existsById(storeId)) {
-            throw new RuntimeException("Không tìm thấy cửa hàng/chi nhánh");
+        var store = storeRepository.lockById(storeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Store not found"));
+        if (jobs.countByStore_StoreId(storeId) > 0 || employments.existsByStore_StoreId(storeId)) {
+            throw new BusinessException("Store has recruitment or employment history; disable it instead");
         }
-        storeRepository.deleteById(storeId);
+        storeRepository.delete(store);
     }
 }

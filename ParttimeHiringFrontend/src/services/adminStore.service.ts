@@ -6,14 +6,15 @@ export interface AdminStoreResponse {
   storeName: string;
   phoneContact: string;
   address: string;
+  isApproved: boolean;
   isActive: boolean;
   createdAt: string;
   employerId: number;
   companyName: string;
 }
 
-export const getAdminStores = async (isActive?: boolean | '', page = 0, size = 10) => {
-  let url = `${API_URL}?page=${page}&size=${size}`;
+export const getAdminStores = async (isActive?: boolean | '', page = 0, size = 10, query = '', approved = '') => {
+  let url = `${API_URL}?page=${page}&size=${size}&query=${encodeURIComponent(query)}${approved ? `&approved=${approved}` : ''}`;
   if (isActive !== '' && isActive !== undefined) {
     url += `&isActive=${isActive}`;
   }
@@ -48,4 +49,18 @@ export const updateAdminStoreStatus = async (id: number, isActive: boolean) => {
   
   const data = await response.json();
   return data.result;
+};
+
+export const updateAdminStoreApproval = async (id: number, isApproved: boolean) => {
+  const response = await apiFetch(`${API_URL}/${id}/approval`, { method: 'PUT',
+    headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isApproved }) });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Không cập nhật được phê duyệt');
+  return data.result;
+};
+
+export const deleteAdminStore = async (id: number) => {
+  const response = await apiFetch(`${API_URL}/${id}`, { method: 'DELETE' });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Không xóa được cửa hàng');
 };

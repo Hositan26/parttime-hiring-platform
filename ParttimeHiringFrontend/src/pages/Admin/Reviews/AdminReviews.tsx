@@ -1,39 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import { usePagedResource } from '../../../services/usePagedResource';
+import { apiBase } from '../../../services/apiClient';
+import React, { useState } from 'react';
 import { Star, Search, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
-import { getReviews, deleteReview, type AdminReviewResponse } from '../../../services/adminReview.service';
+import { deleteReview, updateReviewVisibility, type AdminReviewResponse } from '../../../services/adminReview.service';
 import styles from '../Verifications/AdminVerifications.module.css';
 
 export const AdminReviews: React.FC = () => {
-  const [reviews, setReviews] = useState<AdminReviewResponse[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [query, setQuery] = useState('');
+  const [error, setError] = useState('');
   const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchList = async (pageNum: number) => {
-    try {
-      setLoading(true);
-      const data = await getReviews(pageNum, 10);
-      setReviews(data.content || []);
-      setTotalPages(data.totalPages || 1);
-      setLoading(false);
-    } catch (error) {
-      console.error(error);
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchList(page);
-  }, [page]);
+  const [revision, setRevision] = useState(0);
+  const { data, loading, error: loadError } = usePagedResource<AdminReviewResponse>(`${apiBase}/admin/reviews?page=${page}&size=10&query=${encodeURIComponent(query)}`, revision);
+  const reviews = data?.content || [];
+  const totalPages = Math.max(1, data?.totalPages || 0);
 
   const handleDelete = async (id: number) => {
     if (!window.confirm('Bạn có chắc muốn xóa đánh giá này khỏi hệ thống?')) return;
     try {
       await deleteReview(id);
       alert('Xóa thành công!');
-      fetchList(page);
-    } catch (err: any) {
-      alert(err.message);
+      setRevision(value => value + 1);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Thao tác thất bại');
     }
   };
 
@@ -53,10 +42,11 @@ export const AdminReviews: React.FC = () => {
       <div className={styles.filtersCard}>
         <div className={styles.searchBox}>
           <Search size={18} />
-          <input type="text" placeholder="Tìm theo tên cửa hàng hoặc người đánh giá..." className={styles.searchInput} />
+          <input type="text" value={query} onChange={event => { setQuery(event.target.value); setPage(0); }} placeholder="Tìm theo tên cửa hàng hoặc người đánh giá..." className={styles.searchInput} />
         </div>
       </div>
 
+      {(error || loadError) && <p role="alert">{error || loadError}</p>}
       <div className={styles.tableCard}>
         {loading ? (
           <div className={styles.loadingState}>Đang tải dữ liệu...</div>
@@ -75,7 +65,7 @@ export const AdminReviews: React.FC = () => {
                   <th>Người đánh giá</th>
                   <th>Đánh giá</th>
                   <th>Nội dung</th>
-                  <th style={{ textAlign: 'right' }}>Xóa</th>
+                  <th>Trạng thái</th><th style={{ textAlign: 'right' }}>Thao tác</th>
                 </tr>
               </thead>
               <tbody>
@@ -85,7 +75,7 @@ export const AdminReviews: React.FC = () => {
                     <td style={{ fontWeight: 600 }}>{r.storeName}</td>
                     <td>
                       <div>{r.reviewerName}</div>
-                      <div style={{ fontSize: '0.8rem', color: '#64748b' }}>@{r.reviewerUsername}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-gray)' }}>@{r.reviewerUsername}</div>
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: '2px' }}>{renderStars(r.rating)}</div>
@@ -93,7 +83,13 @@ export const AdminReviews: React.FC = () => {
                     <td style={{ maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={r.comment}>
                       {r.comment || <span style={{color: '#94a3b8', fontStyle: 'italic'}}>Không có nội dung</span>}
                     </td>
+                    <td><span className={r.status === 'VISIBLE' ? 'badge-success' : 'badge-warning'}>{r.status}</span></td>
                     <td style={{ textAlign: 'right' }}>
+                      <button className="btn-outline" onClick={async () => {
+                        if (!window.confirm(r.status === 'VISIBLE' ? 'Ẩn đánh giá này?' : 'Khôi phục đánh giá này?')) return;
+                        try { await updateReviewVisibility(r.reviewId, r.status !== 'VISIBLE'); setRevision(value => value + 1); }
+                        catch (error) { setError(error instanceof Error ? error.message : 'Thao tác thất bại'); }
+                      }}>{r.status === 'VISIBLE' ? 'Ẩn' : 'Khôi phục'}</button>
                       <button onClick={() => handleDelete(r.reviewId)} className={styles.actionBtn} style={{ color: '#dc2626', background: '#fee2e2' }}>
                         <Trash2 size={16} /> Xóa
                       </button>
@@ -102,7 +98,7 @@ export const AdminReviews: React.FC = () => {
                 ))}
               </tbody>
             </table>
-            
+
             <div className={styles.pagination}>
               <button disabled={page === 0} onClick={() => setPage(p => p - 1)} className={styles.pageBtn}>
                 <ChevronLeft size={16} />

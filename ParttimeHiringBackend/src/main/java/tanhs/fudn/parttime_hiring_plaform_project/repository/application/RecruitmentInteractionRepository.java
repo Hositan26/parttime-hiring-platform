@@ -13,10 +13,18 @@ import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.InteractionKind;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.InteractionStatus;
 
 public interface RecruitmentInteractionRepository extends JpaRepository<RecruitmentInteraction, Long> {
+    // Protects private conversation and complaint history from listing deletion.
+    boolean existsByJobPost_JobPostId(Integer jobId);
+
+    // Counts unresolved complaints without loading their private content.
+    long countByKindAndStatus(InteractionKind kind, InteractionStatus status);
+
     // Lists private conversation entries for a previously authorized application.
     Page<RecruitmentInteraction> findByApplication_ApplicationId(Integer applicationId, Pageable pageable);
     // Lists a reporter's own submissions without disclosing other reporters.
     Page<RecruitmentInteraction> findByAuthor_IdAndKind(Long userId, InteractionKind kind, Pageable pageable);
+    // Filters complaints by resolution state before pagination.
+    Page<RecruitmentInteraction> findByKindAndStatus(InteractionKind kind, InteractionStatus status, Pageable pageable);
     // Lists moderation reports for administrators.
     Page<RecruitmentInteraction> findByKind(InteractionKind kind, Pageable pageable);
     // Detects repeated unresolved reports for the same opportunity.

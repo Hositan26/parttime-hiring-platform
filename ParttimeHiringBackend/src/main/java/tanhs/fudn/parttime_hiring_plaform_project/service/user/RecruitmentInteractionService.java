@@ -18,7 +18,11 @@ public interface RecruitmentInteractionService {
     // Lists only reports filed by the authenticated account.
     Page<InteractionResponse> reports(String username, int page);
     // Lists all moderation reports for administrators.
-    Page<InteractionResponse> adminReports(int page);
+    Page<InteractionResponse> adminReports(int page, InteractionStatus status);
+    // Preserves the unfiltered administrator complaint queue contract.
+    default Page<InteractionResponse> adminReports(int page) {
+        return adminReports(page, null);
+    }
     // Resolves an existing report after administrator review.
     void resolveReport(Long id);
 }

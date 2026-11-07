@@ -1,56 +1,46 @@
-import React, { useState, useEffect } from 'react';
+import { usePagedResource } from '../../../services/usePagedResource';
+import { apiBase } from '../../../services/apiClient';
+import { useSearchParams } from 'react-router-dom';
+import React, { useState } from 'react';
 import { Briefcase, Search, ChevronLeft, ChevronRight, CheckCircle2, XCircle, PowerOff, ShieldAlert } from 'lucide-react';
-import { getAdminJobPosts, updateAdminJobPostStatus, type AdminJobPostResponse, JobStatus, type JobStatusType } from '../../../services/adminJobPost.service';
+import { getAdminJobDetail, deleteAdminJob, updateAdminJobPostStatus, type AdminJobPostResponse, JobStatus, type JobStatusType } from '../../../services/adminJobPost.service';
 import styles from '../Verifications/AdminVerifications.module.css'; // Reusing styles
 
 export const AdminJobPosts: React.FC = () => {
-  const [jobPosts, setJobPosts] = useState<AdminJobPostResponse[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [searchParams] = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get('query') || '');
+  const [error, setError] = useState('');
+  const [detail, setDetail] = useState<AdminJobPostResponse | null>(null);
   const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
   const [statusFilter, setStatusFilter] = useState<JobStatusType | ''>('');
 
-  const fetchList = async (pageNum: number, status: JobStatusType | '') => {
-    try {
-      setLoading(true);
-      const data = await getAdminJobPosts(status as any, pageNum, 10);
-      setJobPosts(data.content || []);
-      setTotalPages(data.totalPages || 1);
-      setLoading(false);
-    } catch (error) {
-      console.error(error);
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchList(page, statusFilter);
-  }, [page, statusFilter]);
+  const [revision, setRevision] = useState(0);
+  const { data, loading, error: loadError } = usePagedResource<AdminJobPostResponse>(`${apiBase}/admin/jobs?page=${page}&size=10&query=${encodeURIComponent(query)}${statusFilter ? `&status=${statusFilter}` : ''}`, revision);
+  const jobPosts = data?.content || [];
+  const totalPages = Math.max(1, data?.totalPages || 0);
 
   const handleToggleStatus = async (jobId: number, currentStatus: JobStatusType) => {
-    let newStatus = currentStatus === JobStatus.ACTIVE ? JobStatus.REJECTED : JobStatus.ACTIVE;
-    let confirmMsg = currentStatus === JobStatus.ACTIVE 
-        ? 'Bạn có chắc muốn KHÓA (Gỡ) bài đăng này? Nó sẽ không còn hiển thị với ứng viên.' 
+    const newStatus = currentStatus === JobStatus.ACTIVE ? JobStatus.PAUSED : JobStatus.ACTIVE;
+    const confirmMsg = currentStatus === JobStatus.ACTIVE
+        ? 'Bạn có chắc muốn KHÓA (Gỡ) bài đăng này? Nó sẽ không còn hiển thị với ứng viên.'
         : 'Bạn muốn MỞ KHÓA bài đăng này?';
-        
+
     if (!window.confirm(confirmMsg)) return;
-    
+
     try {
       await updateAdminJobPostStatus(jobId, newStatus);
       alert('Đã cập nhật trạng thái bài đăng');
-      fetchList(page, statusFilter);
-    } catch (error: any) {
-      alert(error.message);
+      setRevision(value => value + 1);
+    } catch (error: unknown) {
+      alert(error instanceof Error ? error.message : 'Thao tác thất bại');
     }
   };
 
   const getStatusBadge = (status: JobStatusType) => {
     switch (status) {
-      case JobStatus.PENDING:
-        return <span className={`${styles.badge} ${styles.badgeWarning}`}>Chờ duyệt</span>;
       case JobStatus.ACTIVE:
         return <span className={`${styles.badge} ${styles.badgeSuccess}`}><CheckCircle2 size={14}/> Đang hiển thị</span>;
-      case JobStatus.REJECTED:
+      case JobStatus.PAUSED:
         return <span className={`${styles.badge} ${styles.badgeDanger}`}><ShieldAlert size={14}/> Bị Gỡ</span>;
       case JobStatus.CLOSED:
       case JobStatus.EXPIRED:
@@ -75,9 +65,9 @@ export const AdminJobPosts: React.FC = () => {
         <div className={styles.filterSection}>
           <div className={styles.searchBox}>
             <Search size={20} className={styles.searchIcon} />
-            <input type="text" placeholder="Tìm tên công việc..." className={styles.searchInput} />
+            <input type="text" value={query} onChange={event => { setQuery(event.target.value); setPage(0); }} placeholder="Tìm tên công việc..." className={styles.searchInput} />
           </div>
-          
+
           <div className={styles.tabs}>
             <button className={`${styles.tab} ${statusFilter === '' ? styles.activeTab : ''}`} onClick={() => { setStatusFilter(''); setPage(0); }}>
               Tất cả
@@ -85,12 +75,21 @@ export const AdminJobPosts: React.FC = () => {
             <button className={`${styles.tab} ${statusFilter === JobStatus.ACTIVE ? styles.activeTab : ''}`} onClick={() => { setStatusFilter(JobStatus.ACTIVE); setPage(0); }}>
               Đang hiển thị
             </button>
-            <button className={`${styles.tab} ${statusFilter === JobStatus.REJECTED ? styles.activeTab : ''}`} onClick={() => { setStatusFilter(JobStatus.REJECTED); setPage(0); }}>
+            <button className={`${styles.tab} ${statusFilter === JobStatus.PAUSED ? styles.activeTab : ''}`} onClick={() => { setStatusFilter(JobStatus.PAUSED); setPage(0); }}>
               Bị Gỡ
             </button>
           </div>
         </div>
 
+        {(error || loadError) && <p role="alert">{error || loadError}</p>}
+        <select aria-label="Trạng thái tin" className="input-base" value={statusFilter} onChange={event => { setStatusFilter(event.target.value as JobStatusType | ''); setPage(0); }}>
+          <option value="">Tất cả trạng thái</option>{Object.values(JobStatus).map(status => <option key={status} value={status}>{status}</option>)}
+        </select>
+        {detail && <section className={styles.filtersCard} aria-label="Chi tiết tin">
+          <button className="btn-outline" onClick={() => setDetail(null)}>Đóng chi tiết</button>
+          <h2>{detail.title}</h2><p>{detail.companyName} · {detail.storeName}</p>
+          <p>{detail.description}</p><p>{detail.requirements}</p><p>{detail.benefits}</p>
+        </section>}
         {loading ? (
           <div className={styles.emptyState}>Đang tải dữ liệu...</div>
         ) : jobPosts.length === 0 ? (
@@ -116,14 +115,23 @@ export const AdminJobPosts: React.FC = () => {
                   <tr key={job.jobId}>
                     <td>#{job.jobId}</td>
                     <td style={{ fontWeight: 600 }}>{job.title}</td>
-                    <td>{job.employerName}</td>
-                    <td>{formatCurrency(job.salaryMin)} - {formatCurrency(job.salaryMax)}</td>
-                    <td>{getStatusBadge(job.status)}</td>
+                    <td>{job.companyName}</td>
+                    <td>{formatCurrency(job.hourlyWageMin)} - {formatCurrency(job.hourlyWageMax)}</td>
+                    <td>{getStatusBadge(job.status)}{job.moderationBlocked && <span className="badge-danger">Admin đã gỡ</span>}</td>
                     <td style={{ textAlign: 'right' }}>
-                      <button 
+                      <button className="btn-outline" onClick={async () => {
+                        try { setDetail(await getAdminJobDetail(job.jobId)); }
+                        catch (error) { setError(error instanceof Error ? error.message : 'Không tải được chi tiết'); }
+                      }}>Xem</button>
+                      <button className="btn-outline" onClick={async () => {
+                        if (!window.confirm('Xóa tin không có đơn hoặc lịch sử liên quan?')) return;
+                        try { await deleteAdminJob(job.jobId); setRevision(value => value + 1); }
+                        catch (error) { setError(error instanceof Error ? error.message : 'Không xóa được tin'); }
+                      }}>Xóa</button>
+                      <button
                         className={styles.actionBtn}
                         onClick={() => handleToggleStatus(job.jobId, job.status)}
-                        style={{ color: job.status === JobStatus.ACTIVE ? '#ef4444' : '#10b981' }}
+                        style={{ color: job.status === JobStatus.ACTIVE ? '#ef4444' : 'var(--primary)' }}
                       >
                         {job.status === JobStatus.ACTIVE ? <PowerOff size={16} /> : <CheckCircle2 size={16} />}
                         {job.status === JobStatus.ACTIVE ? 'Gỡ Bài' : 'Mở Lại'}
@@ -133,7 +141,7 @@ export const AdminJobPosts: React.FC = () => {
                 ))}
               </tbody>
             </table>
-            
+
             <div className={styles.pagination}>
               <button disabled={page === 0} onClick={() => setPage(p => p - 1)} className={styles.pageBtn}>
                 <ChevronLeft size={16} />

@@ -47,6 +47,8 @@ public class JobPostSpecification {
             // Store info
             Join<JobPost, Store> storeJoin = root.join("store", JoinType.INNER);
             predicates.add(criteriaBuilder.isTrue(storeJoin.get("isActive")));
+            predicates.add(criteriaBuilder.isTrue(storeJoin.get("isApproved")));
+            predicates.add(criteriaBuilder.isFalse(root.get("moderationBlocked")));
             query.distinct(true);
 
             if (StringUtils.hasText(storeName)) {

@@ -26,7 +26,7 @@ class SavedJobTest {
         SavedJobRepository saved = mock(SavedJobRepository.class);
         when(users.lockByUsername("candidate")).thenReturn(Optional.of(User.builder().id(1L).build()));
         when(jobs.findById(5)).thenReturn(Optional.of(JobPost.builder().status(JobStatus.ACTIVE)
-                .store(Store.builder().isActive(true).build())
+                .store(Store.builder().isActive(true).isApproved(true).build())
                 .employer(Employer.builder().status(EmployerStatus.ACTIVE).build()).build()));
         when(saved.existsByUser_IdAndJobPost_JobPostId(1L, 5)).thenReturn(true);
         var service = new SavedJobServiceImpl(users, jobs, saved, mock(JobMapper.class),

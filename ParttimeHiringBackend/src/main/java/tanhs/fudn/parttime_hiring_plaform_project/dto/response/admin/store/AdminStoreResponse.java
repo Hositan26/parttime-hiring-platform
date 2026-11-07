@@ -16,6 +16,7 @@ public class AdminStoreResponse {
     private String storeName;
     private String phoneContact;
     private String address; // city + district + ward + street
+    private Boolean isApproved;
     private Boolean isActive;
     private LocalDateTime createdAt;
     

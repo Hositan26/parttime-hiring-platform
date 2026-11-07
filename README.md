@@ -53,6 +53,8 @@ Dữ liệu tuyển dụng được tổ chức theo mối quan hệ **doanh ngh
 - Phân quyền theo các vai trò `USER`, `EMPLOYER` và `ADMIN`.
 - Xác minh email bằng OTP trong quy trình nộp hồ sơ doanh nghiệp.
 
+Chức năng quản trị, API và kết quả triển khai: [Admin features](docs/ADMIN_FEATURES.md) · [Báo cáo ADMIN](docs/ADMIN_TASK_REPORT.md).
+
 Chi tiết API và cách kiểm thử: [Authentication / Authorization](docs/AUTHENTICATION.md).
 
 Chức năng người tìm việc, API và hướng dẫn sử dụng: [User features](docs/USER_FEATURES.md).

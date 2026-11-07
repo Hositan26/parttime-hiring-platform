@@ -156,7 +156,7 @@ class ApplicationSubmissionTest {
     // Supplies a candidate and an active recruitment opportunity.
     private JobPost arrange() {
         JobPost job = JobPost.builder().jobPostId(10).status(JobStatus.ACTIVE)
-                .store(Store.builder().isActive(true).build())
+                .store(Store.builder().isActive(true).isApproved(true).build())
                 .employer(Employer.builder().status(EmployerStatus.ACTIVE).build()).build();
         when(users.lockByUsername("candidate")).thenReturn(Optional.of(User.builder().id(1L).build()));
         when(jobs.findById(10)).thenReturn(Optional.of(job));

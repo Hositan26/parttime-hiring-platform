@@ -1,44 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import { usePagedResource } from '../../../services/usePagedResource';
+import { apiBase } from '../../../services/apiClient';
+import React, { useState, useRef } from 'react';
 import { Search, Eye, CheckCircle2, XCircle, Clock, FileText, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import styles from './AdminVerifications.module.css';
-import { getVerifications, getVerificationDetail, approveVerification, rejectVerification, type VerificationListResponse, type VerificationDetailResponse } from '../../../services/adminVerification.service';
+import { getVerificationDetail, approveVerification, rejectVerification, type VerificationListResponse, type VerificationDetailResponse } from '../../../services/adminVerification.service';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const AdminVerifications: React.FC = () => {
-  const [verifications, setVerifications] = useState<VerificationListResponse[]>([]);
+  const [query, setQuery] = useState('');
+  const [failedImages, setFailedImages] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState('PENDING');
-  const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
 
   // Modal State
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [detail, setDetail] = useState<VerificationDetailResponse | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
-  const [fetchError, setFetchError] = useState<string | null>(null);
+  const detailRequest = useRef(0);
+  const [detailError, setDetailError] = useState('');
   const [rejectMode, setRejectMode] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [processing, setProcessing] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null); // For fullscreen image view
 
-  const fetchList = async (pageNum: number, status: string) => {
-    try {
-      setLoading(true);
-      setFetchError(null);
-      const data = await getVerifications(status, pageNum, 10);
-      setVerifications(data.content || []);
-      setTotalPages(data.totalPages || 1);
-      setLoading(false);
-    } catch (error: any) {
-      console.error(error);
-      setFetchError(error.toString());
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchList(page, statusFilter);
-  }, [page, statusFilter]);
+  const [revision, setRevision] = useState(0);
+  const { data, loading, error: loadError } = usePagedResource<VerificationListResponse>(`${apiBase}/admin/verifications?page=${page}&size=10&query=${encodeURIComponent(query)}&status=${statusFilter}`, revision);
+  const verifications = data?.content || [];
+  const totalPages = Math.max(1, data?.totalPages || 0);
 
   const handleFilterChange = (status: string) => {
     setStatusFilter(status);
@@ -46,21 +34,28 @@ export const AdminVerifications: React.FC = () => {
   };
 
   const openDetail = async (id: number) => {
+    const requestId = ++detailRequest.current;
+    setDetailError('');
+    setDetail(null);
+    setFailedImages([]);
     setSelectedId(id);
     setRejectMode(false);
     setRejectReason('');
     try {
       setModalLoading(true);
       const data = await getVerificationDetail(id);
+      if (requestId !== detailRequest.current) return;
       setDetail(data);
       setModalLoading(false);
     } catch (error) {
-      console.error(error);
+      if (requestId !== detailRequest.current) return;
+      setDetailError(error instanceof Error ? error.message : 'Không tải được chi tiết');
       setModalLoading(false);
     }
   };
 
   const closeDetail = () => {
+    detailRequest.current += 1;
     setSelectedId(null);
     setDetail(null);
   };
@@ -68,16 +63,16 @@ export const AdminVerifications: React.FC = () => {
   const handleApprove = async () => {
     if (!detail) return;
     if (!window.confirm(`Bạn chắc chắn muốn DUYỆT hồ sơ của doanh nghiệp ${detail.companyName}?`)) return;
-    
+
     try {
       setProcessing(true);
       await approveVerification(detail.verificationId);
       alert('Đã duyệt thành công!');
       setProcessing(false);
       closeDetail();
-      fetchList(page, statusFilter);
-    } catch (error: any) {
-      alert(error.message);
+      setRevision(value => value + 1);
+    } catch (error: unknown) {
+      alert(error instanceof Error ? error.message : 'Thao tác thất bại');
       setProcessing(false);
     }
   };
@@ -88,16 +83,16 @@ export const AdminVerifications: React.FC = () => {
       alert('Vui lòng nhập lý do từ chối');
       return;
     }
-    
+
     try {
       setProcessing(true);
       await rejectVerification(detail.verificationId, rejectReason);
       alert('Đã từ chối hồ sơ!');
       setProcessing(false);
       closeDetail();
-      fetchList(page, statusFilter);
-    } catch (error: any) {
-      alert(error.message);
+      setRevision(value => value + 1);
+    } catch (error: unknown) {
+      alert(error instanceof Error ? error.message : 'Thao tác thất bại');
       setProcessing(false);
     }
   };
@@ -136,15 +131,15 @@ export const AdminVerifications: React.FC = () => {
         </div>
         <div className={styles.searchBox}>
           <Search size={18} />
-          <input type="text" placeholder="Tìm tên công ty, MST..." className={styles.searchInput} />
+          <input type="text" value={query} onChange={event => { setQuery(event.target.value); setPage(0); }} placeholder="Tìm tên công ty, MST..." className={styles.searchInput} />
         </div>
       </div>
 
       <div className={styles.tableCard}>
-        {fetchError ? (
+        {loadError ? (
           <div className={styles.emptyState}>
             <XCircle size={48} color="#ef4444" />
-            <p>Lỗi fetch dữ liệu: {fetchError}</p>
+            <p>Lỗi fetch dữ liệu: {loadError}</p>
           </div>
         ) : loading ? (
           <div className={styles.loadingState}>Đang tải dữ liệu...</div>
@@ -185,7 +180,7 @@ export const AdminVerifications: React.FC = () => {
                 ))}
               </tbody>
             </table>
-            
+
             <div className={styles.pagination}>
               <button disabled={page === 0} onClick={() => setPage(p => p - 1)} className={styles.pageBtn}>
                 <ChevronLeft size={16} />
@@ -203,8 +198,8 @@ export const AdminVerifications: React.FC = () => {
       <AnimatePresence>
         {selectedId && (
           <div className={styles.modalOverlay} onClick={closeDetail}>
-            <motion.div 
-              className={styles.modalContent} 
+            <motion.div
+              className={styles.modalContent}
               onClick={e => e.stopPropagation()}
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
@@ -215,7 +210,7 @@ export const AdminVerifications: React.FC = () => {
                 <h2>Chi tiết hồ sơ xác minh</h2>
                 <button onClick={closeDetail} className={styles.closeBtn}><X size={24} /></button>
               </div>
-              
+
               <div className={styles.modalBody}>
                 {modalLoading ? (
                   <div className={styles.loadingState}>Đang tải chi tiết...</div>
@@ -251,6 +246,10 @@ export const AdminVerifications: React.FC = () => {
                       </div>
                     </div>
 
+                    <div className={styles.infoSection}><p>Địa chỉ: {detail.address}</p><p>Website/Fanpage: {detail.websiteFanpageUrl || 'Không cung cấp'}</p>
+                      <p>Ngày nộp: {detail.submittedAt ? new Date(detail.submittedAt).toLocaleString('vi-VN') : '-'}</p>
+                      {detail.rejectionReason && <p>Lý do từ chối: {detail.rejectionReason}</p>}
+                    </div>
                     <div className={styles.docsSection}>
                       <h3>Tài liệu đính kèm</h3>
                       <div className={styles.docsGrid}>
@@ -259,10 +258,10 @@ export const AdminVerifications: React.FC = () => {
                           { name: 'CCCD mặt sau', img: detail.idCardBackUrl },
                           { name: 'Giấy phép kinh doanh', img: detail.businessLicenseUrl },
                           { name: 'Ảnh mặt tiền', img: detail.storeFrontImageUrl },
-                        ].map((doc, idx) => doc.img && (
+                        ].map((doc, idx) => (
                           <div key={idx} className={styles.docCard}>
-                            <div className={styles.docImgWrapper} onClick={() => setSelectedImage(doc.img)}>
-                              <img src={doc.img} alt={doc.name} />
+                            <div className={styles.docImgWrapper} onClick={() => { if (doc.img && !failedImages.includes(doc.img)) setSelectedImage(doc.img); }}>
+                              {!doc.img ? <p>Không cung cấp tài liệu</p> : failedImages.includes(doc.img) ? <p role="status">Không tải được ảnh</p> : <img src={doc.img} alt={doc.name} onError={() => setFailedImages(previous => [...previous, doc.img])} />}
                               <div className={styles.docHover}>
                                 <Eye size={24} /> Phóng to
                               </div>
@@ -287,15 +286,16 @@ export const AdminVerifications: React.FC = () => {
                         ) : (
                           <div className={styles.rejectForm}>
                             <label>Lý do từ chối:</label>
-                            <textarea 
-                              placeholder="Nhập lý do chi tiết..." 
+                            <textarea
+                              placeholder="Nhập lý do chi tiết..."
                               value={rejectReason}
                               onChange={e => setRejectReason(e.target.value)}
                               rows={3}
                             />
+                            {!rejectReason.trim() && <p role="alert">Vui lòng nhập lý do từ chối.</p>}
                             <div className={styles.rejectActions}>
                               <button onClick={() => setRejectMode(false)} className={styles.btnCancel}>Hủy</button>
-                              <button onClick={handleRejectSubmit} className={styles.btnRejectConfirm} disabled={processing}>
+                              <button onClick={handleRejectSubmit} className={styles.btnRejectConfirm} disabled={processing || !rejectReason.trim()}>
                                 Xác nhận từ chối
                               </button>
                             </div>
@@ -305,7 +305,7 @@ export const AdminVerifications: React.FC = () => {
                     )}
                   </>
                 ) : (
-                  <div className={styles.emptyState}>Lỗi tải dữ liệu</div>
+                  <div className={styles.emptyState} role="alert">{detailError || 'Không tải được chi tiết'}</div>
                 )}
               </div>
             </motion.div>
@@ -317,9 +317,9 @@ export const AdminVerifications: React.FC = () => {
       <AnimatePresence>
         {selectedImage && (
           <div className={styles.fullscreenOverlay} onClick={() => setSelectedImage(null)}>
-            <motion.img 
-              src={selectedImage} 
-              alt="Fullscreen" 
+            <motion.img
+              src={selectedImage}
+              alt="Fullscreen"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}

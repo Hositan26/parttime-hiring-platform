@@ -21,6 +21,7 @@ public class VerificationDetailResponse {
     private String companyName;
     private String representativeName;
     private String taxCode;
+    private String rejectionReason;
     private String websiteFanpageUrl;
     
     // Images

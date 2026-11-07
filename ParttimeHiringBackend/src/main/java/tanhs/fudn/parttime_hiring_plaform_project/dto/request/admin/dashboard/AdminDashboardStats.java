@@ -15,6 +15,10 @@ public class AdminDashboardStats {
     private long totalJobs;
     private long totalApplications;
     
+    private long pendingVerifications;
+    private long pendingStores;
+    private long pendingReports;
+
     // New stats
     private long newUsersThisMonth;
     private long newEmployersThisMonth;

@@ -23,6 +23,7 @@ export interface VerificationDetailResponse {
   representativeName: string;
   taxCode: string;
   websiteFanpageUrl: string;
+  rejectionReason?: string;
   storeFrontImageUrl: string;
   idCardFrontUrl: string;
   idCardBackUrl: string;
@@ -31,8 +32,8 @@ export interface VerificationDetailResponse {
   submittedAt: string;
 }
 
-export const getVerifications = async (status = 'PENDING', page = 0, size = 10) => {
-  const response = await apiFetch(`${API_URL}?status=${status}&page=${page}&size=${size}`, {
+export const getVerifications = async (status = 'PENDING', page = 0, size = 10, query = '') => {
+  const response = await apiFetch(`${API_URL}?status=${status}&page=${page}&size=${size}&query=${encodeURIComponent(query)}`, {
     method: 'GET',
     credentials: 'include'
   });

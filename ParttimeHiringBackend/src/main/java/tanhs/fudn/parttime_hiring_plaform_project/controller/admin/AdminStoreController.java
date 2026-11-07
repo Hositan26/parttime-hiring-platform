@@ -18,17 +18,29 @@ public class AdminStoreController {
 
     private final AdminStoreService adminStoreService;
 
+    // Searches stores before pagination using separate state filters.
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<AdminStoreResponse>>> getAllStores(
             @RequestParam(required = false) Boolean isActive,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String query,
+            @RequestParam(required = false) Boolean approved
     ) {
-        Page<AdminStoreResponse> stores = adminStoreService.getAllStores(page, size, isActive);
+        Page<AdminStoreResponse> stores = adminStoreService.getAllStores(page, size, isActive, query, approved);
         return ResponseEntity.ok(ApiResponse.success(stores));
     }
 
+    // Reviews a store independently from its current operational state.
+    @PutMapping("/{id}/approval")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<AdminStoreResponse>> updateApproval(@PathVariable Integer id,
+            @RequestBody Map<String, Boolean> payload) {
+        return ResponseEntity.ok(ApiResponse.success(adminStoreService.updateStoreApproval(id, payload.get("isApproved"))));
+    }
+
+    // Changes operational state without changing the approval decision.
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<AdminStoreResponse>> updateStatus(
@@ -43,6 +55,7 @@ public class AdminStoreController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    // Deletes only stores without recruitment or employment references.
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> deleteStore(@PathVariable Integer id) {

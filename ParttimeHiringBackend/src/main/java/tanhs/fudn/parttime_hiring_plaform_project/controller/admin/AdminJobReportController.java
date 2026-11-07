@@ -1,5 +1,6 @@
 package tanhs.fudn.parttime_hiring_plaform_project.controller.admin;
 
+import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.InteractionStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.data.domain.Page;
@@ -18,8 +19,9 @@ public class AdminJobReportController {
     private final RecruitmentInteractionService service;
     // Lists private recruitment complaints for administrator review.
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<InteractionResponse>>> reports(@RequestParam(defaultValue = "0") int page) {
-        return ResponseEntity.ok(ApiResponse.success(service.adminReports(page)));
+    public ResponseEntity<ApiResponse<Page<InteractionResponse>>> reports(@RequestParam(defaultValue = "0") int page,
+            @RequestParam(required = false) InteractionStatus status) {
+        return ResponseEntity.ok(ApiResponse.success(service.adminReports(page, status)));
     }
     // Resolves a reviewed complaint while retaining its original content.
     @PutMapping("/{id}/resolve")

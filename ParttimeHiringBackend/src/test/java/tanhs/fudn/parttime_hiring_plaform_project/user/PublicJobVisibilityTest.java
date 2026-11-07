@@ -33,7 +33,7 @@ class PublicJobVisibilityTest {
                 .status(EmployerStatus.ACTIVE).build();
         entityManager.persist(employer);
         Store store = Store.builder().employer(employer).storeName("Visibility store")
-                .city("Test City").isActive(true).build();
+                .city("Test City").isActive(true).isApproved(true).build();
         entityManager.persist(store);
         JobPost job = JobPost.builder().employer(employer).store(store).title("Visibility fixture job")
                 .jobDescription("Test description").hourlyWageMin(BigDecimal.valueOf(25000))
@@ -58,7 +58,7 @@ class PublicJobVisibilityTest {
                 .status(EmployerStatus.ACTIVE).build();
         entityManager.persist(employer);
         Store store = Store.builder().employer(employer).storeName("Visibility store")
-                .city("Test City").isActive(true).build();
+                .city("Test City").isActive(true).isApproved(true).build();
         entityManager.persist(store);
         JobPost job = JobPost.builder().employer(employer).store(store).title("Recruitment 50% evening")
                 .jobDescription("Test description").hourlyWageMin(BigDecimal.valueOf(25000))
@@ -80,7 +80,7 @@ class PublicJobVisibilityTest {
                 .status(EmployerStatus.ACTIVE).build();
         entityManager.persist(employer);
         Store store = Store.builder().employer(employer).storeName("Visibility store")
-                .city("Test City").isActive(true).build();
+                .city("Test City").isActive(true).isApproved(true).build();
         entityManager.persist(store);
         JobPost job = JobPost.builder().employer(employer).store(store).title("Expiry fixture")
                 .jobDescription("Test description").hourlyWageMin(BigDecimal.valueOf(25000))
