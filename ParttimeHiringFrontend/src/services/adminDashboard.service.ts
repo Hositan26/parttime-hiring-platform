@@ -2,6 +2,9 @@ import { apiFetch, apiBase } from './apiClient';
 const API_URL = apiBase + '/admin/dashboard';
 
 export interface AdminDashboardStats {
+  pendingVerifications: number;
+  pendingStores: number;
+  pendingReports: number;
   totalUsers: number;
   totalEmployers: number;
   totalJobs: number;

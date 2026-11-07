@@ -16,6 +16,9 @@ import java.util.Optional;
 
 @Repository
 public interface EmployerVerificationRepository extends JpaRepository<EmployerVerification, Integer> {
+    // Counts business submissions awaiting administrative review.
+    long countByVerificationStatus(VerificationStatus status);
+
     // Locks an application before making an administrative decision.
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select v from EmployerVerification v join fetch v.user where v.verificationId = :id")

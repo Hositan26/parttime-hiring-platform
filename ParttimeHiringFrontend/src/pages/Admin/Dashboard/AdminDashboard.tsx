@@ -6,6 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 export const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -16,7 +17,7 @@ export const AdminDashboard: React.FC = () => {
         setStats(data);
         setLoading(false);
       } catch (err) {
-        console.error(err);
+        setError(err instanceof Error ? err.message : 'Không tải được thống kê');
         setLoading(false);
       }
     };
@@ -35,6 +36,12 @@ export const AdminDashboard: React.FC = () => {
         <p className={styles.subtitle}>Chào mừng trở lại. Dưới đây là các số liệu tóm tắt về nền tảng.</p>
       </div>
 
+      {error && <p role="alert">{error}</p>}
+      {stats && <div className={styles.filtersCard}>
+        <span>Hồ sơ chờ duyệt: {stats.pendingVerifications}</span>
+        <span>Cửa hàng chờ duyệt: {stats.pendingStores}</span>
+        <span>Báo cáo chờ xử lý: {stats.pendingReports}</span>
+      </div>}
       {loading ? (
         <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>Đang tải số liệu...</div>
       ) : stats ? (
