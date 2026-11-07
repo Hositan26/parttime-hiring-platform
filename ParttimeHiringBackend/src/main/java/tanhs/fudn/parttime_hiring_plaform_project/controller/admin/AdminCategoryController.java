@@ -18,16 +18,19 @@ public class AdminCategoryController {
 
     private final AdminCategoryService categoryService;
 
+    // Searches catalog entries before applying pagination.
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<CategoryResponse>>> getCategories(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String query
     ) {
-        Page<CategoryResponse> categories = categoryService.getCategories(page, size);
+        Page<CategoryResponse> categories = categoryService.getCategories(page, size, query);
         return ResponseEntity.ok(ApiResponse.success(categories));
     }
 
+    // Creates a catalog entry after request validation.
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<CategoryResponse>> createCategory(@Valid @RequestBody CategoryRequest request) {
@@ -35,6 +38,7 @@ public class AdminCategoryController {
         return ResponseEntity.ok(ApiResponse.success(saved));
     }
 
+    // Updates a catalog entry after request validation.
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<CategoryResponse>> updateCategory(
@@ -44,6 +48,7 @@ public class AdminCategoryController {
         return ResponseEntity.ok(ApiResponse.success(updated));
     }
 
+    // Deletes catalog entries without job dependencies.
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable Integer id) {

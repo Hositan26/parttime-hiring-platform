@@ -11,6 +11,11 @@ import tanhs.fudn.parttime_hiring_plaform_project.entity.job.JobPost;
 @Repository
 public interface JobPostRepository extends JpaRepository<JobPost, Integer>, JpaSpecificationExecutor<JobPost> {
     
+    // Protects category assignments from catalog deletion.
+    boolean existsByCategories_CategoryId(Integer categoryId);
+    // Protects shift assignments from catalog deletion.
+    boolean existsByShifts_ShiftId(Integer shiftId);
+
     // Searches titles with the exact backend publication state.
     @Query("select j from JobPost j where (:status is null or j.status = :status) and lower(j.title) like lower(concat('%', :query, '%'))")
     org.springframework.data.domain.Page<JobPost> searchAdministration(@Param("query") String query,

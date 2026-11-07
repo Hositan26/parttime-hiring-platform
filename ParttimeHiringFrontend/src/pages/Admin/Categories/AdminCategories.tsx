@@ -4,6 +4,8 @@ import { getCategories, createCategory, updateCategory, deleteCategory, type Adm
 import styles from '../Verifications/AdminVerifications.module.css';
 
 export const AdminCategories: React.FC = () => {
+  const [query, setQuery] = useState('');
+  const [error, setError] = useState('');
   const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
@@ -15,19 +17,19 @@ export const AdminCategories: React.FC = () => {
   const fetchList = async (pageNum: number) => {
     try {
       setLoading(true);
-      const data = await getCategories(pageNum, 10);
+      const data = await getCategories(pageNum, 10, query);
       setCategories(data.content || []);
       setTotalPages(data.totalPages || 1);
       setLoading(false);
     } catch (error) {
-      console.error(error);
+      setError(error instanceof Error ? error.message : 'Không tải được ngành nghề');
       setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchList(page);
-  }, [page]);
+  }, [page, query]);
 
   const handleAdd = () => {
     setEditingCategory(null);
@@ -79,13 +81,14 @@ export const AdminCategories: React.FC = () => {
       <div className={styles.filtersCard}>
         <div className={styles.searchBox}>
           <Search size={18} />
-          <input type="text" placeholder="Tìm tên ngành nghề..." className={styles.searchInput} />
+          <input type="text" value={query} onChange={event => { setQuery(event.target.value); setPage(0); }} placeholder="Tìm tên ngành nghề..." className={styles.searchInput} />
         </div>
         <button className={styles.btnApprove} style={{ display: 'flex', gap: '8px', alignItems: 'center' }} onClick={handleAdd}>
           <Plus size={18} /> Thêm ngành nghề
         </button>
       </div>
 
+      {error && <p role="alert">{error}</p>}
       <div className={styles.tableCard}>
         {loading ? (
           <div className={styles.loadingState}>Đang tải dữ liệu...</div>
@@ -179,9 +182,10 @@ export const AdminCategories: React.FC = () => {
               />
               <label htmlFor="isActive" style={{ margin: 0, fontWeight: 500, cursor: 'pointer' }}>Đang hoạt động</label>
             </div>
+            {!formData.categoryName.trim() && <p role="alert">Tên ngành nghề không được để trống.</p>}
             <div className={styles.modalActions}>
               <button onClick={() => setIsModalOpen(false)} className={styles.btnCancel}>Hủy</button>
-              <button onClick={handleSave} className={styles.btnConfirm}>Lưu lại</button>
+              <button disabled={!formData.categoryName.trim()} onClick={handleSave} className={styles.btnConfirm}>Lưu lại</button>
             </div>
           </div>
         </div>
