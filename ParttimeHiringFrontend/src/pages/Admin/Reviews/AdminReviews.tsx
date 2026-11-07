@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Star, Search, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
-import { getReviews, deleteReview, type AdminReviewResponse } from '../../../services/adminReview.service';
+import { getReviews, deleteReview, updateReviewVisibility, type AdminReviewResponse } from '../../../services/adminReview.service';
 import styles from '../Verifications/AdminVerifications.module.css';
 
 export const AdminReviews: React.FC = () => {
+  const [query, setQuery] = useState('');
+  const [error, setError] = useState('');
   const [reviews, setReviews] = useState<AdminReviewResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
@@ -12,19 +14,19 @@ export const AdminReviews: React.FC = () => {
   const fetchList = async (pageNum: number) => {
     try {
       setLoading(true);
-      const data = await getReviews(pageNum, 10);
+      const data = await getReviews(pageNum, 10, query);
       setReviews(data.content || []);
       setTotalPages(data.totalPages || 1);
       setLoading(false);
     } catch (error) {
-      console.error(error);
+      setError(error instanceof Error ? error.message : 'Không tải được đánh giá');
       setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchList(page);
-  }, [page]);
+  }, [page, query]);
 
   const handleDelete = async (id: number) => {
     if (!window.confirm('Bạn có chắc muốn xóa đánh giá này khỏi hệ thống?')) return;
@@ -53,10 +55,11 @@ export const AdminReviews: React.FC = () => {
       <div className={styles.filtersCard}>
         <div className={styles.searchBox}>
           <Search size={18} />
-          <input type="text" placeholder="Tìm theo tên cửa hàng hoặc người đánh giá..." className={styles.searchInput} />
+          <input type="text" value={query} onChange={event => { setQuery(event.target.value); setPage(0); }} placeholder="Tìm theo tên cửa hàng hoặc người đánh giá..." className={styles.searchInput} />
         </div>
       </div>
 
+      {error && <p role="alert">{error}</p>}
       <div className={styles.tableCard}>
         {loading ? (
           <div className={styles.loadingState}>Đang tải dữ liệu...</div>
@@ -75,7 +78,7 @@ export const AdminReviews: React.FC = () => {
                   <th>Người đánh giá</th>
                   <th>Đánh giá</th>
                   <th>Nội dung</th>
-                  <th style={{ textAlign: 'right' }}>Xóa</th>
+                  <th>Trạng thái</th><th style={{ textAlign: 'right' }}>Thao tác</th>
                 </tr>
               </thead>
               <tbody>
@@ -93,7 +96,13 @@ export const AdminReviews: React.FC = () => {
                     <td style={{ maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={r.comment}>
                       {r.comment || <span style={{color: '#94a3b8', fontStyle: 'italic'}}>Không có nội dung</span>}
                     </td>
+                    <td><span className={r.status === 'VISIBLE' ? 'badge-success' : 'badge-warning'}>{r.status}</span></td>
                     <td style={{ textAlign: 'right' }}>
+                      <button className="btn-outline" onClick={async () => {
+                        if (!window.confirm(r.status === 'VISIBLE' ? 'Ẩn đánh giá này?' : 'Khôi phục đánh giá này?')) return;
+                        try { await updateReviewVisibility(r.reviewId, r.status !== 'VISIBLE'); fetchList(page); }
+                        catch (error) { setError(error instanceof Error ? error.message : 'Thao tác thất bại'); }
+                      }}>{r.status === 'VISIBLE' ? 'Ẩn' : 'Khôi phục'}</button>
                       <button onClick={() => handleDelete(r.reviewId)} className={styles.actionBtn} style={{ color: '#dc2626', background: '#fee2e2' }}>
                         <Trash2 size={16} /> Xóa
                       </button>

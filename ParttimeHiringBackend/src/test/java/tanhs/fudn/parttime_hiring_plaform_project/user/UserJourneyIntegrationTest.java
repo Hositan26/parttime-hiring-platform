@@ -45,6 +45,8 @@ class UserJourneyIntegrationTest {
     @Autowired EmploymentHistoryService employment;
     @Autowired UserReviewService reviews;
     @Autowired RecruitmentInteractionService communication;
+    @Autowired tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminReviewService moderation;
+    @Autowired tanhs.fudn.parttime_hiring_plaform_project.service.employer.EmployerJobService employerJobs;
 
     // Persists the candidate journey across favorites, applications, hiring, reviews, and interviews.
     @Test
@@ -75,6 +77,13 @@ class UserJourneyIntegrationTest {
         assertEquals(1, history.getTotalElements());
         ReviewRequest review = new ReviewRequest(); review.setRating(5); review.setComment("Helpful team");
         assertEquals(5, reviews.save(username, history.getContent().get(0).getId(), review).getRating());
+        var reviewId = moderation.getAllReviews(0, 10, "Journey store").getContent().get(0).getReviewId();
+        assertEquals(1, employerJobs.getJobComments(recruiter.getUsername(), job.getJobPostId()).size());
+        moderation.updateVisibility(reviewId, false);
+        assertTrue(employerJobs.getJobComments(recruiter.getUsername(), job.getJobPostId()).isEmpty());
+        assertEquals("HIDDEN", reviews.get(username, history.getContent().get(0).getId()).getStatus());
+        moderation.updateVisibility(reviewId, true);
+        assertEquals(1, employerJobs.getJobComments(recruiter.getUsername(), job.getJobPostId()).size());
         InteractionRequest invitation = new InteractionRequest(); invitation.setBody("Meet at the store"); invitation.setMeetingAt(LocalDateTime.now().plusDays(1));
         assertEquals(1, notifications.list(recruiter.getUsername(), 0, 20).getTotalElements());
         var interview = communication.send(username, application.getApplicationId(), invitation, InteractionKind.INTERVIEW);
