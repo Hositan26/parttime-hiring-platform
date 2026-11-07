@@ -37,8 +37,9 @@ public class AdminEmployerVerificationServiceImpl implements AdminEmployerVerifi
     private final ApplicationEventPublisher events;
 
     // Returns paginated verification summaries for administration review.
-    public Page<VerificationListResponse> getVerifications(VerificationStatus status, int page, int size) {
-        return verifications.findByVerificationStatus(status,
+    public Page<VerificationListResponse> getVerifications(VerificationStatus status, int page, int size, String query) {
+        if (page < 0 || size < 1 || size > 50) throw new IllegalArgumentException("Invalid pagination");
+        return verifications.searchAdministration(status, query == null ? "" : query.trim(),
                 PageRequest.of(page, size, Sort.by("verificationId").descending())).map(mapper::toList);
     }
 

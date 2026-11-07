@@ -5,6 +5,8 @@ import { getVerifications, getVerificationDetail, approveVerification, rejectVer
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const AdminVerifications: React.FC = () => {
+  const [query, setQuery] = useState('');
+  const [failedImages, setFailedImages] = useState<string[]>([]);
   const [verifications, setVerifications] = useState<VerificationListResponse[]>([]);
   const [statusFilter, setStatusFilter] = useState('PENDING');
   const [loading, setLoading] = useState(false);
@@ -25,7 +27,7 @@ export const AdminVerifications: React.FC = () => {
     try {
       setLoading(true);
       setFetchError(null);
-      const data = await getVerifications(status, pageNum, 10);
+      const data = await getVerifications(status, pageNum, 10, query);
       setVerifications(data.content || []);
       setTotalPages(data.totalPages || 1);
       setLoading(false);
@@ -38,7 +40,7 @@ export const AdminVerifications: React.FC = () => {
 
   useEffect(() => {
     fetchList(page, statusFilter);
-  }, [page, statusFilter]);
+  }, [page, statusFilter, query]);
 
   const handleFilterChange = (status: string) => {
     setStatusFilter(status);
@@ -46,6 +48,8 @@ export const AdminVerifications: React.FC = () => {
   };
 
   const openDetail = async (id: number) => {
+    setDetail(null);
+    setFailedImages([]);
     setSelectedId(id);
     setRejectMode(false);
     setRejectReason('');
@@ -136,7 +140,7 @@ export const AdminVerifications: React.FC = () => {
         </div>
         <div className={styles.searchBox}>
           <Search size={18} />
-          <input type="text" placeholder="Tìm tên công ty, MST..." className={styles.searchInput} />
+          <input type="text" value={query} onChange={event => { setQuery(event.target.value); setPage(0); }} placeholder="Tìm tên công ty, MST..." className={styles.searchInput} />
         </div>
       </div>
 
@@ -259,10 +263,10 @@ export const AdminVerifications: React.FC = () => {
                           { name: 'CCCD mặt sau', img: detail.idCardBackUrl },
                           { name: 'Giấy phép kinh doanh', img: detail.businessLicenseUrl },
                           { name: 'Ảnh mặt tiền', img: detail.storeFrontImageUrl },
-                        ].map((doc, idx) => doc.img && (
+                        ].map((doc, idx) => (
                           <div key={idx} className={styles.docCard}>
-                            <div className={styles.docImgWrapper} onClick={() => setSelectedImage(doc.img)}>
-                              <img src={doc.img} alt={doc.name} />
+                            <div className={styles.docImgWrapper} onClick={() => { if (doc.img && !failedImages.includes(doc.img)) setSelectedImage(doc.img); }}>
+                              {!doc.img ? <p>Không cung cấp tài liệu</p> : failedImages.includes(doc.img) ? <p role="status">Không tải được ảnh</p> : <img src={doc.img} alt={doc.name} onError={() => setFailedImages(previous => [...previous, doc.img])} />}
                               <div className={styles.docHover}>
                                 <Eye size={24} /> Phóng to
                               </div>

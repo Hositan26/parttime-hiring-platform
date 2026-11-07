@@ -16,6 +16,12 @@ import java.util.Optional;
 
 @Repository
 public interface EmployerVerificationRepository extends JpaRepository<EmployerVerification, Integer> {
+    // Searches company names or tax codes within a review state.
+    @Query("select v from EmployerVerification v where (:status is null or v.verificationStatus = :status) and "
+            + "(lower(v.companyName) like lower(concat('%', :query, '%')) or lower(v.taxCode) like lower(concat('%', :query, '%')))")
+    Page<EmployerVerification> searchAdministration(@Param("status") VerificationStatus status,
+            @Param("query") String query, Pageable pageable);
+
     // Counts business submissions awaiting administrative review.
     long countByVerificationStatus(VerificationStatus status);
 

@@ -21,14 +21,16 @@ public class AdminEmployerVerificationController {
 
     private final AdminEmployerVerificationService adminVerificationService;
 
+    // Searches submitted business documents using company names or tax codes.
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<VerificationListResponse>>> getVerifications(
             @RequestParam(defaultValue = "PENDING") VerificationStatus status,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String query
     ) {
-        Page<VerificationListResponse> verifications = adminVerificationService.getVerifications(status, page, size);
+        Page<VerificationListResponse> verifications = adminVerificationService.getVerifications(status, page, size, query);
         return ResponseEntity.ok(ApiResponse.success(verifications));
     }
 
