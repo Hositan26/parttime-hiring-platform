@@ -1,9 +1,11 @@
+import { useAuth } from '../../../context/authContext';
 import React, { useState, useEffect } from 'react';
 import { Users, Search, ChevronLeft, ChevronRight, Mail, Calendar } from 'lucide-react';
 import { getUsers, banUser, unbanUser, type AdminUserResponse } from '../../../services/adminUser.service';
 import styles from '../Verifications/AdminVerifications.module.css';
 
 export const AdminUsers: React.FC = () => {
+  const { user: currentUser } = useAuth();
   const [query, setQuery] = useState('');
   const [active, setActive] = useState('');
   const [error, setError] = useState('');
@@ -130,6 +132,7 @@ export const AdminUsers: React.FC = () => {
                     </td>
                     <td>
                       <button 
+                        disabled={u.username === currentUser?.username} title={u.username === currentUser?.username ? 'Không thể tự khóa tài khoản' : undefined}
                         onClick={() => handleToggleBan(u)}
                         style={{
                           padding: '6px 12px',

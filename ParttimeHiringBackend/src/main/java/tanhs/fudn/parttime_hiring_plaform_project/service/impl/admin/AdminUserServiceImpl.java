@@ -17,7 +17,8 @@ import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.UserReposi
 import tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.stream.Collectors;
+import org.springframework.security.core.context.SecurityContextHolder;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException;
 
 @Service
 @RequiredArgsConstructor
@@ -44,12 +45,17 @@ public class AdminUserServiceImpl implements AdminUserService {
     @Transactional
     public void banUser(Long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && user.getUsername().equals(authentication.getName())) {
+            throw new BusinessException("You cannot disable your own account");
+        }
         user.setIsActive(false);
         user.setAuthVersion(user.getAuthVersion() + 1);
         sessions.revokeUser(id);
         userRepository.save(user);
     }
 
+    // Restores account access without reviving previously invalidated sessions.
     @Override
     @Transactional
     public void unbanUser(Long id) {

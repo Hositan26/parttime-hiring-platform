@@ -34,6 +34,7 @@ public class AdminUserController {
         return ResponseEntity.ok(ApiResponse.success(users));
     }
 
+    // Disables another account and revokes its existing sessions.
     @PutMapping("/{id}/ban")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> banUser(@PathVariable Long id) {
@@ -41,6 +42,7 @@ public class AdminUserController {
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
+    // Restores account access while keeping previous credentials revoked.
     @PutMapping("/{id}/unban")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> unbanUser(@PathVariable Long id) {

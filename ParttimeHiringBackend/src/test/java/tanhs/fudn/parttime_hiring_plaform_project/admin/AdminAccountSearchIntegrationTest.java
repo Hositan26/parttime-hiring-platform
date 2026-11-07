@@ -16,6 +16,21 @@ class AdminAccountSearchIntegrationTest {
     @Autowired AdminUserService service;
     @Autowired UserRepository users;
 
+    // Refuses self-locking before mutating credentials or account state.
+    @Test
+    void administratorCannotDisableOwnAccount() {
+        var context = org.springframework.security.core.context.SecurityContextHolder.getContext();
+        context.setAuthentication(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken("admin", null));
+        try {
+            var admin = users.findByUsername("admin").orElseThrow();
+            assertThrows(tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException.class,
+                    () -> service.banUser(admin.getId()));
+            assertTrue(users.findById(admin.getId()).orElseThrow().getIsActive());
+        } finally {
+            org.springframework.security.core.context.SecurityContextHolder.clearContext();
+        }
+    }
+
     // Filters names and emails before counting pages and account activity.
     @Test
     void searchesAccountsBeforePaginationAndStatusFiltering() {
