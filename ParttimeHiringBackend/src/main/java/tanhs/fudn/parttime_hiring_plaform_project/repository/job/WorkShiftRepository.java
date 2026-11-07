@@ -6,4 +6,9 @@ import tanhs.fudn.parttime_hiring_plaform_project.entity.job.WorkShift;
 
 @Repository
 public interface WorkShiftRepository extends JpaRepository<WorkShift, Integer> {
+    // Searches shift names before applying catalog pagination.
+    org.springframework.data.domain.Page<WorkShift> findByShiftNameContainingIgnoreCase(String query, org.springframework.data.domain.Pageable pageable);
+    // Detects duplicate names independently from letter casing.
+    java.util.Optional<WorkShift> findByShiftNameIgnoreCase(String name);
 }
+

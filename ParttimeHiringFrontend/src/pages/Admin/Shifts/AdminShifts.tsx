@@ -4,6 +4,8 @@ import { getShifts, createShift, updateShift, deleteShift, type AdminShift } fro
 import styles from '../Verifications/AdminVerifications.module.css';
 
 export const AdminShifts: React.FC = () => {
+  const [query, setQuery] = useState('');
+  const [error, setError] = useState('');
   const [shifts, setShifts] = useState<AdminShift[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
@@ -15,19 +17,19 @@ export const AdminShifts: React.FC = () => {
   const fetchList = async (pageNum: number) => {
     try {
       setLoading(true);
-      const data = await getShifts(pageNum, 10);
+      const data = await getShifts(pageNum, 10, query);
       setShifts(data.content || []);
       setTotalPages(data.totalPages || 1);
       setLoading(false);
     } catch (error) {
-      console.error(error);
+      setError(error instanceof Error ? error.message : 'Không tải được ca làm');
       setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchList(page);
-  }, [page]);
+  }, [page, query]);
 
   const handleAdd = () => {
     setEditingShift(null);
@@ -46,6 +48,7 @@ export const AdminShifts: React.FC = () => {
       alert('Vui lòng nhập tên ca làm việc');
       return;
     }
+    if (!formData.startTime || !formData.endTime || formData.startTime === formData.endTime) return;
     try {
       if (editingShift) {
         await updateShift(editingShift.shiftId, { ...editingShift, ...formData });
@@ -79,13 +82,14 @@ export const AdminShifts: React.FC = () => {
       <div className={styles.filtersCard}>
         <div className={styles.searchBox}>
           <Search size={18} />
-          <input type="text" placeholder="Tìm tên ca làm việc..." className={styles.searchInput} />
+          <input type="text" value={query} onChange={event => { setQuery(event.target.value); setPage(0); }} placeholder="Tìm tên ca làm việc..." className={styles.searchInput} />
         </div>
         <button className={styles.btnApprove} style={{ display: 'flex', gap: '8px', alignItems: 'center' }} onClick={handleAdd}>
           <Plus size={18} /> Thêm ca mới
         </button>
       </div>
 
+      {error && <p role="alert">{error}</p>}
       <div className={styles.tableCard}>
         {loading ? (
           <div className={styles.loadingState}>Đang tải dữ liệu...</div>
@@ -191,9 +195,12 @@ export const AdminShifts: React.FC = () => {
               />
               <label htmlFor="isFlexible" style={{ margin: 0, fontWeight: 500, cursor: 'pointer' }}>Thời gian linh hoạt</label>
             </div>
+            {!formData.shiftName.trim() && <p role="alert">Tên ca không được để trống.</p>}
+            {(!formData.startTime || !formData.endTime || formData.startTime === formData.endTime) && <p role="alert">Giờ bắt đầu và kết thúc phải có giá trị khác nhau.</p>}
+            {formData.endTime < formData.startTime && <p>Ca kết thúc vào ngày hôm sau.</p>}
             <div className={styles.modalActions}>
               <button onClick={() => setIsModalOpen(false)} className={styles.btnCancel}>Hủy</button>
-              <button onClick={handleSave} className={styles.btnConfirm}>Lưu lại</button>
+              <button disabled={!formData.shiftName.trim() || !formData.startTime || !formData.endTime || formData.startTime === formData.endTime} onClick={handleSave} className={styles.btnConfirm}>Lưu lại</button>
             </div>
           </div>
         </div>
