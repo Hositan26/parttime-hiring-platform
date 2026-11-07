@@ -13,6 +13,7 @@ const API_URL = apiBase + '/admin/jobs';
 export interface AdminJobPostResponse {
   jobId: number;
   title: string;
+  moderationBlocked: boolean;
   storeName: string;
   address: string;
   companyName: string;
@@ -78,4 +79,10 @@ export const getAdminJobDetail = async (id: number): Promise<AdminJobPostRespons
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Không tải được chi tiết');
   return data.result;
+};
+
+export const deleteAdminJob = async (id: number) => {
+  const response = await apiFetch(`${API_URL}/${id}`, { method: 'DELETE' });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Không xóa được tin');
 };

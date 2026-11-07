@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 public class AdminJobPostResponse {
     private Integer jobId;
     private String title;
+    private Boolean moderationBlocked;
     private String description;
     private String requirements;
     private String benefits;

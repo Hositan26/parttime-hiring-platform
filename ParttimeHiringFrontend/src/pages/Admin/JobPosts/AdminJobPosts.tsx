@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Briefcase, Search, ChevronLeft, ChevronRight, CheckCircle2, XCircle, PowerOff, ShieldAlert } from 'lucide-react';
-import { getAdminJobPosts, getAdminJobDetail, updateAdminJobPostStatus, type AdminJobPostResponse, JobStatus, type JobStatusType } from '../../../services/adminJobPost.service';
+import { getAdminJobPosts, getAdminJobDetail, deleteAdminJob, updateAdminJobPostStatus, type AdminJobPostResponse, JobStatus, type JobStatusType } from '../../../services/adminJobPost.service';
 import styles from '../Verifications/AdminVerifications.module.css'; // Reusing styles
 
 export const AdminJobPosts: React.FC = () => {
@@ -128,12 +128,17 @@ export const AdminJobPosts: React.FC = () => {
                     <td style={{ fontWeight: 600 }}>{job.title}</td>
                     <td>{job.companyName}</td>
                     <td>{formatCurrency(job.hourlyWageMin)} - {formatCurrency(job.hourlyWageMax)}</td>
-                    <td>{getStatusBadge(job.status)}</td>
+                    <td>{getStatusBadge(job.status)}{job.moderationBlocked && <span className="badge-danger">Admin đã gỡ</span>}</td>
                     <td style={{ textAlign: 'right' }}>
                       <button className="btn-outline" onClick={async () => {
                         try { setDetail(await getAdminJobDetail(job.jobId)); }
                         catch (error) { setError(error instanceof Error ? error.message : 'Không tải được chi tiết'); }
                       }}>Xem</button>
+                      <button className="btn-outline" onClick={async () => {
+                        if (!window.confirm('Xóa tin không có đơn hoặc lịch sử liên quan?')) return;
+                        try { await deleteAdminJob(job.jobId); fetchList(page, statusFilter); }
+                        catch (error) { setError(error instanceof Error ? error.message : 'Không xóa được tin'); }
+                      }}>Xóa</button>
                       <button
                         className={styles.actionBtn}
                         onClick={() => handleToggleStatus(job.jobId, job.status)}

@@ -17,6 +17,9 @@ import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminJobPostServ
 public class AdminJobPostServiceImpl implements AdminJobPostService {
 
     private final JobPostRepository jobPostRepository;
+    private final tanhs.fudn.parttime_hiring_plaform_project.repository.application.JobApplicationRepository applications;
+    private final tanhs.fudn.parttime_hiring_plaform_project.repository.application.RecruitmentInteractionRepository interactions;
+    private final tanhs.fudn.parttime_hiring_plaform_project.repository.job.SavedJobRepository favorites;
     private final tanhs.fudn.parttime_hiring_plaform_project.mapper.AdminJobPostMapper mapper;
 
     // Searches listing titles with bounded pagination and exact backend states.
@@ -42,18 +45,36 @@ public class AdminJobPostServiceImpl implements AdminJobPostService {
         JobPost jobPost = jobPostRepository.findById(jobId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng"));
         
+        if (status != JobStatus.ACTIVE && status != JobStatus.PAUSED) {
+            throw new IllegalArgumentException("Moderation supports PAUSED removal or ACTIVE restoration");
+        }
+        if (status == JobStatus.ACTIVE) {
+            var now = java.time.LocalDateTime.now();
+            if (jobPost.getExpiredAt() == null || !jobPost.getExpiredAt().isAfter(now)
+                    || (jobPost.getPublishedAt() != null && jobPost.getPublishedAt().isAfter(now))
+                    || !Boolean.TRUE.equals(jobPost.getStore().getIsApproved())
+                    || !Boolean.TRUE.equals(jobPost.getStore().getIsActive())
+                    || jobPost.getEmployer().getStatus() != tanhs.fudn.parttime_hiring_plaform_project.entity.enums.EmployerStatus.ACTIVE) {
+                throw new tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException("Listing is not eligible for restoration");
+            }
+        }
+        jobPost.setModerationBlocked(status == JobStatus.PAUSED);
         jobPost.setStatus(status);
         jobPostRepository.save(jobPost);
 
         return mapper.toResponse(jobPost);
     }
 
+    // Keeps applications, conversations, reports and favorites when deleting listings.
     @Override
     @Transactional
     public void deleteJobPost(Integer jobId) {
-        if (!jobPostRepository.existsById(jobId)) {
-            throw new RuntimeException("Không tìm thấy tin tuyển dụng");
+        var job = jobPostRepository.findById(jobId)
+                .orElseThrow(() -> new tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException("Job not found"));
+        if (applications.countByJobPost_JobPostId(jobId) > 0 || interactions.existsByJobPost_JobPostId(jobId)
+                || favorites.existsByJobPost_JobPostId(jobId)) {
+            throw new tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException("Listing has dependent history; remove it from publication instead");
         }
-        jobPostRepository.deleteById(jobId);
+        jobPostRepository.delete(job);
     }
 }

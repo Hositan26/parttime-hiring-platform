@@ -7,6 +7,8 @@ import org.springframework.data.domain.Pageable;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.job.SavedJob;
 
 public interface SavedJobRepository extends JpaRepository<SavedJob, Long> {
+    // Protects account favorites when administrators attempt permanent deletion.
+    boolean existsByJobPost_JobPostId(Integer jobId);
     // Lists saved recruitment opportunities belonging to one account.
     @EntityGraph(attributePaths = {"jobPost", "jobPost.store", "jobPost.employer"})
     Page<SavedJob> findByUser_Id(Long userId, Pageable pageable);

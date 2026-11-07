@@ -271,6 +271,9 @@ public class EmployerJobServiceImpl implements EmployerJobService {
             throw new BusinessException("Chỉ tin đang tuyển mới có thể tạm dừng.");
         }
         if (newStatus == JobStatus.ACTIVE) {
+            if (Boolean.TRUE.equals(jobPost.getModerationBlocked())) {
+                throw new BusinessException("Tin đang bị quản trị viên gỡ; cần quản trị viên mở lại.");
+            }
             if (jobPost.getExpiredAt() == null || !jobPost.getExpiredAt().isAfter(LocalDateTime.now())) {
                 throw new BusinessException("Hãy gia hạn nộp hồ sơ trước khi mở lại tin.");
             }

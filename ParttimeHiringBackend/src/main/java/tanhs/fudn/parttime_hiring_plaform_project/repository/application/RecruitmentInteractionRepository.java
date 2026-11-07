@@ -13,6 +13,9 @@ import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.InteractionKind;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.InteractionStatus;
 
 public interface RecruitmentInteractionRepository extends JpaRepository<RecruitmentInteraction, Long> {
+    // Protects private conversation and complaint history from listing deletion.
+    boolean existsByJobPost_JobPostId(Integer jobId);
+
     // Counts unresolved complaints without loading their private content.
     long countByKindAndStatus(InteractionKind kind, InteractionStatus status);
 

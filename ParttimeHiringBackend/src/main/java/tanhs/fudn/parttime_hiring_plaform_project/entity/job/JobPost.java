@@ -37,6 +37,10 @@ public class JobPost {
     @Column(name = "title", nullable = false)
     private String title;
 
+    @Builder.Default
+    @Column(name = "moderation_blocked", nullable = false, columnDefinition = "boolean default false")
+    private Boolean moderationBlocked = false;
+
     @Column(name = "job_description", columnDefinition = "TEXT", nullable = false)
     private String jobDescription;
 
