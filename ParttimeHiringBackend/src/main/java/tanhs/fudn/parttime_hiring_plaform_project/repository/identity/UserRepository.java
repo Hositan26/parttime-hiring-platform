@@ -37,5 +37,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByUsername(String username);
     Optional<User> findByEmail(String email);
     
+    // Searches account names and emails with optional activity filtering.
+    @Query("select u from User u where (:active is null or u.isActive = :active) and "
+            + "(lower(u.username) like lower(concat('%', :query, '%')) or "
+            + "lower(u.displayName) like lower(concat('%', :query, '%')) or "
+            + "lower(u.email) like lower(concat('%', :query, '%')))")
+    org.springframework.data.domain.Page<User> searchAdministration(@Param("query") String query,
+            @Param("active") Boolean active, org.springframework.data.domain.Pageable pageable);
+
     long countByCreatedAtAfter(LocalDateTime date);
 }

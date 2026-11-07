@@ -4,6 +4,9 @@ import { getUsers, banUser, unbanUser, type AdminUserResponse } from '../../../s
 import styles from '../Verifications/AdminVerifications.module.css';
 
 export const AdminUsers: React.FC = () => {
+  const [query, setQuery] = useState('');
+  const [active, setActive] = useState('');
+  const [error, setError] = useState('');
   const [users, setUsers] = useState<AdminUserResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
@@ -12,19 +15,20 @@ export const AdminUsers: React.FC = () => {
   const fetchList = async (pageNum: number) => {
     try {
       setLoading(true);
-      const data = await getUsers(pageNum, 10);
+      setError('');
+      const data = await getUsers(pageNum, 10, query, active);
       setUsers(data.content || []);
       setTotalPages(data.totalPages || 1);
       setLoading(false);
     } catch (error) {
-      console.error(error);
+      setError(error instanceof Error ? error.message : 'Không tải được danh sách');
       setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchList(page);
-  }, [page]);
+  }, [page, query, active]);
 
   const handleToggleBan = async (user: AdminUserResponse) => {
     const action = user.isActive ? 'khóa' : 'mở khóa';
@@ -38,8 +42,8 @@ export const AdminUsers: React.FC = () => {
       }
       alert(`Đã ${action} thành công!`);
       fetchList(page);
-    } catch (err: any) {
-      alert(`Lỗi: ${err.message}`);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Thao tác thất bại');
     }
   };
 
@@ -53,10 +57,14 @@ export const AdminUsers: React.FC = () => {
       <div className={styles.filtersCard}>
         <div className={styles.searchBox}>
           <Search size={18} />
-          <input type="text" placeholder="Tìm tên, email..." className={styles.searchInput} />
+          <input type="text" value={query} onChange={event => { setQuery(event.target.value); setPage(0); }} placeholder="Tìm tên, email..." className={styles.searchInput} />
         </div>
       </div>
 
+      <select aria-label="Trạng thái tài khoản" className="input-base" value={active} onChange={event => { setActive(event.target.value); setPage(0); }}>
+        <option value="">Tất cả trạng thái</option><option value="true">Hoạt động</option><option value="false">Bị khóa</option>
+      </select>
+      {error && <p role="alert">{error}</p>}
       <div className={styles.tableCard}>
         {loading ? (
           <div className={styles.loadingState}>Đang tải dữ liệu...</div>
@@ -86,7 +94,7 @@ export const AdminUsers: React.FC = () => {
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#64748b' }}>
-                          {u.displayName.charAt(0).toUpperCase()}
+                          {(u.displayName || u.username).charAt(0).toUpperCase()}
                         </div>
                         <div>
                           <div style={{ fontWeight: 600 }}>{u.displayName}</div>

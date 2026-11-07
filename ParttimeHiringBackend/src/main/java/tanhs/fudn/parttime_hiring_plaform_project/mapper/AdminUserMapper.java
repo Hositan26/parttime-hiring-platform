@@ -11,6 +11,10 @@ import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface AdminUserMapper {
+    // Maps account administration fields without exposing credentials.
+    @Mapping(target = "roles", expression = "java(mapRoles(entity.getRoles()))")
+    tanhs.fudn.parttime_hiring_plaform_project.dto.response.admin.user.AdminUserResponse toAccountResponse(User entity);
+
     @Mapping(target = "roles", expression = "java(mapRoles(entity.getRoles()))")
     AdminUserResponse toResponse(User entity);
 

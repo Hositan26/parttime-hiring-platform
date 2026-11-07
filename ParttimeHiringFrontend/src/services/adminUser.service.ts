@@ -12,8 +12,8 @@ export interface AdminUserResponse {
   isActive: boolean;
 }
 
-export const getUsers = async (page = 0, size = 10) => {
-  const response = await apiFetch(`${API_URL}?page=${page}&size=${size}`, {
+export const getUsers = async (page = 0, size = 10, query = '', active = '') => {
+  const response = await apiFetch(`${API_URL}?page=${page}&size=${size}&query=${encodeURIComponent(query)}${active ? `&active=${active}` : ''}`, {
     method: 'GET',
     credentials: 'include'
   });

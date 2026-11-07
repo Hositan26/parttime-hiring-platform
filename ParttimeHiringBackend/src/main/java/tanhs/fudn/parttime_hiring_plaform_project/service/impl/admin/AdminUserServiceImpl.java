@@ -26,20 +26,17 @@ public class AdminUserServiceImpl implements AdminUserService {
     private final UserRepository userRepository;
     private final RefreshSessionRepository sessions;
 
-    public Page<AdminUserResponse> getAllUsers(int page, int size) {
+    private final tanhs.fudn.parttime_hiring_plaform_project.mapper.AdminUserMapper mapper;
+
+    // Searches accounts with bounded pagination and optional activity filters.
+    @Transactional(readOnly = true)
+    public Page<AdminUserResponse> getAllUsers(int page, int size, String query, Boolean active) {
+        if (page < 0 || size < 1 || size > 50) {
+            throw new IllegalArgumentException("Invalid pagination");
+        }
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
-        Page<User> users = userRepository.findAll(pageable);
-        
-        return users.map(user -> AdminUserResponse.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .displayName(user.getDisplayName())
-                .email(user.getEmail())
-                .avatarUrl(user.getAvatarUrl())
-                .dateOfBirth(user.getDateOfBirth())
-                .isActive(user.getIsActive())
-                .roles(user.getRoles().stream().map(Role::getRoleName).collect(Collectors.toList()))
-                .build());
+        return userRepository.searchAdministration(query == null ? "" : query.trim(), active, pageable)
+                .map(mapper::toAccountResponse);
     }
 
     // Disables the account and permanently invalidates existing credentials.

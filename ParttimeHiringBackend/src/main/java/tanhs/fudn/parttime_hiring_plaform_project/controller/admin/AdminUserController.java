@@ -21,13 +21,16 @@ public class AdminUserController {
 
     private final AdminUserService adminUserService;
 
+    // Lists accounts using server-side search and activity filtering.
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<AdminUserResponse>>> getUsers(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String query,
+            @RequestParam(required = false) Boolean active
     ) {
-        Page<AdminUserResponse> users = adminUserService.getAllUsers(page, size);
+        Page<AdminUserResponse> users = adminUserService.getAllUsers(page, size, query, active);
         return ResponseEntity.ok(ApiResponse.success(users));
     }
 
