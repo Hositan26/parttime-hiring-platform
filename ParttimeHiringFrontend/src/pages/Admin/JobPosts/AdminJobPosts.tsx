@@ -1,10 +1,12 @@
+import { useSearchParams } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import { Briefcase, Search, ChevronLeft, ChevronRight, CheckCircle2, XCircle, PowerOff, ShieldAlert } from 'lucide-react';
 import { getAdminJobPosts, getAdminJobDetail, deleteAdminJob, updateAdminJobPostStatus, type AdminJobPostResponse, JobStatus, type JobStatusType } from '../../../services/adminJobPost.service';
 import styles from '../Verifications/AdminVerifications.module.css'; // Reusing styles
 
 export const AdminJobPosts: React.FC = () => {
-  const [query, setQuery] = useState('');
+  const [searchParams] = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get('query') || '');
   const [error, setError] = useState('');
   const [detail, setDetail] = useState<AdminJobPostResponse | null>(null);
   const [jobPosts, setJobPosts] = useState<AdminJobPostResponse[]>([]);

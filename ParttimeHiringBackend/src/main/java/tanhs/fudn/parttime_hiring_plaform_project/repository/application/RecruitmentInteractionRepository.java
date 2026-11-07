@@ -23,6 +23,8 @@ public interface RecruitmentInteractionRepository extends JpaRepository<Recruitm
     Page<RecruitmentInteraction> findByApplication_ApplicationId(Integer applicationId, Pageable pageable);
     // Lists a reporter's own submissions without disclosing other reporters.
     Page<RecruitmentInteraction> findByAuthor_IdAndKind(Long userId, InteractionKind kind, Pageable pageable);
+    // Filters complaints by resolution state before pagination.
+    Page<RecruitmentInteraction> findByKindAndStatus(InteractionKind kind, InteractionStatus status, Pageable pageable);
     // Lists moderation reports for administrators.
     Page<RecruitmentInteraction> findByKind(InteractionKind kind, Pageable pageable);
     // Detects repeated unresolved reports for the same opportunity.

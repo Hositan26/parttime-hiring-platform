@@ -36,6 +36,7 @@ import { AdminJobPosts } from './pages/Admin/JobPosts/AdminJobPosts';
 import { AdminStores } from './pages/Admin/Stores/AdminStores';
 import { AdminCategories } from './pages/Admin/Categories/AdminCategories';
 import { AdminShifts } from './pages/Admin/Shifts/AdminShifts';
+import { AdminReports } from './pages/Admin/Reports/AdminReports';
 import { AdminReviews } from './pages/Admin/Reviews/AdminReviews';
 import { AdminDashboard } from './pages/Admin/Dashboard/AdminDashboard';
 
@@ -90,6 +91,7 @@ function App() {
             <Route path="stores" element={<AdminStores />} />
             <Route path="categories" element={<AdminCategories />} />
             <Route path="shifts" element={<AdminShifts />} />
+            <Route path="reports" element={<AdminReports />} />
             <Route path="reviews" element={<AdminReviews />} />
             <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
           </Route>

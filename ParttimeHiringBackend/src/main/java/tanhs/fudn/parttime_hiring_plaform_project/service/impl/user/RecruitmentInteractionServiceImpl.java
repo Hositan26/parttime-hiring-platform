@@ -115,8 +115,12 @@ public class RecruitmentInteractionServiceImpl implements RecruitmentInteraction
     // Exposes moderation reports exclusively to administrator authorities.
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional(readOnly = true)
-    public Page<InteractionResponse> adminReports(int page) {
-        return interactions.findByKind(InteractionKind.REPORT, paging(page)).map(mapper::toResponse);
+    public Page<InteractionResponse> adminReports(int page, InteractionStatus status) {
+        if (status != null && status != InteractionStatus.OPEN && status != InteractionStatus.RESOLVED) {
+            throw new BusinessException("Invalid report status");
+        }
+        return (status == null ? interactions.findByKind(InteractionKind.REPORT, paging(page))
+                : interactions.findByKindAndStatus(InteractionKind.REPORT, status, paging(page))).map(mapper::toResponse);
     }
 
     // Marks a moderation report resolved without deleting the original complaint.
