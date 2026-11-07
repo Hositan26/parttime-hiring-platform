@@ -53,6 +53,16 @@ class RoleAccessIntegrationTest {
         mvc.perform(get("/api/employer/jobs").cookie(cookie("employer"))).andExpect(status().isOk());
     }
 
+    // Rejects anonymous requests across every administration resource group.
+    @Test
+    void guestsCannotAccessAdministrationResources() throws Exception {
+        for (String resource : new String[]{"users", "employers", "stores", "jobs", "categories", "shifts", "reviews", "job-reports", "verifications"}) {
+            mvc.perform(get("/api/admin/" + resource)).andExpect(status().isUnauthorized());
+            mvc.perform(get("/api/admin/" + resource).cookie(cookie("employer")))
+                    .andExpect(status().isForbidden());
+        }
+    }
+
     // Signs test credentials for persisted development identities in isolated H2.
     private Cookie cookie(String username) {
         return new Cookie("access_token", tokens.generateTokenForUser(users.findByUsername(username).orElseThrow()));

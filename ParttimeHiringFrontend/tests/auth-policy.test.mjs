@@ -19,3 +19,15 @@ test('requires matching roles and normalizes Spring authorities', () => {
   assert.equal(hasAnyRole(['ROLE_EMPLOYER'], ['EMPLOYER']), true);
   assert.equal(hasAnyRole([], ['USER']), false);
 });
+
+test('administration routes reject candidate and employer roles', () => {
+  for (const roles of [[], ['USER'], ['EMPLOYER'], ['USER', 'EMPLOYER']]) {
+    assert.equal(hasAnyRole(roles, ['ADMIN']), false);
+  }
+  assert.equal(hasAnyRole(['ADMIN'], ['ADMIN']), true);
+  assert.equal(hasAnyRole(['ROLE_ADMIN'], ['ADMIN']), true);
+  for (const path of ['/admin', '/admin/users', '/admin/jobs', '/admin/verifications']) {
+    assert.equal(requiresSession(path), true);
+    assert.equal(safeReturnPath(path), path);
+  }
+});
