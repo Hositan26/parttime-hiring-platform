@@ -1,4 +1,6 @@
-// Wait, let's check the controller URL. In EmployerJobController, it is `@RequestMapping("/api/employers/jobs")`. So `http://localhost:8088/parttime_hiring_platform/api/employer/jobs`.
+import { employerJobSearchParams } from './employerSearch';
+import { apiFetch, apiBase } from './apiClient';
+// Wait, let's check the controller URL. In EmployerJobController, it is `@RequestMapping("/api/employers/jobs")`. So `${apiBase}/employer/jobs`.
 
 export interface EmployerJobCommentDTO {
   reviewId: number;
@@ -21,7 +23,7 @@ export interface EmployerJobApplicantDTO {
   appliedTime: string;
   note: string;
   jobTitle: string;
-  status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'WITHDRAWN';
 }
 
 export interface EmployerJobImageDTO {
@@ -122,48 +124,46 @@ const handleResponse = async (response: Response) => {
   return data.result;
 };
 
-export const getEmployerJobs = async (page: number = 0, size: number = 10, storeId?: number, status?: string) => {
-  let url = `http://localhost:8088/parttime_hiring_platform/api/employer/jobs?page=${page}&size=${size}`;
-  if (storeId) url += `&storeId=${storeId}`;
-  if (status) url += `&status=${status}`;
-  const response = await fetch(url, getFetchOptions());
+export const getEmployerJobs = async (page = 0, size = 10, storeId?: number, status?: string, keyword?: string) => {
+  const url = `${apiBase}/employer/jobs?${employerJobSearchParams(page, size, storeId, status, keyword)}`;
+  const response = await apiFetch(url, getFetchOptions());
   return handleResponse(response);
 };
 
 export const getEmployerStores = async () => {
-  const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/employer/stores`, getFetchOptions());
+  const response = await apiFetch(`${apiBase}/employer/stores`, getFetchOptions());
   return handleResponse(response);
 };
 
 export const getEmployerJobDetail = async (id: number) => {
-  const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/employer/jobs/${id}`, getFetchOptions());
+  const response = await apiFetch(`${apiBase}/employer/jobs/${id}`, getFetchOptions());
   return handleResponse(response);
 };
 
 export const createEmployerJob = async (data: CreateEmployerJobRequestDTO) => {
-  const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/employer/jobs`, getFetchOptions('POST', data));
+  const response = await apiFetch(`${apiBase}/employer/jobs`, getFetchOptions('POST', data));
   return handleResponse(response);
 };
 
 export const updateEmployerJob = async (id: number, data: UpdateEmployerJobRequestDTO) => {
-  const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/employer/jobs/${id}`, getFetchOptions('PUT', data));
+  const response = await apiFetch(`${apiBase}/employer/jobs/${id}`, getFetchOptions('PUT', data));
   return handleResponse(response);
 };
 
 export const getJobComments = async (id: number) => {
-  const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/employer/jobs/${id}/comments`, getFetchOptions());
+  const response = await apiFetch(`${apiBase}/employer/jobs/${id}/comments`, getFetchOptions());
   return handleResponse(response);
 };
 
 export const getJobApplicants = async (id: number) => {
-  const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/employer/jobs/${id}/applicants`, getFetchOptions());
+  const response = await apiFetch(`${apiBase}/employer/jobs/${id}/applicants`, getFetchOptions());
   return handleResponse(response);
 };
 
 export const uploadJobImage = async (id: number, file: File) => {
   const formData = new FormData();
   formData.append('file', file);
-  const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/employer/jobs/${id}/images`, {
+  const response = await apiFetch(`${apiBase}/employer/jobs/${id}/images`, {
     method: 'POST',
     credentials: 'include',
     body: formData
@@ -172,16 +172,16 @@ export const uploadJobImage = async (id: number, file: File) => {
 };
 
 export const deleteJobImage = async (id: number, imageId: number) => {
-  const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/employer/jobs/${id}/images/${imageId}`, getFetchOptions('DELETE'));
+  const response = await apiFetch(`${apiBase}/employer/jobs/${id}/images/${imageId}`, getFetchOptions('DELETE'));
   return handleResponse(response);
 };
 
 export const updateJobStatus = async (id: number, status: string) => {
-  const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/employer/jobs/${id}/status`, getFetchOptions('PATCH', { status }));
+  const response = await apiFetch(`${apiBase}/employer/jobs/${id}/status`, getFetchOptions('PATCH', { status }));
   return handleResponse(response);
 };
 
 export const deleteEmployerJob = async (id: number) => {
-  const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/employer/jobs/${id}`, getFetchOptions('DELETE'));
+  const response = await apiFetch(`${apiBase}/employer/jobs/${id}`, getFetchOptions('DELETE'));
   return handleResponse(response);
 };

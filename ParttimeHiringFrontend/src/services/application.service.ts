@@ -1,4 +1,16 @@
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/users/applications';
+import { apiFetch, apiBase } from './apiClient';
+const API_URL = apiBase + '/users/applications';
+
+export const editApplication = async (id: number, contactPhone: string, note: string): Promise<void> => {
+    const response = await apiFetch(`${API_URL}/${id}`, { method: 'PUT',
+        headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contactPhone, note }) });
+    if (!response.ok) throw new Error((await response.json()).message || 'Không thể sửa đơn.');
+};
+
+export const withdrawApplication = async (id: number): Promise<void> => {
+    const response = await apiFetch(`${API_URL}/${id}/withdraw`, { method: 'POST' });
+    if (!response.ok) throw new Error((await response.json()).message || 'Không thể rút đơn.');
+};
 
 export interface JobApplicationRequest {
     jobPostId: number;
@@ -7,6 +19,7 @@ export interface JobApplicationRequest {
 }
 
 export interface JobApplicationResponse {
+    rejectionReason?: string | null;
     applicationId: number;
     jobPostId: number;
     jobTitle: string;
@@ -37,7 +50,7 @@ export interface EmployerApplicationResponse {
 }
 
 export const applyForJob = async (request: JobApplicationRequest) => {
-    const response = await fetch(API_URL, {
+    const response = await apiFetch(API_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -55,7 +68,7 @@ export const applyForJob = async (request: JobApplicationRequest) => {
 };
 
 export const getMyApplications = async (): Promise<JobApplicationResponse[]> => {
-    const response = await fetch(`${API_URL}/my-applications`, {
+    const response = await apiFetch(`${API_URL}/my-applications`, {
         method: 'GET',
         credentials: 'include'
     });
@@ -65,11 +78,11 @@ export const getMyApplications = async (): Promise<JobApplicationResponse[]> => 
         throw new Error(errorData.message || errorData.error || 'Lỗi khi tải danh sách ứng tuyển.');
     }
     
-    return response.json();
+    return (await response.json()).result;
 };
 
 export const getEmployerApplications = async (storeId?: number, status?: string): Promise<EmployerApplicationResponse[]> => {
-    let url = `http://localhost:8088/parttime_hiring_platform/api/employer/applications`;
+    let url = `${apiBase}/employer/applications`;
     const params = new URLSearchParams();
     if (storeId && storeId !== 0) params.append('storeId', storeId.toString());
     if (status && status !== 'all' && status !== '') params.append('status', status);
@@ -78,7 +91,7 @@ export const getEmployerApplications = async (storeId?: number, status?: string)
         url += `?${params.toString()}`;
     }
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
         method: 'GET',
         credentials: 'include'
     });
@@ -92,14 +105,14 @@ export const getEmployerApplications = async (storeId?: number, status?: string)
     return data.result;
 };
 
-export const updateApplicationStatus = async (applicationId: number, status: string): Promise<void> => {
-    const response = await fetch(`http://localhost:8088/parttime_hiring_platform/api/employer/applications/${applicationId}/status`, {
+export const updateApplicationStatus = async (applicationId: number, status: string, rejectionReason?: string): Promise<void> => {
+    const response = await apiFetch(`${apiBase}/employer/applications/${applicationId}/status`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json'
         },
         credentials: 'include',
-        body: JSON.stringify({ status })
+        body: JSON.stringify({ status, rejectionReason })
     });
     
     if (!response.ok) {

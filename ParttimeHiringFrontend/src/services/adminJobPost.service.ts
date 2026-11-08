@@ -1,24 +1,28 @@
+import { apiFetch, apiBase } from './apiClient';
 export const JobStatus = {
-  PENDING: 'PENDING',
   ACTIVE: 'ACTIVE',
-  REJECTED: 'REJECTED',
+  PAUSED: 'PAUSED',
   CLOSED: 'CLOSED',
   EXPIRED: 'EXPIRED'
 } as const;
 
 export type JobStatusType = typeof JobStatus[keyof typeof JobStatus];
 
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/admin/jobs';
+const API_URL = apiBase + '/admin/jobs';
 
 export interface AdminJobPostResponse {
   jobId: number;
   title: string;
+  moderationBlocked: boolean;
   storeName: string;
   address: string;
-  employerName: string;
-  salaryMin: number;
-  salaryMax: number;
-  headcount: number;
+  companyName: string;
+  description: string;
+  requirements: string;
+  benefits: string;
+  hourlyWageMin: number;
+  hourlyWageMax: number;
+  vacancyCount: number;
   expiredAt: string;
   status: JobStatusType;
 }
@@ -29,8 +33,9 @@ export interface AdminJobPostListResponse {
   totalElements: number;
 }
 
-export const getAdminJobPosts = async (status: JobStatusType, page: number = 0, size: number = 10): Promise<AdminJobPostListResponse> => {
+export const getAdminJobPosts = async (status: JobStatusType | '', page: number = 0, size: number = 10, query = ''): Promise<AdminJobPostListResponse> => {
   const params = new URLSearchParams({
+    query,
     page: page.toString(),
     size: size.toString()
   });
@@ -39,7 +44,7 @@ export const getAdminJobPosts = async (status: JobStatusType, page: number = 0, 
     params.append('status', status);
   }
 
-  const response = await fetch(`${API_URL}?${params.toString()}`, {
+  const response = await apiFetch(`${API_URL}?${params.toString()}`, {
     credentials: 'include'
   });
   
@@ -51,7 +56,7 @@ export const getAdminJobPosts = async (status: JobStatusType, page: number = 0, 
 };
 
 export const updateAdminJobPostStatus = async (jobId: number, status: JobStatusType) => {
-  const response = await fetch(`${API_URL}/${jobId}/status`, {
+  const response = await apiFetch(`${API_URL}/${jobId}/status`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json'
@@ -67,4 +72,17 @@ export const updateAdminJobPostStatus = async (jobId: number, status: JobStatusT
   
   const data = await response.json();
   return data.result;
+};
+
+export const getAdminJobDetail = async (id: number): Promise<AdminJobPostResponse> => {
+  const response = await apiFetch(`${API_URL}/${id}`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Không tải được chi tiết');
+  return data.result;
+};
+
+export const deleteAdminJob = async (id: number) => {
+  const response = await apiFetch(`${API_URL}/${id}`, { method: 'DELETE' });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Không xóa được tin');
 };

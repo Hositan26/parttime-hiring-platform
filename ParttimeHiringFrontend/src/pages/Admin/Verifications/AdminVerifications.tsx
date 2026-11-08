@@ -1,44 +1,35 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Eye, CheckCircle2, XCircle, Clock, FileText, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { usePagedResource } from '../../../services/usePagedResource';
+import { apiBase } from '../../../services/apiClient';
+import React, { useState, useRef } from 'react';
+import { Search, Eye, CheckCircle2, XCircle, Clock, FileText, ChevronLeft, ChevronRight, X, AlertCircle, Building2, User, Globe, MapPin, Calendar } from 'lucide-react';
 import styles from './AdminVerifications.module.css';
-import { getVerifications, getVerificationDetail, approveVerification, rejectVerification, type VerificationListResponse, type VerificationDetailResponse } from '../../../services/adminVerification.service';
+import { getVerificationDetail, approveVerification, rejectVerification, type VerificationListResponse, type VerificationDetailResponse } from '../../../services/adminVerification.service';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const AdminVerifications: React.FC = () => {
-  const [verifications, setVerifications] = useState<VerificationListResponse[]>([]);
+  const [query, setQuery] = useState('');
+  const [failedImages, setFailedImages] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState('PENDING');
-  const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
 
   // Modal State
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [detail, setDetail] = useState<VerificationDetailResponse | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
-  const [fetchError, setFetchError] = useState<string | null>(null);
+  const detailRequest = useRef(0);
+  const [detailError, setDetailError] = useState('');
   const [rejectMode, setRejectMode] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [processing, setProcessing] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null); // For fullscreen image view
 
-  const fetchList = async (pageNum: number, status: string) => {
-    try {
-      setLoading(true);
-      setFetchError(null);
-      const data = await getVerifications(status, pageNum, 10);
-      setVerifications(data.content || []);
-      setTotalPages(data.totalPages || 1);
-      setLoading(false);
-    } catch (error: any) {
-      console.error(error);
-      setFetchError(error.toString());
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchList(page, statusFilter);
-  }, [page, statusFilter]);
+  const [revision, setRevision] = useState(0);
+  const { data, loading, error: loadError } = usePagedResource<VerificationListResponse>(
+    `${apiBase}/admin/verifications?page=${page}&size=10&query=${encodeURIComponent(query)}&status=${statusFilter}`,
+    revision
+  );
+  const verifications = data?.content || [];
+  const totalPages = Math.max(1, data?.totalPages || 0);
 
   const handleFilterChange = (status: string) => {
     setStatusFilter(status);
@@ -46,58 +37,64 @@ export const AdminVerifications: React.FC = () => {
   };
 
   const openDetail = async (id: number) => {
+    const requestId = ++detailRequest.current;
+    setDetailError('');
+    setDetail(null);
+    setFailedImages([]);
     setSelectedId(id);
     setRejectMode(false);
     setRejectReason('');
     try {
       setModalLoading(true);
-      const data = await getVerificationDetail(id);
-      setDetail(data);
+      const resData = await getVerificationDetail(id);
+      if (requestId !== detailRequest.current) return;
+      setDetail(resData);
       setModalLoading(false);
     } catch (error) {
-      console.error(error);
+      if (requestId !== detailRequest.current) return;
+      setDetailError(error instanceof Error ? error.message : 'Không tải được chi tiết');
       setModalLoading(false);
     }
   };
 
   const closeDetail = () => {
+    detailRequest.current += 1;
     setSelectedId(null);
     setDetail(null);
   };
 
   const handleApprove = async () => {
     if (!detail) return;
-    if (!window.confirm(`Bạn chắc chắn muốn DUYỆT hồ sơ của doanh nghiệp ${detail.companyName}?`)) return;
-    
+    if (!window.confirm(`Bạn chắc chắn muốn DUYỆT hồ sơ của doanh nghiệp ${detail.companyName}? Doanh nghiệp sẽ được cấp vai trò EMPLOYER chính thức.`)) return;
+
     try {
       setProcessing(true);
       await approveVerification(detail.verificationId);
-      alert('Đã duyệt thành công!');
       setProcessing(false);
       closeDetail();
-      fetchList(page, statusFilter);
-    } catch (error: any) {
-      alert(error.message);
+      setRevision(value => value + 1);
+    } catch (error: unknown) {
+      alert(error instanceof Error ? error.message : 'Thao tác thất bại');
       setProcessing(false);
     }
   };
 
   const handleRejectSubmit = async () => {
     if (!detail) return;
-    if (!rejectReason.trim()) {
+    const trimmedReason = rejectReason.trim();
+    if (!trimmedReason) {
       alert('Vui lòng nhập lý do từ chối');
       return;
     }
-    
+
     try {
       setProcessing(true);
-      await rejectVerification(detail.verificationId, rejectReason);
-      alert('Đã từ chối hồ sơ!');
+      await rejectVerification(detail.verificationId, trimmedReason);
       setProcessing(false);
       closeDetail();
-      fetchList(page, statusFilter);
-    } catch (error: any) {
-      alert(error.message);
+      setRevision(value => value + 1);
+    } catch (error: unknown) {
+      alert(error instanceof Error ? error.message : 'Thao tác thất bại');
       setProcessing(false);
     }
   };
@@ -105,11 +102,23 @@ export const AdminVerifications: React.FC = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'PENDING':
-        return <span className={`${styles.badge} ${styles.badgeWarning}`}><Clock size={14}/> Chờ duyệt</span>;
+        return (
+          <span className={`${styles.badge} ${styles.badgeWarning}`}>
+            <Clock size={13} /> Chờ duyệt
+          </span>
+        );
       case 'APPROVED':
-        return <span className={`${styles.badge} ${styles.badgeSuccess}`}><CheckCircle2 size={14}/> Đã duyệt</span>;
+        return (
+          <span className={`${styles.badge} ${styles.badgeSuccess}`}>
+            <CheckCircle2 size={13} /> Đã duyệt
+          </span>
+        );
       case 'REJECTED':
-        return <span className={`${styles.badge} ${styles.badgeDanger}`}><XCircle size={14}/> Từ chối</span>;
+        return (
+          <span className={`${styles.badge} ${styles.badgeDanger}`}>
+            <XCircle size={13} /> Từ chối
+          </span>
+        );
       default:
         return null;
     }
@@ -119,113 +128,201 @@ export const AdminVerifications: React.FC = () => {
     <div className={styles.pageContainer}>
       <div className={styles.header}>
         <h1 className={styles.title}>Quản lý Xét duyệt Doanh nghiệp</h1>
-        <p className={styles.subtitle}>Kiểm tra tính hợp lệ của giấy tờ kinh doanh và cấp huy hiệu xác minh.</p>
+        <p className={styles.subtitle}>Kiểm tra tính hợp lệ của giấy tờ kinh doanh, CCCD và cấp quyền tuyển dụng chính thức.</p>
       </div>
 
+      {loadError && (
+        <div className={styles.alertBanner} role="alert">
+          <AlertCircle size={18} />
+          <span>{loadError}</span>
+        </div>
+      )}
+
+      {/* Filter Toolbar */}
       <div className={styles.filtersCard}>
         <div className={styles.tabs}>
-          <button className={`${styles.tab} ${statusFilter === 'PENDING' ? styles.activeTab : ''}`} onClick={() => handleFilterChange('PENDING')}>
+          <button
+            className={`${styles.tab} ${statusFilter === 'PENDING' ? styles.activeTab : ''}`}
+            onClick={() => handleFilterChange('PENDING')}
+          >
             Chờ duyệt
           </button>
-          <button className={`${styles.tab} ${statusFilter === 'APPROVED' ? styles.activeTab : ''}`} onClick={() => handleFilterChange('APPROVED')}>
+          <button
+            className={`${styles.tab} ${statusFilter === 'APPROVED' ? styles.activeTab : ''}`}
+            onClick={() => handleFilterChange('APPROVED')}
+          >
             Đã duyệt
           </button>
-          <button className={`${styles.tab} ${statusFilter === 'REJECTED' ? styles.activeTab : ''}`} onClick={() => handleFilterChange('REJECTED')}>
+          <button
+            className={`${styles.tab} ${statusFilter === 'REJECTED' ? styles.activeTab : ''}`}
+            onClick={() => handleFilterChange('REJECTED')}
+          >
             Đã từ chối
           </button>
         </div>
+
         <div className={styles.searchBox}>
           <Search size={18} />
-          <input type="text" placeholder="Tìm tên công ty, MST..." className={styles.searchInput} />
+          <input
+            type="text"
+            value={query}
+            onChange={event => { setQuery(event.target.value); setPage(0); }}
+            placeholder="Tìm tên công ty, MST..."
+            className={styles.searchInput}
+          />
         </div>
       </div>
 
+      {/* Table Card */}
       <div className={styles.tableCard}>
-        {fetchError ? (
-          <div className={styles.emptyState}>
-            <XCircle size={48} color="#ef4444" />
-            <p>Lỗi fetch dữ liệu: {fetchError}</p>
+        {loading ? (
+          <div className={styles.loadingState}>
+            <div className={styles.emptyIconWrapper}>
+              <Clock size={28} />
+            </div>
+            <p className={styles.emptyStateText}>Đang tải danh sách hồ sơ xác minh...</p>
           </div>
-        ) : loading ? (
-          <div className={styles.loadingState}>Đang tải dữ liệu...</div>
         ) : verifications.length === 0 ? (
           <div className={styles.emptyState}>
-            <FileText size={48} color="#cbd5e1" />
-            <p>Không có hồ sơ nào trong danh sách này.</p>
+            <div className={styles.emptyIconWrapper}>
+              <FileText size={32} />
+            </div>
+            <h2 className={styles.emptyStateTitle}>Không có hồ sơ nào</h2>
+            <p className={styles.emptyStateText}>Không có yêu cầu xác minh nào trong mục trạng thái này.</p>
           </div>
         ) : (
           <>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Tên Doanh Nghiệp</th>
-                  <th>Mã số thuế</th>
-                  <th>Tài khoản nộp</th>
-                  <th>Ngày nộp</th>
-                  <th>Trạng thái</th>
-                  <th style={{ textAlign: 'right' }}>Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                {verifications.map((v) => (
-                  <tr key={v.verificationId}>
-                    <td>#{v.verificationId}</td>
-                    <td style={{ fontWeight: 600 }}>{v.companyName}</td>
-                    <td>{v.taxCode || '-'}</td>
-                    <td>{v.username}</td>
-                    <td>{v.submittedAt ? new Date(v.submittedAt).toLocaleDateString('vi-VN') : '-'}</td>
-                    <td>{getStatusBadge(v.status)}</td>
-                    <td style={{ textAlign: 'right' }}>
-                      <button className={styles.actionBtn} onClick={() => openDetail(v.verificationId)}>
-                        <Eye size={16} /> Xem
-                      </button>
-                    </td>
+            <div className={styles.tableWrapper}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Doanh Nghiệp</th>
+                    <th>Mã số thuế</th>
+                    <th>Tài khoản nộp</th>
+                    <th>Ngày nộp hồ sơ</th>
+                    <th>Trạng thái</th>
+                    <th style={{ textAlign: 'right' }}>Thao tác</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            
+                </thead>
+                <tbody>
+                  {verifications.map((v) => (
+                    <tr key={v.verificationId}>
+                      <td className={styles.idCell}>#{v.verificationId}</td>
+                      <td>
+                        <div className={styles.userCell}>
+                          <div className={styles.avatarSmall} style={{ backgroundColor: '#ecfdf5', color: '#059669' }}>
+                            <Building2 size={16} />
+                          </div>
+                          <div>
+                            <div className={styles.primaryText}>{v.companyName}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span style={{ fontWeight: 600, color: '#475569', fontSize: '0.85rem' }}>
+                          {v.taxCode || '-'}
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#334155' }}>
+                          <User size={14} color="#94a3b8" />
+                          <span>@{v.username}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#475569', fontSize: '0.85rem' }}>
+                          <Calendar size={14} color="#94a3b8" />
+                          <span>{v.submittedAt ? new Date(v.submittedAt).toLocaleDateString('vi-VN') : '-'}</span>
+                        </div>
+                      </td>
+                      <td>{getStatusBadge(v.status)}</td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div className={styles.actionsCell}>
+                          <button
+                            className={`${styles.actionBtn} ${styles.actionBtnPrimary}`}
+                            onClick={() => openDetail(v.verificationId)}
+                            title="Xem chi tiết hồ sơ và giấy tờ đính kèm"
+                          >
+                            <Eye size={14} />
+                            <span>Xem hồ sơ</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
             <div className={styles.pagination}>
-              <button disabled={page === 0} onClick={() => setPage(p => p - 1)} className={styles.pageBtn}>
-                <ChevronLeft size={16} />
-              </button>
-              <span className={styles.pageInfo}>Trang {page + 1} / {totalPages}</span>
-              <button disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)} className={styles.pageBtn}>
-                <ChevronRight size={16} />
-              </button>
+              <span className={styles.pageInfo}>
+                Trang {page + 1} / {totalPages} (Tổng số {data?.totalElements ?? verifications.length} hồ sơ)
+              </span>
+              <div className={styles.paginationButtons}>
+                <button
+                  disabled={page === 0}
+                  onClick={() => setPage(p => p - 1)}
+                  className={styles.pageBtn}
+                  aria-label="Trang trước"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button
+                  disabled={page >= totalPages - 1}
+                  onClick={() => setPage(p => p + 1)}
+                  className={styles.pageBtn}
+                  aria-label="Trang sau"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
             </div>
           </>
         )}
       </div>
 
-      {/* Detail Modal */}
+      {/* Detail Slide-over Modal */}
       <AnimatePresence>
         {selectedId && (
           <div className={styles.modalOverlay} onClick={closeDetail}>
-            <motion.div 
-              className={styles.modalContent} 
+            <motion.div
+              className={styles.modalContent}
               onClick={e => e.stopPropagation()}
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 220 }}
             >
               <div className={styles.modalHeader}>
-                <h2>Chi tiết hồ sơ xác minh</h2>
-                <button onClick={closeDetail} className={styles.closeBtn}><X size={24} /></button>
+                <div>
+                  <span className={styles.idCell}>Hồ sơ #{selectedId}</span>
+                  <h2 className={styles.modalTitle} style={{ marginTop: '2px' }}>Chi tiết hồ sơ xác minh</h2>
+                </div>
+                <button onClick={closeDetail} className={styles.closeBtn} aria-label="Đóng chi tiết">
+                  <X size={20} />
+                </button>
               </div>
-              
+
               <div className={styles.modalBody}>
                 {modalLoading ? (
-                  <div className={styles.loadingState}>Đang tải chi tiết...</div>
+                  <div className={styles.loadingState}>
+                    <div className={styles.emptyIconWrapper}>
+                      <Clock size={28} />
+                    </div>
+                    <p className={styles.emptyStateText}>Đang tải tài liệu xác minh...</p>
+                  </div>
                 ) : detail ? (
                   <>
                     <div className={styles.infoSection}>
-                      <h3>Thông tin khai báo</h3>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                        <h3 style={{ margin: 0, border: 'none', padding: 0 }}>Thông tin định danh doanh nghiệp</h3>
+                        <div>{getStatusBadge(detail.status)}</div>
+                      </div>
+
                       <div className={styles.infoGrid}>
                         <div className={styles.infoItem}>
-                          <label>Tên công ty</label>
+                          <label>Tên doanh nghiệp</label>
                           <div>{detail.companyName}</div>
                         </div>
                         <div className={styles.infoItem}>
@@ -246,26 +343,69 @@ export const AdminVerifications: React.FC = () => {
                         </div>
                         <div className={styles.infoItem}>
                           <label>Tài khoản nộp</label>
-                          <div>{detail.username}</div>
+                          <div>@{detail.username}</div>
                         </div>
                       </div>
                     </div>
 
+                    <div className={styles.infoSection}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.875rem', color: '#334155' }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                          <MapPin size={16} color="#00b14f" style={{ flexShrink: 0, marginTop: '2px' }} />
+                          <span><strong>Địa chỉ:</strong> {detail.address}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                          <Globe size={16} color="#00b14f" style={{ flexShrink: 0, marginTop: '2px' }} />
+                          <span><strong>Website / Fanpage:</strong> {detail.websiteFanpageUrl || 'Không cung cấp'}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                          <Calendar size={16} color="#00b14f" style={{ flexShrink: 0, marginTop: '2px' }} />
+                          <span><strong>Ngày nộp:</strong> {detail.submittedAt ? new Date(detail.submittedAt).toLocaleString('vi-VN') : '-'}</span>
+                        </div>
+                        {detail.rejectionReason && (
+                          <div style={{ marginTop: '6px', padding: '10px 12px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', color: '#dc2626' }}>
+                            <strong>Lý do từ chối trước đó:</strong> {detail.rejectionReason}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Attached Documents */}
                     <div className={styles.docsSection}>
-                      <h3>Tài liệu đính kèm</h3>
+                      <h3>Giấy tờ & Hình ảnh đính kèm</h3>
                       <div className={styles.docsGrid}>
                         {[
                           { name: 'CCCD mặt trước', img: detail.idCardFrontUrl },
                           { name: 'CCCD mặt sau', img: detail.idCardBackUrl },
                           { name: 'Giấy phép kinh doanh', img: detail.businessLicenseUrl },
-                          { name: 'Ảnh mặt tiền', img: detail.storeFrontImageUrl },
-                        ].map((doc, idx) => doc.img && (
+                          { name: 'Ảnh mặt tiền cơ sở', img: detail.storeFrontImageUrl },
+                        ].map((doc, idx) => (
                           <div key={idx} className={styles.docCard}>
-                            <div className={styles.docImgWrapper} onClick={() => setSelectedImage(doc.img)}>
-                              <img src={doc.img} alt={doc.name} />
-                              <div className={styles.docHover}>
-                                <Eye size={24} /> Phóng to
-                              </div>
+                            <div
+                              className={styles.docImgWrapper}
+                              onClick={() => {
+                                if (doc.img && !failedImages.includes(doc.img)) {
+                                  setSelectedImage(doc.img);
+                                }
+                              }}
+                            >
+                              {!doc.img ? (
+                                <p className={styles.docPlaceholder}>Không cung cấp tài liệu</p>
+                              ) : failedImages.includes(doc.img) ? (
+                                <p className={styles.docPlaceholder} role="status">Không tải được ảnh</p>
+                              ) : (
+                                <img
+                                  src={doc.img}
+                                  alt={doc.name}
+                                  onError={() => setFailedImages(prev => [...prev, doc.img!])}
+                                />
+                              )}
+                              {doc.img && !failedImages.includes(doc.img) && (
+                                <div className={styles.docHover}>
+                                  <Eye size={20} />
+                                  <span>Phóng to</span>
+                                </div>
+                              )}
                             </div>
                             <div className={styles.docName}>{doc.name}</div>
                           </div>
@@ -273,30 +413,59 @@ export const AdminVerifications: React.FC = () => {
                       </div>
                     </div>
 
+                    {/* Actions for PENDING verifications */}
                     {detail.status === 'PENDING' && (
                       <div className={styles.modalFooter}>
                         {!rejectMode ? (
                           <>
-                            <button className={styles.btnReject} onClick={() => setRejectMode(true)} disabled={processing}>
-                              <XCircle size={18} /> Từ chối
+                            <button
+                              className={styles.btnReject}
+                              onClick={() => setRejectMode(true)}
+                              disabled={processing}
+                            >
+                              <XCircle size={16} />
+                              <span>Từ chối hồ sơ</span>
                             </button>
-                            <button className={styles.btnApprove} onClick={handleApprove} disabled={processing}>
-                              <CheckCircle2 size={18} /> Phê duyệt hợp lệ
+                            <button
+                              className={styles.btnApprove}
+                              onClick={handleApprove}
+                              disabled={processing}
+                            >
+                              <CheckCircle2 size={16} />
+                              <span>{processing ? 'Đang duyệt...' : 'Phê duyệt hợp lệ'}</span>
                             </button>
                           </>
                         ) : (
                           <div className={styles.rejectForm}>
-                            <label>Lý do từ chối:</label>
-                            <textarea 
-                              placeholder="Nhập lý do chi tiết..." 
+                            <label>Lý do từ chối (bắt buộc để ứng viên xem):</label>
+                            <textarea
+                              placeholder="Nhập lý do chi tiết (ví dụ: ảnh CCCD bị mờ, thiếu giấy phép đăng ký kinh doanh...)"
                               value={rejectReason}
+                              maxLength={500}
                               onChange={e => setRejectReason(e.target.value)}
                               rows={3}
+                              className={styles.textarea}
+                              autoFocus
                             />
+                            {!rejectReason.trim() && (
+                              <p className={styles.formError} role="alert">
+                                Vui lòng nhập lý do từ chối.
+                              </p>
+                            )}
                             <div className={styles.rejectActions}>
-                              <button onClick={() => setRejectMode(false)} className={styles.btnCancel}>Hủy</button>
-                              <button onClick={handleRejectSubmit} className={styles.btnRejectConfirm} disabled={processing}>
-                                Xác nhận từ chối
+                              <button
+                                onClick={() => setRejectMode(false)}
+                                className={styles.btnCancel}
+                                disabled={processing}
+                              >
+                                Quay lại
+                              </button>
+                              <button
+                                onClick={handleRejectSubmit}
+                                className={styles.btnRejectConfirm}
+                                disabled={processing || !rejectReason.trim()}
+                              >
+                                {processing ? 'Đang gửi...' : 'Xác nhận từ chối'}
                               </button>
                             </div>
                           </div>
@@ -305,7 +474,10 @@ export const AdminVerifications: React.FC = () => {
                     )}
                   </>
                 ) : (
-                  <div className={styles.emptyState}>Lỗi tải dữ liệu</div>
+                  <div className={styles.emptyState} role="alert">
+                    <AlertCircle size={32} color="#dc2626" />
+                    <p>{detailError || 'Không tải được chi tiết'}</p>
+                  </div>
                 )}
               </div>
             </motion.div>
@@ -313,19 +485,25 @@ export const AdminVerifications: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Fullscreen Image View */}
+      {/* Fullscreen Image Lightbox View */}
       <AnimatePresence>
         {selectedImage && (
           <div className={styles.fullscreenOverlay} onClick={() => setSelectedImage(null)}>
-            <motion.img 
-              src={selectedImage} 
-              alt="Fullscreen" 
-              initial={{ scale: 0.8, opacity: 0 }}
+            <motion.img
+              src={selectedImage}
+              alt="Fullscreen document view"
+              initial={{ scale: 0.85, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
+              exit={{ scale: 0.85, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
             />
-            <button className={styles.closeFullscreenBtn} onClick={() => setSelectedImage(null)}><X size={32} /></button>
+            <button
+              className={styles.closeFullscreenBtn}
+              onClick={() => setSelectedImage(null)}
+              aria-label="Đóng xem ảnh"
+            >
+              <X size={24} />
+            </button>
           </div>
         )}
       </AnimatePresence>

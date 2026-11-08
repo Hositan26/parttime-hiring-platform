@@ -6,14 +6,15 @@
 }
 
 .header {
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .title {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1.6rem;
+  font-weight: 800;
   color: var(--text-dark);
   margin-bottom: 4px;
+  letter-spacing: -0.5px;
 }
 
 .subtitle {
@@ -24,56 +25,41 @@
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
+  gap: 20px;
 }
 
 .statCard {
   background-color: #ffffff;
-  border-radius: 20px;
-  padding: 28px 24px;
+  border-radius: var(--radius-xl);
+  padding: 24px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(230, 230, 230, 0.6);
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
-  z-index: 1;
 }
 
 .statCard:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-  border-color: transparent;
-}
-
-.statCard::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  border-radius: 20px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 100%);
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  z-index: -1;
-}
-
-.statCard:hover::after {
-  opacity: 1;
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(0, 177, 79, 0.3);
 }
 
 .statIcon {
-  width: 60px;
-  height: 60px;
-  border-radius: 16px;
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.4s ease;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
 }
 
 .statCard:hover .statIcon {
-  transform: scale(1.1) rotate(5deg);
+  transform: scale(1.08) rotate(4deg);
 }
 
 .statInfo {
@@ -83,18 +69,18 @@
 }
 
 .statLabel {
-  font-size: 0.95rem;
-  color: #64748B;
-  margin-bottom: 8px;
+  font-size: 0.85rem;
+  color: var(--text-gray);
+  margin-bottom: 6px;
   font-weight: 600;
 }
 
 .statValue {
-  font-size: 2.2rem;
+  font-size: 2rem;
   font-weight: 800;
-  color: #0F172A;
+  color: var(--text-dark);
   line-height: 1;
-  letter-spacing: -1px;
+  letter-spacing: -0.5px;
 }
 
 .mainGrid {
@@ -105,7 +91,7 @@
 
 .card {
   background-color: var(--bg-white);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   padding: 24px;
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-color);
@@ -134,7 +120,7 @@
 }
 
 .chartContainer {
-  height: 300px;
+  height: 280px;
   width: 100%;
 }
 
@@ -145,19 +131,20 @@
   font-size: 0.85rem;
   color: var(--text-gray);
   outline: none;
+  background-color: var(--bg-white);
 }
 
 .list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .listItem {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding-bottom: 16px;
+  padding-bottom: 14px;
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -171,10 +158,12 @@
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
+  border: 1px solid var(--border-color);
 }
 
 .itemInfo {
   flex: 1;
+  min-width: 0;
 }
 
 .itemName {
@@ -182,11 +171,17 @@
   font-size: 0.9rem;
   color: var(--text-dark);
   margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .itemDesc {
   font-size: 0.8rem;
   color: var(--text-gray);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .itemRight {
@@ -195,17 +190,18 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;
+  flex-shrink: 0;
 }
 
 .timeText {
   font-size: 0.75rem;
-  color: var(--text-gray);
+  color: var(--text-light);
 }
 
 .statusBadge {
   font-size: 0.7rem;
-  padding: 4px 8px;
-  border-radius: 12px;
+  padding: 3px 8px;
+  border-radius: 9999px;
   font-weight: 600;
 }
 
@@ -217,17 +213,18 @@
   height: 40px;
   border-radius: var(--radius-md);
   object-fit: cover;
+  border: 1px solid var(--border-color);
 }
 
 .expireText {
-  font-size: 0.85rem;
+  font-size: 0.8125rem;
   color: var(--danger);
   font-weight: 600;
 }
 
 .verifyCard {
   background-color: var(--primary-light);
-  border: none;
+  border: 1px solid rgba(0, 177, 79, 0.2);
 }
 
 .verifyContent {
@@ -245,31 +242,69 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 177, 79, 0.25);
 }
 
 .verifyTitle {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  color: var(--primary);
-  margin-bottom: 8px;
+  color: var(--primary-dark);
+  margin-bottom: 4px;
 }
 
 .verifyDesc {
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   color: var(--text-dark);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   line-height: 1.5;
 }
 
 .verifyDate {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--text-gray);
 }
 
 .emptyState {
-  padding: 24px 0;
+  padding: 28px 0;
   text-align: center;
-  color: var(--text-gray);
-  font-style: italic;
-  font-size: 0.9rem;
+  color: var(--text-light);
+  font-size: 0.875rem;
+}
+
+/* ============================================================
+   Responsive Breakpoints: 1024px, 768px, 390px
+   ============================================================ */
+@media (max-width: 1024px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    gap: 16px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .statCard {
+    padding: 18px 16px;
+  }
+
+  .statValue {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
 }

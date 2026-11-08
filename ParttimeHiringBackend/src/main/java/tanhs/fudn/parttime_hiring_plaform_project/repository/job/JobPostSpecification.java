@@ -11,13 +11,14 @@ import tanhs.fudn.parttime_hiring_plaform_project.entity.job.JobPost;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.job.WorkShift;
 
 import java.math.BigDecimal;
-import java.math.BigDecimal;
+import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.EmployerStatus;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.JobStatus;
 
 public class JobPostSpecification {
+    // Applies public visibility rules before optional recruitment filters.
     public static Specification<JobPost> filterJobs(
             String title, String storeName, Integer categoryId, Integer shiftId,
             BigDecimal minWage, BigDecimal maxWage,
@@ -29,11 +30,14 @@ public class JobPostSpecification {
             // Always filter out expired jobs
             predicates.add(criteriaBuilder.or(
                     criteriaBuilder.isNull(root.get("expiredAt")),
-                    criteriaBuilder.greaterThanOrEqualTo(root.get("expiredAt"), LocalDateTime.now())
+                    criteriaBuilder.greaterThan(root.get("expiredAt"), LocalDateTime.now())
             ));
 
             // Status should be ACTIVE
             predicates.add(criteriaBuilder.equal(root.get("status"), JobStatus.ACTIVE));
+            predicates.add(criteriaBuilder.or(criteriaBuilder.isNull(root.get("publishedAt")),
+                    criteriaBuilder.lessThanOrEqualTo(root.get("publishedAt"), LocalDateTime.now())));
+            predicates.add(criteriaBuilder.equal(root.get("employer").get("status"), EmployerStatus.ACTIVE));
 
             // Title
             if (StringUtils.hasText(title)) {
@@ -42,6 +46,10 @@ public class JobPostSpecification {
 
             // Store info
             Join<JobPost, Store> storeJoin = root.join("store", JoinType.INNER);
+            predicates.add(criteriaBuilder.isTrue(storeJoin.get("isActive")));
+            predicates.add(criteriaBuilder.isTrue(storeJoin.get("isApproved")));
+            predicates.add(criteriaBuilder.isFalse(root.get("moderationBlocked")));
+            query.distinct(true);
 
             if (StringUtils.hasText(storeName)) {
                 predicates.add(criteriaBuilder.like(criteriaBuilder.lower(storeJoin.get("storeName")), "%" + storeName.toLowerCase() + "%"));
@@ -90,7 +98,8 @@ public class JobPostSpecification {
         };
     }
 
-    public static Specification<JobPost> filterEmployerJobs(Integer employerId, Integer storeId, JobStatus status) {
+    // Restricts title matches to jobs owned by the selected employer.
+    public static Specification<JobPost> filterEmployerJobs(Integer employerId, Integer storeId, JobStatus status, String keyword) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(criteriaBuilder.equal(root.get("employer").get("employerId"), employerId));
@@ -101,6 +110,12 @@ public class JobPostSpecification {
 
             if (status != null) {
                 predicates.add(criteriaBuilder.equal(root.get("status"), status));
+            }
+
+            if (keyword != null && !keyword.isBlank()) {
+                String term = keyword.strip().toLowerCase(java.util.Locale.ROOT)
+                        .replace("!", "!!").replace("%", "!%").replace("_", "!_");
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), "%" + term + "%", '!'));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

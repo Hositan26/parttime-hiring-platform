@@ -1,46 +1,74 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, ChevronDown } from 'lucide-react';
+import { Bell, Menu } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { getMe } from '../../services/auth.service';
+import { apiBase } from '../../services/apiClient';
 import styles from './EmployerLayout.module.css';
 
-export const EmployerTopbar: React.FC = () => {
+interface EmployerTopbarProps {
+  onToggleMobileSidebar?: () => void;
+}
+
+export const EmployerTopbar: React.FC<EmployerTopbarProps> = ({ onToggleMobileSidebar }) => {
   const [user, setUser] = useState<any>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const data = await getMe();
-        setUser(data);
-      } catch (error) {
-        console.error('Failed to fetch user:', error);
-      }
-    };
-    fetchUser();
+    let active = true;
+    getMe().then(data => {
+      if (active) setUser(data);
+    }).catch(console.error);
+    return () => { active = false; };
   }, []);
 
-  const displayName = user?.displayName || 'Nhà Tuyển Dụng';
+  const displayName = user?.displayName || user?.username || 'Nhà Tuyển Dụng';
   const initial = displayName.charAt(0).toUpperCase();
+
+  const avatarSrc = user?.avatarUrl && user.avatarUrl !== 'null'
+    ? (user.avatarUrl.startsWith('http')
+        ? user.avatarUrl
+        : `${apiBase.replace(/\/api$/, '')}${user.avatarUrl.startsWith('/') ? '' : '/'}${user.avatarUrl}`)
+    : null;
 
   return (
     <header className={styles.topbar}>
-      <div></div>      
+      <div className={styles.topbarLeft}>
+        {onToggleMobileSidebar && (
+          <button 
+            className={styles.hamburgerBtn} 
+            onClick={onToggleMobileSidebar}
+            aria-label="Mở menu quản lý"
+          >
+            <Menu size={22} />
+          </button>
+        )}
+      </div>      
+      
       <div className={styles.topbarRight}>
-        <button className={styles.notificationBtn}>
-          <Bell size={24} />
-          <span className={styles.notificationBadge}>3</span>
-        </button>
+        <Link 
+          to="/employer/notifications" 
+          className={styles.notificationBtn}
+          aria-label="Thông báo nhà tuyển dụng"
+        >
+          <Bell size={20} />
+        </Link>
 
-        <div className={styles.profileSection}>
+        <div 
+          className={styles.profileSection} 
+          onClick={() => navigate('/employer/profile')}
+          role="button"
+          tabIndex={0}
+          aria-label="Xem hồ sơ doanh nghiệp"
+        >
           <div className={styles.profileInfo}>
             <div className={styles.greeting}>Xin chào, <span>{displayName}</span></div>
-            <div className={styles.role}>Employer</div>
+            <div className={styles.role}>Nhà tuyển dụng</div>
           </div>
-          {user?.avatarUrl && user.avatarUrl !== 'null' ? (
+          {avatarSrc ? (
             <img 
-              src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:8088/parttime_hiring_platform${user.avatarUrl.startsWith('/') ? '' : '/'}${user.avatarUrl}`} 
+              src={avatarSrc} 
               alt="Avatar" 
               className={styles.avatarImg} 
-              style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} 
               onError={(e) => {
                 e.currentTarget.onerror = null;
                 e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`;
@@ -49,7 +77,6 @@ export const EmployerTopbar: React.FC = () => {
           ) : (
             <div className={styles.avatar}>{initial}</div>
           )}
-          <ChevronDown size={16} color="var(--text-gray)" />
         </div>
       </div>
     </header>

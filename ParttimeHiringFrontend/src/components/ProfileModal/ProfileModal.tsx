@@ -31,6 +31,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, pro
       case 'PENDING': return 'CHỜ XỬ LÝ';
       case 'ACCEPTED': return 'ĐÃ CHẤP NHẬN';
       case 'REJECTED': return 'ĐÃ TỪ CHỐI';
+      case 'WITHDRAWN': return 'ĐÃ RÚT ĐƠN';
       case 'WORKING': return 'ĐANG LÀM VIỆC';
       case 'QUIT': return 'ĐÃ NGHỈ VIỆC';
       case 'TERMINATED': return 'BỊ SA THẢI';
@@ -44,6 +45,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, pro
       case 'WORKING': return '#15803d';
       case 'REJECTED': 
       case 'TERMINATED': return '#dc2626';
+      case 'WITHDRAWN': return '#64748b';
       case 'QUIT': return '#d97706';
       default: return '#d97706';
     }
@@ -108,6 +110,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, pro
             </div>
           </div>
           
+          {profile.status === 'WITHDRAWN' && (
+            <div style={{ marginTop: '16px', padding: '12px 16px', borderRadius: '8px', backgroundColor: '#f1f5f9', borderLeft: '4px solid #64748b', fontSize: '0.9rem', color: '#334155', lineHeight: 1.5 }}>
+              <strong>Ứng viên đã rút đơn:</strong> Quyền truy cập chi tiết hồ sơ và tệp CV của ứng viên đã được hệ thống thu hồi bảo mật theo quy định.
+            </div>
+          )}
+
           {profile.note && (
             <div className={styles.noteContainer}>
               <div className={styles.infoLabel} style={{marginBottom: 8}}>{profile.noteLabel || 'Ghi chú của ứng viên'}</div>

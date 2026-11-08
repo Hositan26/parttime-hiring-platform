@@ -11,6 +11,11 @@ import java.util.List;
 
 public interface EmployerStoreService {
     EmployerStoreListResponse getEmployerStores(String username, String sortBy);
+    // Uploads or replaces the cover image of an owned store.
+    String uploadCover(String username, Integer storeId, org.springframework.web.multipart.MultipartFile file) throws java.io.IOException;
+    // Removes the cover from an owned store.
+    void removeCover(String username, Integer storeId);
+
     void deleteStore(String username, Integer storeId);
     void updateStore(String username, Integer storeId, UpdateStoreRequest request);
     EmployerStoreResponse createStore(String username, CreateStoreRequest request);

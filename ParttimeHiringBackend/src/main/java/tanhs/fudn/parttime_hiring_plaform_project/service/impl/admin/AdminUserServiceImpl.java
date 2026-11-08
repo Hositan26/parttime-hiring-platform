@@ -1,7 +1,10 @@
 package tanhs.fudn.parttime_hiring_plaform_project.service.impl.admin;
 
-import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminUserService;
+import lombok.extern.slf4j.Slf4j;
+import tanhs.fudn.parttime_hiring_plaform_project.mapper.AdminUserMapper;
+import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.RefreshSessionRepository;
 
+import tanhs.fudn.parttime_hiring_plaform_project.service.admin.AdminUserService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -10,44 +13,51 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import tanhs.fudn.parttime_hiring_plaform_project.dto.response.admin.user.AdminUserResponse;
-import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.Role;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
 import tanhs.fudn.parttime_hiring_plaform_project.repository.identity.UserRepository;
 import tanhs.fudn.parttime_hiring_plaform_project.exception.ResourceNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.stream.Collectors;
+import org.springframework.security.core.context.SecurityContextHolder;
+import tanhs.fudn.parttime_hiring_plaform_project.exception.BusinessException;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminUserServiceImpl implements AdminUserService {
 
     private final UserRepository userRepository;
+    private final RefreshSessionRepository sessions;
 
-    public Page<AdminUserResponse> getAllUsers(int page, int size) {
+    private final AdminUserMapper mapper;
+
+    // Searches accounts with bounded pagination and optional activity filters.
+    @Transactional(readOnly = true)
+    public Page<AdminUserResponse> getAllUsers(int page, int size, String query, Boolean active) {
+        if (page < 0 || size < 1 || size > 50) {
+            throw new IllegalArgumentException("Invalid pagination");
+        }
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
-        Page<User> users = userRepository.findAll(pageable);
-        
-        return users.map(user -> AdminUserResponse.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .displayName(user.getDisplayName())
-                .email(user.getEmail())
-                .avatarUrl(user.getAvatarUrl())
-                .dateOfBirth(user.getDateOfBirth())
-                .isActive(user.getIsActive())
-                .roles(user.getRoles().stream().map(Role::getRoleName).collect(Collectors.toList()))
-                .build());
+        return userRepository.searchAdministration(query == null ? "" : query.trim(), active, pageable)
+                .map(mapper::toAccountResponse);
     }
 
+    // Disables the account and permanently invalidates existing credentials.
     @Override
     @Transactional
     public void banUser(Long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && user.getUsername().equals(authentication.getName())) {
+            throw new BusinessException("You cannot disable your own account");
+        }
         user.setIsActive(false);
+        user.setAuthVersion(user.getAuthVersion() + 1);
+        sessions.revokeUser(id);
         userRepository.save(user);
     }
 
+    // Restores account access without reviving previously invalidated sessions.
     @Override
     @Transactional
     public void unbanUser(Long id) {

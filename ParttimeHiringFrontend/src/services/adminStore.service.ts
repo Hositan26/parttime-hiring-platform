@@ -1,23 +1,25 @@
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/admin/stores';
+import { apiFetch, apiBase } from './apiClient';
+const API_URL = apiBase + '/admin/stores';
 
 export interface AdminStoreResponse {
   storeId: number;
   storeName: string;
   phoneContact: string;
   address: string;
+  isApproved: boolean;
   isActive: boolean;
   createdAt: string;
   employerId: number;
   companyName: string;
 }
 
-export const getAdminStores = async (isActive?: boolean | '', page = 0, size = 10) => {
-  let url = `${API_URL}?page=${page}&size=${size}`;
+export const getAdminStores = async (isActive?: boolean | '', page = 0, size = 10, query = '', approved = '') => {
+  let url = `${API_URL}?page=${page}&size=${size}&query=${encodeURIComponent(query)}${approved ? `&approved=${approved}` : ''}`;
   if (isActive !== '' && isActive !== undefined) {
     url += `&isActive=${isActive}`;
   }
   
-  const response = await fetch(url, {
+  const response = await apiFetch(url, {
     method: 'GET',
     credentials: 'include'
   });
@@ -31,7 +33,7 @@ export const getAdminStores = async (isActive?: boolean | '', page = 0, size = 1
 };
 
 export const updateAdminStoreStatus = async (id: number, isActive: boolean) => {
-  const response = await fetch(`${API_URL}/${id}/status`, {
+  const response = await apiFetch(`${API_URL}/${id}/status`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json'
@@ -47,4 +49,18 @@ export const updateAdminStoreStatus = async (id: number, isActive: boolean) => {
   
   const data = await response.json();
   return data.result;
+};
+
+export const updateAdminStoreApproval = async (id: number, isApproved: boolean) => {
+  const response = await apiFetch(`${API_URL}/${id}/approval`, { method: 'PUT',
+    headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isApproved }) });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Không cập nhật được phê duyệt');
+  return data.result;
+};
+
+export const deleteAdminStore = async (id: number) => {
+  const response = await apiFetch(`${API_URL}/${id}`, { method: 'DELETE' });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Không xóa được cửa hàng');
 };

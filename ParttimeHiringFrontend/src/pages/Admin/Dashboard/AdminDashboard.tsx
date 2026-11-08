@@ -1,119 +1,182 @@
-import React, { useState, useEffect } from 'react';
-import { Users, Briefcase, FileText, Activity, TrendingUp } from 'lucide-react';
-import { getDashboardStats, type AdminDashboardStats } from '../../../services/adminDashboard.service';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { useApiResource } from '../../../services/usePagedResource';
+import { apiBase } from '../../../services/apiClient';
+import {
+  Users,
+  Briefcase,
+  FileText,
+  Activity,
+  TrendingUp,
+  AlertCircle,
+  Clock,
+  Store,
+  ChevronRight,
+  ShieldCheck
+} from 'lucide-react';
+import { type AdminDashboardStats } from '../../../services/adminDashboard.service';
 import styles from '../Verifications/AdminVerifications.module.css';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 export const AdminDashboard: React.FC = () => {
-  const [stats, setStats] = useState<AdminDashboardStats | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        setLoading(true);
-        const data = await getDashboardStats();
-        setStats(data);
-        setLoading(false);
-      } catch (err) {
-        console.error(err);
-        setLoading(false);
-      }
-    };
-    fetchStats();
-  }, []);
+  const { data: stats, loading, error } = useApiResource<AdminDashboardStats>(`${apiBase}/admin/dashboard/stats`);
 
   const chartData = [
-    { name: 'Người tìm việc mới (Tháng này)', uv: stats?.newUsersThisMonth || 0, fill: '#0284c7' },
-    { name: 'Doanh nghiệp mới (Tháng này)', uv: stats?.newEmployersThisMonth || 0, fill: '#ca8a04' }
+    { name: 'Người tìm việc mới (Tháng này)', uv: stats?.newUsersThisMonth ?? 0, fill: '#00b14f' },
+    { name: 'Doanh nghiệp mới (Tháng này)', uv: stats?.newEmployersThisMonth ?? 0, fill: '#10b981' }
   ];
 
   return (
     <div className={styles.pageContainer}>
       <div className={styles.header}>
         <h1 className={styles.title}>Tổng quan hệ thống</h1>
-        <p className={styles.subtitle}>Chào mừng trở lại. Dưới đây là các số liệu tóm tắt về nền tảng.</p>
+        <p className={styles.subtitle}>Báo cáo số liệu thời gian thực và các hạng mục kiểm duyệt cần xử lý.</p>
       </div>
+
+      {error && (
+        <div className={styles.alertBanner} role="alert">
+          <AlertCircle size={18} />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* Actionable Queues Attention Bar */}
+      {stats && (
+        <div className={styles.queuesCard} aria-label="Các hàng chờ cần duyệt">
+          <div className={styles.queuesTitle}>
+            <ShieldCheck size={18} color="#00b14f" />
+            <span>Hàng chờ kiểm duyệt:</span>
+          </div>
+
+          <div className={styles.queuesGroup}>
+            <Link
+              to="/admin/verifications"
+              className={`${styles.queuePill} ${stats.pendingVerifications > 0 ? styles.queuePillActive : ''}`}
+            >
+              <Clock size={14} color={stats.pendingVerifications > 0 ? '#059669' : '#64748b'} />
+              <span>Hồ sơ doanh nghiệp</span>
+              <span className={styles.queuePillCount}>{stats.pendingVerifications}</span>
+              <ChevronRight size={13} color="#94a3b8" />
+            </Link>
+
+            <Link
+              to="/admin/stores"
+              className={`${styles.queuePill} ${stats.pendingStores > 0 ? styles.queuePillActive : ''}`}
+            >
+              <Store size={14} color={stats.pendingStores > 0 ? '#059669' : '#64748b'} />
+              <span>Cửa hàng / Chi nhánh</span>
+              <span className={styles.queuePillCount}>{stats.pendingStores}</span>
+              <ChevronRight size={13} color="#94a3b8" />
+            </Link>
+
+            <Link
+              to="/admin/reports"
+              className={`${styles.queuePill} ${stats.pendingReports > 0 ? styles.queuePillActive : ''}`}
+            >
+              <AlertCircle size={14} color={stats.pendingReports > 0 ? '#d97706' : '#64748b'} />
+              <span>Báo cáo khiếu nại</span>
+              <span className={styles.queuePillCount}>{stats.pendingReports}</span>
+              <ChevronRight size={13} color="#94a3b8" />
+            </Link>
+          </div>
+        </div>
+      )}
 
       {loading ? (
-        <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>Đang tải số liệu...</div>
+        <div className={styles.loadingState}>
+          <div className={styles.emptyIconWrapper}>
+            <Activity size={28} />
+          </div>
+          <p className={styles.emptyStateText}>Đang tổng hợp số liệu hệ thống...</p>
+        </div>
       ) : stats ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px', marginBottom: '32px' }}>
-          {/* Card 1 */}
-          <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '20px' }}>
-            <div style={{ width: '56px', height: '56px', borderRadius: '12px', background: '#e0f2fe', color: '#0284c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Users size={28} />
+        <>
+          {/* KPI 4 Cards */}
+          <div className={styles.kpiGrid}>
+            {/* Card 1: Tổng User */}
+            <div className={styles.kpiCard}>
+              <div className={styles.kpiIconWrapper}>
+                <Users size={26} />
+              </div>
+              <div>
+                <div className={styles.kpiLabel}>Người tìm việc</div>
+                <div className={styles.kpiValue}>{stats.totalUsers}</div>
+                <div className={styles.kpiTrend}>
+                  <TrendingUp size={13} />
+                  <span>+{stats.newUsersThisMonth} tháng này</span>
+                </div>
+              </div>
             </div>
-            <div>
-              <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>Tổng User</div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a' }}>{stats.totalUsers}</div>
-              <div style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
-                <TrendingUp size={14} /> +{stats.newUsersThisMonth} tháng này
+
+            {/* Card 2: Doanh nghiệp */}
+            <div className={styles.kpiCard}>
+              <div className={styles.kpiIconWrapper} style={{ backgroundColor: '#eff6ff', color: '#2563eb' }}>
+                <Briefcase size={26} />
+              </div>
+              <div>
+                <div className={styles.kpiLabel}>Nhà tuyển dụng</div>
+                <div className={styles.kpiValue}>{stats.totalEmployers}</div>
+                <div className={styles.kpiTrend} style={{ color: '#2563eb' }}>
+                  <TrendingUp size={13} />
+                  <span>+{stats.newEmployersThisMonth} tháng này</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3: Công việc */}
+            <div className={styles.kpiCard}>
+              <div className={styles.kpiIconWrapper} style={{ backgroundColor: '#fef3c7', color: '#d97706' }}>
+                <Activity size={26} />
+              </div>
+              <div>
+                <div className={styles.kpiLabel}>Tin tuyển dụng</div>
+                <div className={styles.kpiValue}>{stats.totalJobs}</div>
+                <div className={styles.subText} style={{ marginTop: '4px' }}>Tổng số bài đăng</div>
+              </div>
+            </div>
+
+            {/* Card 4: Lượt ứng tuyển */}
+            <div className={styles.kpiCard}>
+              <div className={styles.kpiIconWrapper} style={{ backgroundColor: '#f3e8ff', color: '#9333ea' }}>
+                <FileText size={26} />
+              </div>
+              <div>
+                <div className={styles.kpiLabel}>Lượt ứng tuyển</div>
+                <div className={styles.kpiValue}>{stats.totalApplications}</div>
+                <div className={styles.subText} style={{ marginTop: '4px' }}>Từ ứng viên gửi đến</div>
               </div>
             </div>
           </div>
 
-          {/* Card 2 */}
-          <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '20px' }}>
-            <div style={{ width: '56px', height: '56px', borderRadius: '12px', background: '#fef08a', color: '#ca8a04', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Briefcase size={28} />
-            </div>
-            <div>
-              <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>Nhà tuyển dụng</div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a' }}>{stats.totalEmployers}</div>
-              <div style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
-                <TrendingUp size={14} /> +{stats.newEmployersThisMonth} tháng này
-              </div>
-            </div>
-          </div>
-
-          {/* Card 3 */}
-          <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '20px' }}>
-            <div style={{ width: '56px', height: '56px', borderRadius: '12px', background: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Activity size={28} />
-            </div>
-            <div>
-              <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>Công việc</div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a' }}>{stats.totalJobs}</div>
-            </div>
-          </div>
-
-          {/* Card 4 */}
-          <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '20px' }}>
-            <div style={{ width: '56px', height: '56px', borderRadius: '12px', background: '#fce7f3', color: '#db2777', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FileText size={28} />
-            </div>
-            <div>
-              <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>Lượt ứng tuyển</div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a' }}>{stats.totalApplications}</div>
+          {/* Chart Section */}
+          <div className={styles.chartCard}>
+            <h2 className={styles.chartTitle}>Tăng trưởng Tài khoản Mới Trong Tháng</h2>
+            <div style={{ width: '100%', height: 320 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={chartData}
+                  margin={{ top: 20, right: 30, left: 10, bottom: 10 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="name" stroke="#64748b" fontSize={13} tickLine={false} />
+                  <YAxis allowDecimals={false} stroke="#64748b" fontSize={13} tickLine={false} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#ffffff',
+                      borderRadius: '8px',
+                      border: '1px solid #e2e8f0',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
+                    }}
+                    cursor={{ fill: '#f8fafc' }}
+                  />
+                  <Legend />
+                  <Bar dataKey="uv" name="Số lượng đăng ký mới" radius={[6, 6, 0, 0]} maxBarSize={60} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
-        </div>
+        </>
       ) : null}
-
-      <div style={{ background: '#fff', padding: '32px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', minHeight: '300px' }}>
-        <h3 style={{ marginBottom: '24px', color: '#334155' }}>Thống kê Tăng trưởng Tháng Này</h3>
-        <div style={{ width: '100%', height: 350 }}>
-          <ResponsiveContainer>
-            <BarChart
-              data={chartData}
-              margin={{
-                top: 20,
-                right: 30,
-                left: 20,
-                bottom: 5,
-              }}
-            >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" />
-              <YAxis allowDecimals={false} />
-              <Tooltip cursor={{fill: '#f8fafc'}} />
-              <Legend />
-              <Bar dataKey="uv" name="Số lượng đăng ký mới" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
     </div>
   );
 };

@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/jobs';
+import { apiFetch, apiBase } from './apiClient';
+const API_URL = apiBase + '/jobs';
 
 export interface Job {
   id: number;
@@ -12,8 +13,22 @@ export interface Job {
   status?: string;
 }
 
+export interface JobPage {
+  content: Job[];
+  totalElements: number;
+  totalPages: number;
+}
+
+export const searchJobPage = async (filters: Record<string, string>, page: number): Promise<JobPage> => {
+  const params = new URLSearchParams({ page: String(page), size: '12' });
+  Object.entries(filters).forEach(([key, value]) => { if (value.trim()) params.set(key, value.trim()); });
+  const response = await apiFetch(`${API_URL}/page?${params}`);
+  if (!response.ok) throw new Error('Không thể tải danh sách việc làm.');
+  return (await response.json()).result;
+};
+
 export const getJobs = async (): Promise<Job[]> => {
-  const response = await fetch(API_URL, {
+  const response = await apiFetch(API_URL, {
     credentials: 'include'
   });
   if (!response.ok) {
@@ -23,7 +38,7 @@ export const getJobs = async (): Promise<Job[]> => {
   return data.result;
 };
 
-export const searchJobs = async (filters: any): Promise<Job[]> => {
+export const searchJobs = async (filters: Record<string, string>): Promise<Job[]> => {
   const params = new URLSearchParams();
   for (const key in filters) {
     if (filters[key] !== undefined && filters[key] !== null && filters[key] !== '') {
@@ -31,7 +46,7 @@ export const searchJobs = async (filters: any): Promise<Job[]> => {
     }
   }
   
-  const response = await fetch(`${API_URL}/search?${params.toString()}`, {
+  const response = await apiFetch(`${API_URL}/search?${params.toString()}`, {
     credentials: 'include'
   });
   if (!response.ok) {
@@ -41,8 +56,11 @@ export const searchJobs = async (filters: any): Promise<Job[]> => {
   return data.result;
 };
 
-export const getCategories = async (): Promise<any[]> => {
-  const response = await fetch(`${API_URL}/categories`, {
+export interface JobCategory { categoryId: number; categoryName: string; }
+export interface JobShift { shiftId: number; shiftName: string; }
+
+export const getCategories = async (): Promise<JobCategory[]> => {
+  const response = await apiFetch(`${API_URL}/categories`, {
     credentials: 'include'
   });
   if (!response.ok) return [];
@@ -50,8 +68,8 @@ export const getCategories = async (): Promise<any[]> => {
   return data.result;
 };
 
-export const getShifts = async (): Promise<any[]> => {
-  const response = await fetch(`${API_URL}/shifts`, {
+export const getShifts = async (): Promise<JobShift[]> => {
+  const response = await apiFetch(`${API_URL}/shifts`, {
     credentials: 'include'
   });
   if (!response.ok) return [];
@@ -83,7 +101,7 @@ export interface JobDetail {
 }
 
 export const getJobById = async (id: string | number): Promise<JobDetail> => {
-  const response = await fetch(`${API_URL}/${id}`, {
+  const response = await apiFetch(`${API_URL}/${id}`, {
     credentials: 'include'
   });
   if (!response.ok) {

@@ -1,5 +1,10 @@
 package tanhs.fudn.parttime_hiring_plaform_project.entity.identity;
 
+import java.sql.Types;
+import java.time.LocalDateTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,8 +28,14 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
-    @org.hibernate.annotations.JdbcTypeCode(java.sql.Types.INTEGER)
+    @JdbcTypeCode(Types.INTEGER)
     private Long id;
+    @Version
+    @Column(nullable = false, columnDefinition = "bigint default 0")
+    private Long rowVersion;
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    @Builder.Default
+    private Integer authVersion = 0;
 
     @Column(name = "username", unique = true)
     private String username;
@@ -58,6 +69,6 @@ public class User {
     private Set<Role> roles = new HashSet<>();
 
     @Column(name = "created_at", updatable = false)
-    @org.hibernate.annotations.CreationTimestamp
-    private java.time.LocalDateTime createdAt;
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 }

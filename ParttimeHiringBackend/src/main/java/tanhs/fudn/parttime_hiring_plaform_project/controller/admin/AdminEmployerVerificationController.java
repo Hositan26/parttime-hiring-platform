@@ -21,17 +21,20 @@ public class AdminEmployerVerificationController {
 
     private final AdminEmployerVerificationService adminVerificationService;
 
+    // Searches submitted business documents using company names or tax codes.
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<VerificationListResponse>>> getVerifications(
             @RequestParam(defaultValue = "PENDING") VerificationStatus status,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String query
     ) {
-        Page<VerificationListResponse> verifications = adminVerificationService.getVerifications(status, page, size);
+        Page<VerificationListResponse> verifications = adminVerificationService.getVerifications(status, page, size, query);
         return ResponseEntity.ok(ApiResponse.success(verifications));
     }
 
+    // Returns confidential verification documents to administrators only.
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<VerificationDetailResponse>> getVerificationDetail(
@@ -41,6 +44,7 @@ public class AdminEmployerVerificationController {
         return ResponseEntity.ok(ApiResponse.success(detail));
     }
 
+    // Grants employer privileges after a manual document approval.
     @PostMapping("/{id}/approve")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> approveVerification(
@@ -51,11 +55,12 @@ public class AdminEmployerVerificationController {
         return ResponseEntity.ok(ApiResponse.success("Duyệt hồ sơ xác minh thành công"));
     }
 
+    // Rejects submissions with a mandatory applicant-visible reason.
     @PostMapping("/{id}/reject")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> rejectVerification(
             @PathVariable Integer id,
-            @RequestBody RejectVerificationRequest request,
+            @jakarta.validation.Valid @RequestBody RejectVerificationRequest request,
             Principal principal
     ) {
         adminVerificationService.rejectVerification(id, request.getReason(), principal.getName());

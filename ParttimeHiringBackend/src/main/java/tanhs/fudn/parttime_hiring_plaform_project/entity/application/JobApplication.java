@@ -1,6 +1,8 @@
 package tanhs.fudn.parttime_hiring_plaform_project.entity.application;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import lombok.*;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.job.JobPost;
 import tanhs.fudn.parttime_hiring_plaform_project.entity.identity.User;
@@ -36,13 +38,18 @@ public class    JobApplication {
     @Column(name = "note", columnDefinition = "TEXT")
     private String note;
 
+    @Column(name = "rejection_reason", length = 500)
+    private String rejectionReason;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private ApplicationStatus status;
 
-    @Column(name = "applied_at", insertable = false, updatable = false)
+    @CreationTimestamp
+    @Column(name = "applied_at", updatable = false)
     private LocalDateTime appliedAt;
 
-    @Column(name = "updated_at", insertable = false, updatable = false)
+    @UpdateTimestamp
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 }

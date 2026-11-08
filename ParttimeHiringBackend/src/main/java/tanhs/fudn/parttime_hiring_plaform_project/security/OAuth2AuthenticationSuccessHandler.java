@@ -1,5 +1,7 @@
 package tanhs.fudn.parttime_hiring_plaform_project.security;
 
+import tanhs.fudn.parttime_hiring_plaform_project.service.auth.AuthSessionService;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,31 +19,33 @@ import java.io.IOException;
 @Component
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private final JwtTokenProvider tokenProvider;
+    private final AuthSessionService sessions;
     private final UserRepository userRepository;
 
-    @Value("${app.oauth2.redirectUri:http://localhost:5173/oauth2/redirect}")
-    private String redirectUri;
+    @Value("${app.frontend-url:http://localhost:5173}")
+    private String frontendUrl;
 
-    public OAuth2AuthenticationSuccessHandler(JwtTokenProvider tokenProvider, UserRepository userRepository) {
-        this.tokenProvider = tokenProvider;
+    // Shares browser session issuance between password and Google authentication.
+    public OAuth2AuthenticationSuccessHandler(AuthSessionService sessions, UserRepository userRepository) {
+        this.sessions = sessions;
         this.userRepository = userRepository;
     }
 
+    // Issues the local account cookie after verified Google authentication.
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-        String email = oAuth2User.getAttribute("email");
+        String username = oAuth2User.getAttribute("localUsername");
 
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found after OAuth2 login"));
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found after OAuth2 login"));
 
-        String token = tokenProvider.generateTokenFromUsername(user.getUsername());
+        sessions.start(user, response);
 
-        response.addHeader("Set-Cookie", "access_token=" + token + "; HttpOnly; Path=/; Max-Age=" + (7 * 24 * 60 * 60) + "; SameSite=Lax");
-
-        String targetUrl = UriComponentsBuilder.fromUriString(redirectUri)
+        if (request.getSession(false) != null) request.getSession(false).invalidate();
+        String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth2/redirect")
                 .build().toUriString();
 
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }
+

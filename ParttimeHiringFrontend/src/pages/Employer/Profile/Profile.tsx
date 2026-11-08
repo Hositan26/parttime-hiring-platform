@@ -13,6 +13,8 @@ export const Profile: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<EmployerProfileUpdateRequest>({});
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [invalidEmail, setInvalidEmail] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -43,24 +45,29 @@ export const Profile: React.FC = () => {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
+    const { name, value, validity } = e.target;
+    if (name === 'emailContact') setInvalidEmail(validity.typeMismatch);
+    setSaveError('');
     setEditForm(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSave = async () => {
     try {
+      setSaveError('');
       setSaving(true);
       const updated = await updateEmployerProfile(editForm);
       setProfile(updated);
       setIsEditing(false);
       setSaving(false);
     } catch (error) {
-      console.error('Error updating profile:', error);
+      setSaveError(error instanceof Error ? error.message : 'Không thể lưu hồ sơ.');
       setSaving(false);
     }
   };
 
   const handleCancel = () => {
+    setSaveError('');
+    setInvalidEmail(false);
     if (profile) {
       setEditForm({
         businessType: profile.businessType || '',
@@ -101,6 +108,7 @@ export const Profile: React.FC = () => {
         <div>
           <h1 className={styles.title}>Hồ sơ Doanh nghiệp</h1>
           <p className={styles.subtitle}>Quản lý thông tin công ty, thương hiệu tuyển dụng và tài liệu xác minh.</p>
+          {saveError && <p role="alert">{saveError}</p>}
         </div>
       </div>
 
@@ -207,7 +215,7 @@ export const Profile: React.FC = () => {
                 <button className={styles.btnOutline} onClick={handleCancel} style={{ borderColor: 'var(--danger)', color: 'var(--danger)', background: 'white' }}>
                   <X size={16} /> Hủy
                 </button>
-                <button className={styles.btnPrimary} onClick={handleSave} disabled={saving}>
+                <button className={styles.btnPrimary} onClick={handleSave} disabled={saving || invalidEmail}>
                   {saving ? 'Đang lưu...' : <><Save size={16} /> Lưu thay đổi</>}
                 </button>
               </motion.div>
@@ -230,23 +238,24 @@ export const Profile: React.FC = () => {
             </div>
             <div className={styles.formGroup}>
               <label className={styles.label}><Mail size={14}/> Email liên hệ</label>
-              <input type="email" name="emailContact" className={styles.input} value={isEditing ? editForm.emailContact : profile.emailContact || ''} onChange={handleInputChange} readOnly={!isEditing} style={!isEditing ? { backgroundColor: '#f8fafc', borderColor: 'transparent' } : {}} />
+              <input type="email" name="emailContact" maxLength={255} className={styles.input} value={isEditing ? editForm.emailContact : profile.emailContact || ''} onChange={handleInputChange} readOnly={!isEditing} style={!isEditing ? { backgroundColor: '#f8fafc', borderColor: 'transparent' } : {}} />
+              {isEditing && invalidEmail && <small role="alert">Email liên hệ không hợp lệ.</small>}
             </div>
             <div className={styles.formGroup}>
               <label className={styles.label}><Phone size={14}/> Số điện thoại liên hệ</label>
-              <input type="tel" name="phoneContact" className={styles.input} value={isEditing ? editForm.phoneContact : profile.phoneContact || ''} onChange={handleInputChange} readOnly={!isEditing} style={!isEditing ? { backgroundColor: '#f8fafc', borderColor: 'transparent' } : {}} />
+              <input type="tel" name="phoneContact" maxLength={255} className={styles.input} value={isEditing ? editForm.phoneContact : profile.phoneContact || ''} onChange={handleInputChange} readOnly={!isEditing} style={!isEditing ? { backgroundColor: '#f8fafc', borderColor: 'transparent' } : {}} />
             </div>
             <div className={styles.formGroup}>
               <label className={styles.label}><Users size={14}/> Tên người đại diện</label>
-              <input type="text" name="representativeName" className={styles.input} value={isEditing ? editForm.representativeName : profile.representativeName || ''} onChange={handleInputChange} readOnly={!isEditing} style={!isEditing ? { backgroundColor: '#f8fafc', borderColor: 'transparent' } : {}} />
+              <input type="text" name="representativeName" maxLength={255} className={styles.input} value={isEditing ? editForm.representativeName : profile.representativeName || ''} onChange={handleInputChange} readOnly={!isEditing} style={!isEditing ? { backgroundColor: '#f8fafc', borderColor: 'transparent' } : {}} />
             </div>
             <div className={styles.formGroup}>
               <label className={styles.label}><Globe size={14}/> Website / Fanpage</label>
-              <input type="url" name="website" className={styles.input} value={isEditing ? editForm.website : profile.website || ''} onChange={handleInputChange} readOnly={!isEditing} style={!isEditing ? { backgroundColor: '#f8fafc', borderColor: 'transparent' } : {}} />
+              <input type="url" name="website" maxLength={255} className={styles.input} value={isEditing ? editForm.website : profile.website || ''} onChange={handleInputChange} readOnly={!isEditing} style={!isEditing ? { backgroundColor: '#f8fafc', borderColor: 'transparent' } : {}} />
             </div>
             <div className={`${styles.formGroup} ${styles.fullWidth}`}>
               <label className={styles.label}><Briefcase size={14}/> Ngành nghề / Lĩnh vực hoạt động</label>
-              <input type="text" name="businessType" className={styles.input} value={isEditing ? editForm.businessType : profile.businessType || ''} onChange={handleInputChange} readOnly={!isEditing} style={!isEditing ? { backgroundColor: '#f8fafc', borderColor: 'transparent' } : {}} />
+              <input type="text" name="businessType" maxLength={255} className={styles.input} value={isEditing ? editForm.businessType : profile.businessType || ''} onChange={handleInputChange} readOnly={!isEditing} style={!isEditing ? { backgroundColor: '#f8fafc', borderColor: 'transparent' } : {}} />
             </div>
           </div>
         </motion.div>
@@ -256,7 +265,7 @@ export const Profile: React.FC = () => {
             <div className={styles.cardTitle} style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '16px', marginBottom: '24px' }}>Giới thiệu công ty</div>
             <div className={styles.formGroup}>
               <textarea 
-                name="description" 
+                name="description" maxLength={16000}
                 className={styles.textarea} style={{ height: 'auto', minHeight: '160px', resize: 'vertical', ...( !isEditing ? { backgroundColor: '#f8fafc', borderColor: 'transparent' } : {} ) }}
                 readOnly={!isEditing} 
                 value={isEditing ? editForm.description : profile.description || ''} 

@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
  * Entity lưu trữ thông tin liên kết tài khoản OAuth2 (Google, Facebook...) của người dùng.
  */
 @Entity
-@Table(name = "user_oauth_accounts")
+@Table(name = "user_oauth_accounts", uniqueConstraints = @UniqueConstraint(columnNames = {"provider", "provider_account_id"}))
 @Getter
 @Setter
 @NoArgsConstructor

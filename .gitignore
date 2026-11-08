@@ -10,3 +10,10 @@ VIBECODE.md
 
 # Environment secrets
 .env
+
+# Local project documentation
+/docs/
+
+# Local backups, credentials, and database verification artifacts
+/.local/
+**/__pycache__/

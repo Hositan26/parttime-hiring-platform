@@ -19,16 +19,19 @@ public class AdminEmployerController {
 
     private final AdminEmployerService adminEmployerService;
 
+    // Searches company accounts without mixing business and login status.
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<AdminEmployerResponse>>> getEmployers(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String query
     ) {
-        Page<AdminEmployerResponse> employers = adminEmployerService.getAllEmployers(page, size);
+        Page<AdminEmployerResponse> employers = adminEmployerService.getAllEmployers(page, size, query);
         return ResponseEntity.ok(ApiResponse.success(employers));
     }
 
+    // Changes business standing independently from account login access.
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<AdminEmployerResponse>> updateStatus(

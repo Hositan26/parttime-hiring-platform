@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/admin/categories';
+import { apiFetch, apiBase } from './apiClient';
+const API_URL = apiBase + '/admin/categories';
 
 export interface AdminCategory {
   categoryId: number;
@@ -8,43 +9,43 @@ export interface AdminCategory {
   isActive: boolean;
 }
 
-export const getCategories = async (page = 0, size = 10) => {
-  const response = await fetch(`${API_URL}?page=${page}&size=${size}`, {
+export const getCategories = async (page = 0, size = 10, query = '') => {
+  const response = await apiFetch(`${API_URL}?page=${page}&size=${size}&query=${encodeURIComponent(query)}`, {
     method: 'GET',
     credentials: 'include'
   });
-  if (!response.ok) throw new Error('Lỗi tải danh sách ngành nghề');
+  if (!response.ok) { const error = await response.json(); throw new Error(error.message || 'Lỗi tải danh sách ngành nghề'); }
   const data = await response.json();
   return data.result;
 };
 
 export const createCategory = async (category: Partial<AdminCategory>) => {
-  const response = await fetch(API_URL, {
+  const response = await apiFetch(API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: JSON.stringify(category)
   });
-  if (!response.ok) throw new Error('Lỗi thêm ngành nghề');
+  if (!response.ok) { const error = await response.json(); throw new Error(error.message || 'Lỗi thêm ngành nghề'); }
   return await response.json();
 };
 
 export const updateCategory = async (id: number, category: Partial<AdminCategory>) => {
-  const response = await fetch(`${API_URL}/${id}`, {
+  const response = await apiFetch(`${API_URL}/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: JSON.stringify(category)
   });
-  if (!response.ok) throw new Error('Lỗi cập nhật ngành nghề');
+  if (!response.ok) { const error = await response.json(); throw new Error(error.message || 'Lỗi cập nhật ngành nghề'); }
   return await response.json();
 };
 
 export const deleteCategory = async (id: number) => {
-  const response = await fetch(`${API_URL}/${id}`, {
+  const response = await apiFetch(`${API_URL}/${id}`, {
     method: 'DELETE',
     credentials: 'include'
   });
-  if (!response.ok) throw new Error('Lỗi xóa ngành nghề');
+  if (!response.ok) { const error = await response.json(); throw new Error(error.message || 'Lỗi xóa ngành nghề'); }
   return await response.json();
 };

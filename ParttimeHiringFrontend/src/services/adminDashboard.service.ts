@@ -1,6 +1,10 @@
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/admin/dashboard';
+import { apiFetch, apiBase } from './apiClient';
+const API_URL = apiBase + '/admin/dashboard';
 
 export interface AdminDashboardStats {
+  pendingVerifications: number;
+  pendingStores: number;
+  pendingReports: number;
   totalUsers: number;
   totalEmployers: number;
   totalJobs: number;
@@ -10,7 +14,7 @@ export interface AdminDashboardStats {
 }
 
 export const getDashboardStats = async () => {
-  const response = await fetch(`${API_URL}/stats`, {
+  const response = await apiFetch(`${API_URL}/stats`, {
     method: 'GET',
     credentials: 'include'
   });

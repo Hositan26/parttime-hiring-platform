@@ -49,6 +49,7 @@ public class EmployerDashboardServiceImpl implements EmployerDashboardService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhà tuyển dụng."));
     }
 
+    // Computes employer totals and recruitment activity for six calendar months.
     @Transactional(readOnly = true)
     public DashboardOverviewResponse getDashboardOverview(String username) {
         log.info("Lấy thông tin tổng quan Dashboard cho username: {}", username);
@@ -60,12 +61,13 @@ public class EmployerDashboardServiceImpl implements EmployerDashboardService {
         long totalApplications = jobApplicationRepository.countByEmployerId(employerId);
         long pendingApplications = jobApplicationRepository.countByEmployerIdAndStatus(employerId, ApplicationStatus.PENDING);
 
-        LocalDateTime sixMonthsAgo = LocalDateTime.now().minusMonths(6).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
-        List<Object[]> monthlyData = jobApplicationRepository.countApplicationsByMonth(employerId, sixMonthsAgo);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime firstMonth = now.toLocalDate().withDayOfMonth(1).minusMonths(5).atStartOfDay();
+        List<Object[]> monthlyData = jobApplicationRepository.countApplicationsByMonth(employerId, firstMonth);
         List<MonthlyStatResponse> monthlyStats = new ArrayList<>();
         
         for (int i = 5; i >= 0; i--) {
-            LocalDateTime month = LocalDateTime.now().minusMonths(i);
+            LocalDateTime month = now.minusMonths(i);
             int monthValue = month.getMonthValue();
             long count = 0;
             for (Object[] data : monthlyData) {

@@ -7,7 +7,12 @@ import tanhs.fudn.parttime_hiring_plaform_project.dto.response.admin.verificatio
 import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.VerificationStatus;
 
 public interface AdminEmployerVerificationService {
-    Page<VerificationListResponse> getVerifications(VerificationStatus status, int page, int size);
+    // Lists business verification applications matching search and status.
+    Page<VerificationListResponse> getVerifications(VerificationStatus status, int page, int size, String query);
+    // Preserves the existing unfiltered review queue contract.
+    default Page<VerificationListResponse> getVerifications(VerificationStatus status, int page, int size) {
+        return getVerifications(status, page, size, "");
+    }
     VerificationDetailResponse getVerificationDetail(Integer id);
     void approveVerification(Integer id, String adminUsername);
     void rejectVerification(Integer id, String reason, String adminUsername);

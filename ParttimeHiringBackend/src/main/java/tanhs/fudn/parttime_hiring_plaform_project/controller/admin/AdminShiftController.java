@@ -18,16 +18,19 @@ public class AdminShiftController {
 
     private final AdminShiftService shiftService;
 
+    // Searches catalog entries before applying pagination.
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<ShiftResponse>>> getShifts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String query
     ) {
-        Page<ShiftResponse> shifts = shiftService.getShifts(page, size);
+        Page<ShiftResponse> shifts = shiftService.getShifts(page, size, query);
         return ResponseEntity.ok(ApiResponse.success(shifts));
     }
 
+    // Creates a catalog entry after request validation.
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ShiftResponse>> createShift(@Valid @RequestBody ShiftRequest request) {
@@ -35,6 +38,7 @@ public class AdminShiftController {
         return ResponseEntity.ok(ApiResponse.success(saved));
     }
 
+    // Updates a catalog entry after request validation.
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ShiftResponse>> updateShift(
@@ -44,6 +48,7 @@ public class AdminShiftController {
         return ResponseEntity.ok(ApiResponse.success(updated));
     }
 
+    // Deletes catalog entries without job dependencies.
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteShift(@PathVariable Integer id) {

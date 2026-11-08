@@ -1,5 +1,8 @@
 # Báo cáo rà soát chức năng — 04/11/2026
 
+> Báo cáo lịch sử ngày 04/11/2026, trước các đợt AUTH/USER/ADMIN và database. Các kết quả lỗi/test dưới đây chỉ phản ánh thời điểm rà soát gốc.
+> Cập nhật 09/11/2026: database dev/prod đã tách và dùng Flyway qua PR #6; đợt triển khai database đạt 137 test backend và frontend build. Hướng dẫn hiện tại ở [README](../README.md) và [database operations](../scripts/database/README.md). Tài liệu chi tiết trong `docs/` chỉ có ở local.
+
 ## Phạm vi và cách đọc kết quả
 
 Đã đối chiếu router, trang, service frontend với 65 endpoint backend, service nghiệp vụ,

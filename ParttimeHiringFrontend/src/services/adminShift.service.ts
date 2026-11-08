@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/admin/shifts';
+import { apiFetch, apiBase } from './apiClient';
+const API_URL = apiBase + '/admin/shifts';
 
 export interface AdminShift {
   shiftId: number;
@@ -8,43 +9,43 @@ export interface AdminShift {
   isFlexible: boolean;
 }
 
-export const getShifts = async (page = 0, size = 10) => {
-  const response = await fetch(`${API_URL}?page=${page}&size=${size}`, {
+export const getShifts = async (page = 0, size = 10, query = '') => {
+  const response = await apiFetch(`${API_URL}?page=${page}&size=${size}&query=${encodeURIComponent(query)}`, {
     method: 'GET',
     credentials: 'include'
   });
-  if (!response.ok) throw new Error('Lỗi tải danh sách ca làm việc');
+  if (!response.ok) { const error = await response.json(); throw new Error(error.message || 'Lỗi tải danh sách ca làm việc'); }
   const data = await response.json();
   return data.result;
 };
 
 export const createShift = async (shift: Partial<AdminShift>) => {
-  const response = await fetch(API_URL, {
+  const response = await apiFetch(API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: JSON.stringify(shift)
   });
-  if (!response.ok) throw new Error('Lỗi thêm ca làm việc');
+  if (!response.ok) { const error = await response.json(); throw new Error(error.message || 'Lỗi thêm ca làm việc'); }
   return await response.json();
 };
 
 export const updateShift = async (id: number, shift: Partial<AdminShift>) => {
-  const response = await fetch(`${API_URL}/${id}`, {
+  const response = await apiFetch(`${API_URL}/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: JSON.stringify(shift)
   });
-  if (!response.ok) throw new Error('Lỗi cập nhật ca làm việc');
+  if (!response.ok) { const error = await response.json(); throw new Error(error.message || 'Lỗi cập nhật ca làm việc'); }
   return await response.json();
 };
 
 export const deleteShift = async (id: number) => {
-  const response = await fetch(`${API_URL}/${id}`, {
+  const response = await apiFetch(`${API_URL}/${id}`, {
     method: 'DELETE',
     credentials: 'include'
   });
-  if (!response.ok) throw new Error('Lỗi xóa ca làm việc');
+  if (!response.ok) { const error = await response.json(); throw new Error(error.message || 'Lỗi xóa ca làm việc'); }
   return await response.json();
 };

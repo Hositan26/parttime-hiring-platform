@@ -16,6 +16,11 @@ import java.time.LocalDateTime;
 public class AdminJobPostResponse {
     private Integer jobId;
     private String title;
+    private Boolean moderationBlocked;
+    private String description;
+    private String requirements;
+    private String benefits;
+    private String storeName;
     private EmploymentType employmentType;
     private BigDecimal hourlyWageMin;
     private BigDecimal hourlyWageMax;

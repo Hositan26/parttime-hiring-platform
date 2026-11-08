@@ -1,10 +1,9 @@
+import { toggleStoreStatus } from '../../../services/storeApi';
 import React, { useState, useEffect } from 'react';
-import { Plus, Store, BriefcaseBusiness, Clock, Search, MapPin, Phone, Eye, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { Plus, Store, BriefcaseBusiness, Clock, Search, MapPin, Phone, Eye, ChevronLeft, ChevronRight, Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { getEmployerStores, deleteStore, type EmployerStoreListDTO } from '../../../services/storeApi';
 import styles from './Stores.module.css';
-
 import { useNavigate } from 'react-router-dom';
-
 import { CreateStoreModal } from './CreateStoreModal';
 
 export const Stores: React.FC = () => {
@@ -14,8 +13,8 @@ export const Stores: React.FC = () => {
   const [sortBy, setSortBy] = useState('newest');
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreating, setIsCreating] = useState(false);
-  
-
+  const [actionMessage, setActionMessage] = useState('');
+  const [actionError, setActionError] = useState('');
 
   const fetchData = async () => {
     try {
@@ -33,21 +32,35 @@ export const Stores: React.FC = () => {
     fetchData();
   }, [sortBy]);
 
-
-
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSortBy(e.target.value);
   };
 
-
+  const changeActivity = async (storeId: string | number) => {
+    try {
+      setLoading(true);
+      setActionError('');
+      await toggleStoreStatus(storeId);
+      setActionMessage('Đã cập nhật trạng thái hoạt động của cửa hàng.');
+      setTimeout(() => setActionMessage(''), 3000);
+      await fetchData();
+    } catch (failure) {
+      setActionError(failure instanceof Error ? failure.message : 'Không thể đổi trạng thái cửa hàng.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDelete = async (storeId: string | number) => {
     if (!window.confirm('Bạn có chắc chắn muốn xóa cửa hàng này? Nếu cửa hàng đang có tin tuyển dụng sẽ không thể xóa.')) return;
     try {
+      setActionError('');
       await deleteStore(storeId);
+      setActionMessage('Đã xóa cửa hàng thành công.');
+      setTimeout(() => setActionMessage(''), 3000);
       fetchData();
     } catch (error: any) {
-      alert(error.message || 'Không thể xóa cửa hàng');
+      setActionError(error.message || 'Không thể xóa cửa hàng');
     }
   };
 
@@ -65,8 +78,8 @@ export const Stores: React.FC = () => {
     <div className={styles.storesPage}>
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>Cửa hàng</h1>
-          <p className={styles.subtitle}>Quản lý thông tin và trạng thái của các cửa hàng đang hoạt động.</p>
+          <h1 className={styles.title}>Cửa hàng & Chi nhánh</h1>
+          <p className={styles.subtitle}>Quản lý thông tin, địa điểm và trạng thái hoạt động của từng cơ sở.</p>
         </div>
         <div className={styles.actions}>
           <button className={styles.btnPrimary} onClick={() => setIsCreating(true)}>
@@ -75,7 +88,21 @@ export const Stores: React.FC = () => {
         </div>
       </div>
 
-      <div className={styles.statsGrid} style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+      {actionMessage && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', background: 'var(--success-light)', border: '1px solid #A7F3D0', borderRadius: 'var(--radius-md)', color: '#065F46', marginBottom: '1.25rem', fontSize: '0.875rem' }} role="status">
+          <CheckCircle2 size={16} color="var(--success)" />
+          <span>{actionMessage}</span>
+        </div>
+      )}
+
+      {actionError && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', background: 'var(--danger-light)', border: '1px solid #FECACA', borderRadius: 'var(--radius-md)', color: 'var(--danger)', marginBottom: '1.25rem', fontSize: '0.875rem' }} role="alert">
+          <AlertCircle size={16} />
+          <span>{actionError}</span>
+        </div>
+      )}
+
+      <div className={styles.statsGrid}>
         <div className={styles.statCard}>
           <div className={styles.statIcon} style={{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)' }}>
             <Store size={24} />
@@ -83,7 +110,7 @@ export const Stores: React.FC = () => {
           <div className={styles.statInfo}>
             <div className={styles.statLabel}>Tổng số cửa hàng</div>
             <div className={styles.statValue}>{data?.totalStores || 0}</div>
-            <div className={styles.statSub}>Tất cả cửa hàng</div>
+            <div className={styles.statSub}>Tất cả cơ sở đã tạo</div>
           </div>
         </div>
         <div className={styles.statCard}>
@@ -91,9 +118,9 @@ export const Stores: React.FC = () => {
             <BriefcaseBusiness size={24} />
           </div>
           <div className={styles.statInfo}>
-            <div className={styles.statLabel}>Cửa hàng đang hoạt động</div>
+            <div className={styles.statLabel}>Đang hoạt động</div>
             <div className={styles.statValue}>{data?.activeStores || 0}</div>
-            <div className={styles.statSub}>{data?.totalStores ? ((data.activeStores / data.totalStores) * 100).toFixed(1) : 0}% tổng số cửa hàng</div>
+            <div className={styles.statSub}>{data?.totalStores ? ((data.activeStores / data.totalStores) * 100).toFixed(0) : 0}% tổng số cửa hàng</div>
           </div>
         </div>
         <div className={styles.statCard}>
@@ -101,9 +128,9 @@ export const Stores: React.FC = () => {
             <Clock size={24} />
           </div>
           <div className={styles.statInfo}>
-            <div className={styles.statLabel}>Chờ phê duyệt</div>
+            <div className={styles.statLabel}>Tạm ngừng / Chờ duyệt</div>
             <div className={styles.statValue}>{data?.inactiveStores || 0}</div>
-            <div className={styles.statSub}>{data?.totalStores ? ((data.inactiveStores / data.totalStores) * 100).toFixed(1) : 0}% tổng số cửa hàng</div>
+            <div className={styles.statSub}>Cần kiểm tra hoặc kích hoạt</div>
           </div>
         </div>
       </div>
@@ -114,95 +141,128 @@ export const Stores: React.FC = () => {
             <Search size={18} color="var(--text-light)" />
             <input 
               type="text" 
-              placeholder="Tìm kiếm store..." 
+              placeholder="Tìm kiếm theo tên, địa chỉ, mã ST..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <select className={styles.sortSelect} value={sortBy} onChange={handleSortChange}>
             <option value="newest">Sắp xếp: Mới nhất</option>
-            <option value="applications">Số lượng đơn ứng tuyển</option>
-            <option value="jobs">Số lượng jobs</option>
+            <option value="applications">Nhiều đơn ứng tuyển nhất</option>
+            <option value="jobs">Nhiều tin tuyển dụng nhất</option>
           </select>
         </div>
         
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>STORE</th>
-              <th>LIÊN HỆ</th>
-              <th>ĐỊA CHỈ</th>
-              <th style={{textAlign: 'center'}}>JOBS</th>
-              <th style={{textAlign: 'center'}}>ĐƠN ỨNG TUYỂN</th>
-              <th>TRẠNG THÁI</th>
-              <th>THAO TÁC</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
+        <div className={styles.tableWrapper}>
+          <table className={styles.table}>
+            <thead>
               <tr>
-                <td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>Đang tải dữ liệu...</td>
+                <th>CỬA HÀNG</th>
+                <th>LIÊN HỆ</th>
+                <th>ĐỊA CHỈ</th>
+                <th style={{ textAlign: 'center' }}>TIN ĐĂNG</th>
+                <th style={{ textAlign: 'center' }}>ĐƠN ỨNG TUYỂN</th>
+                <th>TRẠNG THÁI</th>
+                <th>THAO TÁC</th>
               </tr>
-            ) : filteredStores.length > 0 ? (
-              filteredStores.map((store, idx) => (
-                <tr key={idx}>
-                  <td>
-                    <div className={styles.storeInfo}>
-                      <img src={store.logo} alt="logo" className={styles.storeLogo} />
-                      <div>
-                        <div className={styles.storeName}>{store.name}</div>
-                        <div className={styles.storeId}>Store ID: ST{store.storeId?.toString()?.padStart(3, '0')}</div>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-gray)' }}>
+                    Đang tải dữ liệu cửa hàng...
+                  </td>
+                </tr>
+              ) : filteredStores.length > 0 ? (
+                filteredStores.map((store, idx) => (
+                  <tr key={idx}>
+                    <td>
+                      <div className={styles.storeInfo}>
+                        <img 
+                          src={store.logo || "https://cdn-icons-png.flaticon.com/512/3268/3268832.png"} 
+                          alt="logo" 
+                          className={styles.storeLogo} 
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = "https://cdn-icons-png.flaticon.com/512/3268/3268832.png";
+                          }}
+                        />
+                        <div>
+                          <div className={styles.storeName}>{store.name}</div>
+                          <div className={styles.storeId}>Mã: ST{store.storeId?.toString()?.padStart(3, '0')}</div>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div className={styles.contactInfo}>
-                      <Phone size={14} /> {store.phone || 'Chưa cập nhật'}
-                    </div>
-                  </td>
-                  <td style={{ maxWidth: '200px' }}>
-                    <div className={styles.addressInfo}>
-                      <MapPin size={16} style={{ flexShrink: 0, marginTop: '2px' }} /> 
-                      <span>{store.address}</span>
-                    </div>
-                  </td>
-                  <td style={{textAlign: 'center', fontWeight: '600'}}>{store.jobs}</td>
-                  <td style={{textAlign: 'center', fontWeight: '600'}}>{store.applications}</td>
-                  <td>
-                    <span className={`${styles.statusBadge} ${store.status === 'ACTIVE' ? styles.statusActive : styles.statusInactive}`}>
-                        {store.status === 'ACTIVE' ? 'Đang hoạt động' : 'Chờ phê duyệt'}
-                    </span>
-                  </td>
-                  <td>
-                    <div className={styles.actionCell}>
-                      <button className={styles.actionBtn} onClick={() => navigate(`/employer/stores/${store.storeId}`)}>
-                        <Eye size={18} />
-                      </button>
-                      {store.status !== 'INACTIVE' && (
+                    </td>
+                    <td>
+                      <div className={styles.contactInfo}>
+                        <Phone size={14} style={{ color: 'var(--text-light)', flexShrink: 0 }} /> 
+                        <span>{store.phone || 'Chưa cập nhật'}</span>
+                      </div>
+                    </td>
+                    <td style={{ maxWidth: '240px' }}>
+                      <div className={styles.addressInfo}>
+                        <MapPin size={15} style={{ flexShrink: 0, marginTop: '2px', color: 'var(--primary)' }} /> 
+                        <span>{store.address}</span>
+                      </div>
+                    </td>
+                    <td style={{ textAlign: 'center', fontWeight: '700', color: 'var(--text-dark)' }}>{store.jobs}</td>
+                    <td style={{ textAlign: 'center', fontWeight: '700', color: 'var(--text-dark)' }}>{store.applications}</td>
+                    <td>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        {store.status === 'ACTIVE' ? (
+                          <span className="badge-success">Đang hoạt động</span>
+                        ) : store.status === 'PAUSED' ? (
+                          <span className="badge-warning">Tạm ngừng</span>
+                        ) : (
+                          <span className="badge-neutral">Chờ duyệt</span>
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      <div className={styles.actionCell}>
+                        {store.status !== 'PENDING' && (
+                          <button 
+                            className={styles.actionBtn} 
+                            disabled={loading} 
+                            onClick={() => void changeActivity(store.storeId)}
+                            title={store.status === 'ACTIVE' ? 'Tạm ngừng nhận ứng tuyển' : 'Mở lại hoạt động'}
+                          >
+                            {store.status === 'ACTIVE' ? 'Tạm ngừng' : 'Bật lại'}
+                          </button>
+                        )}
                         <button 
+                          className={styles.actionBtn} 
+                          onClick={() => navigate(`/employer/stores/${store.storeId}`)}
+                          title="Xem chi tiết cửa hàng"
+                        >
+                          <Eye size={16} />
+                        </button>
+                        <button
                           className={`${styles.actionBtn} ${styles.danger}`} 
                           onClick={() => handleDelete(store.storeId)}
                           style={{ color: '#ef4444', borderColor: '#fee2e2', backgroundColor: '#fef2f2' }}
                           title="Xóa cửa hàng"
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={16} />
                         </button>
-                      )}
-                    </div>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-gray)' }}>
+                    Không tìm thấy cửa hàng nào phù hợp với tìm kiếm.
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>Không tìm thấy cửa hàng nào.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        </div>
 
         {filteredStores.length >= 6 && (
           <div className={styles.pagination}>
-            <div>Hiển thị 1 - {filteredStores.length} trong số {data?.totalStores} cửa hàng</div>
+            <div>Hiển thị {filteredStores.length} trong số {data?.totalStores || 0} cửa hàng</div>
             <div className={styles.pageControls}>
               <button className={styles.pageBtn}><ChevronLeft size={16} /></button>
               <button className={`${styles.pageBtn} ${styles.active}`}>1</button>

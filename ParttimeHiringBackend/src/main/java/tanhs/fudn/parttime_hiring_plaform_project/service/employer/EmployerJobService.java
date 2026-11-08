@@ -9,7 +9,8 @@ import tanhs.fudn.parttime_hiring_plaform_project.entity.enums.JobStatus;
 import java.util.List;
 
 public interface EmployerJobService {
-    Page<EmployerJobListResponse> getEmployerJobs(String username, int page, int size, Integer storeId, tanhs.fudn.parttime_hiring_plaform_project.entity.enums.JobStatus status);
+    // Retrieves a page of owned jobs matching the supplied filters.
+    Page<EmployerJobListResponse> getEmployerJobs(String username, int page, int size, Integer storeId, tanhs.fudn.parttime_hiring_plaform_project.entity.enums.JobStatus status, String keyword);
     EmployerJobDetailResponse getEmployerJobDetail(String username, Integer jobId);
     List<EmployerJobCommentResponse> getJobComments(String username, Integer jobId);
     List<EmployerJobApplicantResponse> getJobApplicants(String username, Integer jobId);

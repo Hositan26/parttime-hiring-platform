@@ -1,285 +1,254 @@
+<div align="center">
+
 # Part-time Hiring Platform
 
-**Nền tảng kết nối người tìm việc bán thời gian với doanh nghiệp và cửa hàng.**
+**A recruitment platform connecting job seekers, local businesses, and platform administrators.**
 
-Ứng dụng hỗ trợ tìm kiếm việc làm, gửi đơn ứng tuyển, quản lý tuyển dụng và quản trị dữ liệu trên một hệ thống tập trung. Dự án tổ chức thành hai ứng dụng độc lập: giao diện React và REST API Spring Boot, sử dụng MySQL để lưu trữ dữ liệu.
+Java 17 · Spring Boot 4 · React 19 · TypeScript · MySQL 8 · Flyway
 
-## Mục lục
+[Explore the Features](#features) · [Architecture](#architecture) · [Run Locally](#run-locally) · [Testing](#testing)
 
-- [Tổng quan](#tổng-quan)
-- [Công nghệ sử dụng](#công-nghệ-sử-dụng)
-- [Chức năng theo vai trò](#chức-năng-theo-vai-trò)
-- [Kiến trúc hệ thống](#kiến-trúc-hệ-thống)
-- [Cấu trúc thư mục](#cấu-trúc-thư-mục)
-- [Hướng dẫn cài đặt và chạy](#hướng-dẫn-cài-đặt-và-chạy)
-- [Các lệnh thường dùng](#các-lệnh-thường-dùng)
-- [Tác giả](#tác-giả)
+</div>
 
-## Tổng quan
+## Overview
 
-Part-time Hiring Platform phục vụ ba nhóm người dùng:
+Part-time Hiring Platform brings the recruitment process into one application: candidates discover jobs and submit applications, employers manage hiring across their stores, and administrators verify businesses and moderate platform activity.
 
-- **Người tìm việc:** tìm công việc phù hợp, quản lý hồ sơ và theo dõi đơn ứng tuyển.
-- **Doanh nghiệp:** quản lý cửa hàng, tin tuyển dụng, ứng viên và nhân sự.
-- **Quản trị viên:** quản lý tài khoản, xét duyệt doanh nghiệp và quản lý nội dung trên nền tảng.
+The project covers the workflow beyond a job listing: application decisions lead to employment records, and verified employment determines eligibility for store reviews. Each role has a dedicated interface backed by a shared REST API.
 
-Dữ liệu tuyển dụng được tổ chức theo mối quan hệ **doanh nghiệp → cửa hàng → tin tuyển dụng → đơn ứng tuyển → hồ sơ nhân sự**. Ngành nghề và ca làm giúp người tìm việc thu hẹp kết quả theo nhu cầu.
+**Engineering focus:** authentication and session security, resource ownership, consistent business state transitions, and reproducible database migrations.
 
-## Công nghệ sử dụng
+## Features
 
-| Thành phần | Công nghệ |
+| Role | Capabilities |
 |---|---|
-| Backend | Java 17+, Spring Boot 4.0.6, Maven Wrapper |
-| REST API | Spring Web, Jakarta Validation |
-| Xác thực | Spring Security, JWT, OAuth 2.0 Client |
-| Truy cập dữ liệu | Spring Data JPA, Hibernate, MySQL Connector/J |
-| Ánh xạ dữ liệu | MapStruct, Lombok |
-| Frontend | React 19, TypeScript 6, Vite 8 |
-| Điều hướng | React Router |
-| Giao diện | CSS Modules, Lucide React, Framer Motion |
-| Biểu đồ | Recharts |
-| Lưu trữ ảnh | Cloudinary |
-| Email | Spring Mail, SMTP |
-| Kiểm tra mã | ESLint, TypeScript, Maven Test |
+| **Job seeker** | Search and filter jobs; manage profile and PDF CV; apply, edit or withdraw pending applications; save jobs; track employment; exchange recruitment messages and respond to interviews; review eligible stores and report listings. |
+| **Employer** | Manage company profile and stores; create and manage job postings, images, categories and shifts; review applicants and access authorized CVs; accept or reject applications; manage employment records and view recruitment dashboards. |
+| **Administrator** | Review employer verification requests; manage user and employer status; approve stores; moderate job postings, reports and reviews; maintain categories and work shifts; view platform statistics. |
 
-## Chức năng theo vai trò
+Shared account features include password registration/login, Google OAuth integration, password recovery, and email verification for employer onboarding.
 
-### Xác thực và tài khoản
-
-- Đăng ký tài khoản người dùng và đăng nhập bằng mật khẩu.
-- Tích hợp đăng nhập Google thông qua OAuth 2.0.
-- Xác thực yêu cầu bằng JWT lưu trong cookie HttpOnly.
-- Phân quyền theo các vai trò `USER`, `EMPLOYER` và `ADMIN`.
-- Xác minh email bằng OTP trong quy trình nộp hồ sơ doanh nghiệp.
-
-### Người tìm việc — User
-
-- Xem và cập nhật hồ sơ cá nhân.
-- Xem danh sách và thông tin chi tiết công việc.
-- Tìm kiếm theo tên công việc và cửa hàng.
-- Lọc công việc theo ngành nghề, ca làm, mức lương và địa chỉ.
-- Gửi đơn ứng tuyển kèm số điện thoại và lời nhắn.
-- Theo dõi danh sách công việc đã ứng tuyển và kết quả xử lý.
-- Xem thông tin đánh giá được hiển thị tại trang chi tiết công việc.
-- Nộp hồ sơ xác minh doanh nghiệp và theo dõi trạng thái xét duyệt.
-
-### Doanh nghiệp — Employer
-
-- Xem dashboard về hoạt động tuyển dụng.
-- Quản lý thông tin hồ sơ doanh nghiệp.
-- Tạo và quản lý các cửa hàng, chi nhánh.
-- Xem thông tin tuyển dụng và nhân sự theo cửa hàng.
-- Tạo, cập nhật và quản lý tin tuyển dụng.
-- Thiết lập mức lương, số lượng tuyển, ngành nghề, ca làm và hạn ứng tuyển.
-- Quản lý ảnh của tin tuyển dụng.
-- Xem danh sách ứng viên và xử lý đơn ứng tuyển.
-- Quản lý hồ sơ nhân sự được tạo từ quá trình tuyển dụng.
-- Ghi nhận nhân sự nghỉ việc hoặc bị chấm dứt làm việc.
-
-### Quản trị viên — Admin
-
-- Xem dashboard thống kê tổng quan hệ thống.
-- Quản lý danh sách người dùng và khóa/mở khóa tài khoản.
-- Quản lý danh sách và trạng thái doanh nghiệp.
-- Xem, xét duyệt và từ chối hồ sơ xác minh doanh nghiệp.
-- Quản lý tin tuyển dụng và trạng thái cửa hàng.
-- Quản lý danh mục ngành nghề.
-- Quản lý các ca làm việc.
-- Xem và xóa đánh giá cửa hàng.
-
-## Kiến trúc hệ thống
+### Recruitment workflow
 
 ```mermaid
 flowchart LR
-    Visitor[Người dùng / Doanh nghiệp / Admin] --> Frontend[React + TypeScript]
-    Frontend -->|HTTP / JSON| Backend[Spring Boot REST API]
-    Backend --> Database[(MySQL)]
-    Backend --> Media[Cloudinary]
-    Backend --> Mail[SMTP Email]
-    Frontend -->|Đăng nhập Google| Google[Google OAuth 2.0]
-    Google --> Backend
+    A[Discover a job] --> B[Submit application]
+    B --> C{Employer decision}
+    C -->|Accept| D[Employment record]
+    C -->|Reject| E[Candidate sees rejection reason]
+    D --> F[Verified employment]
+    F --> G[Eligible store review]
 ```
 
-Backend tổ chức theo các lớp:
+## Engineering Decisions
 
-```text
-Controller → Service → Repository → Database
-                 ↕
-            DTO / Mapper
-```
-
-- **Controller:** tiếp nhận yêu cầu HTTP và trả phản hồi API.
-- **Service:** xử lý quy tắc nghiệp vụ và giao dịch dữ liệu.
-- **Repository:** truy vấn và lưu trữ dữ liệu thông qua Spring Data JPA.
-- **DTO / Mapper:** tách dữ liệu trao đổi qua API khỏi entity lưu trữ.
-- **Security:** cấu hình xác thực, JWT, OAuth và phân quyền.
-
-## Cấu trúc thư mục
-
-```text
-Parttime_Hiring_Plaform_Project/
-├── ParttimeHiringBackend/
-│   ├── .mvn/                          # Cấu hình Maven Wrapper
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/tanhs/fudn/parttime_hiring_plaform_project/
-│   │   │   │   ├── configuration/     # Cấu hình ứng dụng
-│   │   │   │   ├── controller/        # REST API theo nhóm chức năng
-│   │   │   │   ├── dto/               # Request và response
-│   │   │   │   ├── entity/            # Mô hình dữ liệu JPA
-│   │   │   │   ├── exception/         # Xử lý ngoại lệ
-│   │   │   │   ├── mapper/            # Ánh xạ entity và DTO
-│   │   │   │   ├── repository/        # Truy cập dữ liệu
-│   │   │   │   ├── scheduler/         # Tác vụ theo lịch
-│   │   │   │   ├── security/          # Xác thực và phân quyền
-│   │   │   │   └── service/           # Nghiệp vụ và triển khai
-│   │   │   └── resources/
-│   │   │       ├── application.yml
-│   │   │       └── application-local.yml
-│   │   └── test/                      # Kiểm thử backend
-│   ├── mvnw
-│   ├── mvnw.cmd
-│   └── pom.xml
-├── ParttimeHiringFrontend/
-│   ├── public/                        # Tài nguyên tĩnh
-│   ├── src/
-│   │   ├── assets/                    # Hình ảnh và tài nguyên giao diện
-│   │   ├── components/                # Thành phần dùng chung và layout
-│   │   ├── pages/                     # Các trang User, Employer, Admin
-│   │   ├── services/                  # Hàm gọi API
-│   │   ├── App.tsx                    # Khai báo route
-│   │   └── main.tsx                   # Điểm khởi tạo React
-│   ├── package.json
-│   └── vite.config.ts
-├── database/
-│   ├── schema_db.sql                  # Định nghĩa cấu trúc database
-│   └── data.sql                       # Dữ liệu mẫu
-└── README.md
-```
-
-## Hướng dẫn cài đặt và chạy
-
-### 1. Yêu cầu môi trường
-
-- **JDK 17 trở lên**; biến `JAVA_HOME` trỏ đến JDK đang sử dụng.
-- **Node.js** tương thích với Vite 8; có thể dùng Node.js 22.12 trở lên thuộc nhánh 22.
-- **npm** để cài đặt và chạy frontend.
-- **MySQL** đang hoạt động tại `localhost:3306`.
-- **Git** để lấy và quản lý mã nguồn.
-
-Dự án có Maven Wrapper nên không cần cài Maven riêng.
-
-### 2. Chuẩn bị database
-
-Sử dụng database phát triển có tên `parttime_hiring_platform`. Cấu hình backend mặc định cho phép tạo database nếu chưa tồn tại và cập nhật cấu trúc bảng bằng Hibernate.
-
-Nếu cần khởi tạo từ SQL, sử dụng các tập tin trong thư mục `database/` sau khi kiểm tra nội dung. **`schema_db.sql` chứa lệnh xóa database hiện có**; chỉ chạy trên database phát triển có thể khởi tạo lại. Kiểm tra tên bảng và dữ liệu trong `data.sql` trước khi import.
-
-Thông tin kết nối mặc định:
-
-| Thuộc tính | Giá trị |
+| Concern | Implementation |
 |---|---|
-| Host | `localhost` |
-| Port | `3306` |
-| Database | `parttime_hiring_platform` |
-| Username | `root` |
+| **Authentication** | JWT authentication in HttpOnly cookies, CSRF protection for browser requests, BCrypt password hashing, refresh-token rotation and session revocation. |
+| **Authorization** | Role restrictions at the API boundary, plus ownership checks for employer resources and private candidate CVs. |
+| **Data consistency** | Service-layer transactions and pessimistic locks for sensitive transitions, including application decisions and verification; optimistic versioning on user accounts. |
+| **API boundaries** | Request/response DTOs, Jakarta Validation, MapStruct mapping, and centralized API error handling. |
+| **Database evolution** | Versioned Flyway migrations with Hibernate `validate`; separate histories for shared schema/reference data and development fixtures. |
+| **Environment isolation** | Separate dev/prod datasource configuration. Dev fixtures check the target database; combined dev/prod profiles are rejected. Production has no default demo accounts. |
+| **Private documents** | Candidate CVs are stored in profile data and downloaded through authorized API endpoints. Only fictional demo images have a dev static resource route. |
 
-Đặt thông tin đăng nhập MySQL trong PowerShell trước khi chạy backend:
+## Architecture
+
+The backend is a layered Spring Boot application. The frontend is a separate React application consuming its REST API.
+
+```mermaid
+flowchart TB
+    Browser[React + TypeScript] -->|HTTP / JSON + cookies| Security[Spring Security]
+    Security --> Controllers[REST Controllers]
+    Controllers --> Services[Services · business rules and transactions]
+    Services --> Repositories[Spring Data JPA Repositories]
+    Repositories --> DB[(MySQL 8)]
+    Flyway[Flyway · versioned migrations] --> DB
+    Services --> Cloudinary[Cloudinary · image uploads]
+    Services --> SMTP[SMTP · email]
+    Google[Google OAuth] --> Security
+```
+
+**Core data relationships:** employer → stores → job postings → applications → employment records → store reviews. Categories and work shifts are shared reference data used to classify and filter job postings.
+
+### Technology Stack
+
+| Layer | Technologies |
+|---|---|
+| Backend | Java 17 target, Spring Boot 4.0.6, Spring Web, Jakarta Validation |
+| Security | Spring Security, JWT, OAuth 2.0 Client, BCrypt |
+| Persistence | Spring Data JPA, Hibernate, MySQL 8, Flyway |
+| Mapping | MapStruct, Lombok |
+| Frontend | React 19, TypeScript 6, Vite 8, React Router 7 |
+| UI | CSS Modules, Lucide React, Framer Motion, Recharts |
+| Integrations | Cloudinary, Spring Mail / SMTP, Google OAuth |
+| Verification | JUnit, Spring Boot Test, Spring Security Test, H2, MySQL migration tests, API smoke scripts |
+| Local tooling | Maven Wrapper, npm, Docker, Python database utilities |
+
+### Repository Structure
+
+```text
+ParttimeHiringBackend/
+  src/main/java/.../
+    controller/          HTTP endpoints
+    service/             Business rules and transactions
+    repository/          Data access
+    entity/              Persistence models
+    dto/ and mapper/     API contracts and mapping
+    security/            Authentication and authorization
+    configuration/       Application and migration configuration
+  src/main/resources/
+    application*.yml     Shared, dev, prod and local-alias configuration
+    db/migration/        Shared Flyway migrations
+    db/dev/data/         Development fixture definitions
+  src/test/              Backend unit and integration tests
+ParttimeHiringFrontend/
+  src/pages/             Candidate, employer and administrator screens
+  src/components/        Shared UI and layouts
+  src/services/          API clients
+  tests/                 Frontend test scripts
+database/demo/           Fictional images and PDF resumes
+scripts/database/        Database operations and live API smoke checks
+```
+
+## Run Locally
+
+### Prerequisites
+
+- JDK 17+ with `JAVA_HOME` configured.
+- Node.js compatible with Vite 8 and npm; Node.js 22.12+ on the 22.x line is supported.
+- Docker Desktop for the local MySQL container.
+- Python 3.11+ for the database utilities.
+
+Commands below use PowerShell and start from the repository root. Maven Wrapper is included; a separate Maven installation is unnecessary.
+
+### 1. Configure the environment
 
 ```powershell
-$env:DB_USERNAME = "root"
-$env:DB_PASSWORD = "your_mysql_password"
+Copy-Item .env.dev.example .env
 ```
 
-### 3. Cấu hình dịch vụ
+Edit `.env` before starting the application:
 
-| Biến môi trường | Mục đích |
+| Variable | Value |
 |---|---|
-| `DB_USERNAME`, `DB_PASSWORD` | Tài khoản kết nối MySQL |
-| `PORT` | Cổng backend; mặc định `8088` |
-| `JWT_SIGNER_KEY` | Khóa ký JWT; tối thiểu 64 byte cho HS512 |
-| `JWT_SECRET` | Giá trị cấu hình JWT bổ sung |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Đăng nhập Google |
-| `MAIL_USERNAME`, `MAIL_PASSWORD` | Tài khoản SMTP gửi email |
-| `CLOUDINARY_CLOUD_NAME` | Tên cloud Cloudinary |
-| `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Thông tin truy cập Cloudinary |
+| `DEV_DB_URL` | `jdbc:mysql://localhost:3306/parttime_hiring_platform_dev` |
+| `DEV_DB_USERNAME` | `root` for this local Docker setup |
+| `DEV_DB_PASSWORD` | Your local MySQL root password |
+| `DEMO_SEED_PASSWORD` | Your chosen demo password: at least 12 characters, at most 72 UTF-8 bytes |
 
-Profile `local` cung cấp giá trị phát triển cho các cấu hình dịch vụ. Để sử dụng Google Login, gửi email và upload ảnh, cần cung cấp thông tin dịch vụ thật.
+The dev profile reads the root `.env` when the backend runs from its own directory. Keep this file private. Demo passwords are hashed during the first fixture migration; changing the environment value later does not reset existing accounts.
 
-Biến môi trường phải được nạp vào tiến trình chạy backend. File `.env` ở thư mục gốc không được Spring Boot tự động nạp theo cấu hình hiện tại. Không commit thông tin bí mật hoặc sử dụng khóa ký của profile `local` khi triển khai.
+### 2. Start MySQL and create databases
 
-### 4. Chạy backend
+If the project container already exists:
 
-Từ thư mục gốc dự án, mở một terminal:
+```powershell
+docker start mysql-parttime
+```
+
+For a fresh setup, create it once instead:
+
+```powershell
+$env:DEV_DB_PASSWORD = "your-local-mysql-password"
+docker run --name mysql-parttime -e "MYSQL_ROOT_PASSWORD=$env:DEV_DB_PASSWORD" -p 3306:3306 -v parttime-mysql-data:/var/lib/mysql -d mysql:8.0
+```
+
+Use the same password as `.env`. Wait until MySQL is ready to accept connections, then run:
+
+```powershell
+python scripts/database/manage.py init
+```
+
+This creates `parttime_hiring_platform_dev` and a local `parttime_hiring_platform_prod` verification schema. It does not deploy a remote production environment.
+
+### 3. Start the backend
 
 ```powershell
 cd ParttimeHiringBackend
-.\mvnw.cmd spring-boot:run '-Dspring-boot.run.profiles=local'
+.\mvnw.cmd spring-boot:run '-Dspring-boot.run.profiles=dev'
 ```
 
-Với macOS/Linux:
+Flyway creates the schema and development fixtures before the application becomes ready. The working directory matters because the default demo asset path is relative to the backend directory. `local` remains an alias for `dev`.
 
-```bash
-cd ParttimeHiringBackend
-./mvnw spring-boot:run -Dspring-boot.run.profiles=local
-```
+**API base:** `http://localhost:8088/parttime_hiring_platform`
 
-**API base URL:** `http://localhost:8088/parttime_hiring_platform`
+**Public listing:** `GET /api/jobs/page`
 
-Ví dụ kiểm tra API công khai:
+On macOS/Linux, use `./mvnw` in place of `.\mvnw.cmd`.
 
-```text
-GET http://localhost:8088/parttime_hiring_platform/api/jobs
-```
+### 4. Start the frontend
 
-### 5. Chạy frontend
+In another terminal, from the repository root:
 
-Mở terminal khác từ thư mục gốc dự án:
-
-```bash
+```powershell
 cd ParttimeHiringFrontend
 npm ci
 npm run dev
 ```
 
-**Frontend mặc định:** `http://localhost:5173`
+Open **http://localhost:5173**. The default frontend configuration expects the backend at port 8088; keep the API address and CORS configuration aligned if changing ports.
 
-Sử dụng địa chỉ thực tế Vite in ra terminal. Các service frontend hiện trỏ đến backend tại `http://localhost:8088/parttime_hiring_platform`; nếu đổi cổng backend, cập nhật địa chỉ API tương ứng. Cấu hình CORS backend cũng cần khớp địa chỉ frontend.
+### 5. Explore the demo
 
-### 6. Tài khoản phát triển
+All demo accounts use the `DEMO_SEED_PASSWORD` supplied during first initialization.
 
-Backend tạo tài khoản mặc định khi username tương ứng chưa tồn tại:
-
-| Vai trò | Username | Password |
+| Role | Suggested account | Try this |
 |---|---|---|
-| Admin | `admin` | `admin` |
-| Employer | `employer` | `employer` |
+| Administrator | `demo_admin_01` | Inspect dashboard statistics and pending verification requests. |
+| Employer | `demo_employer_01` | Browse stores, job postings and applicant profiles. |
+| Job seeker | `demo_user_01` | View applications, employment history and the private PDF CV. |
 
-Người tìm việc có thể tạo tài khoản qua trang `/register`. Nếu database đã có các tài khoản trên, bộ khởi tạo không ghi đè mật khẩu hiện có. Các tài khoản mặc định chỉ phục vụ phát triển cục bộ.
+The canonical fixtures include **52 accounts, 10 employers, 24 stores, 80 job postings, 120 applications and 20 PDF CVs**. They also include rejected/withdrawn applications, pending verifications and moderation cases. Users `demo_user_39`–`40` are disabled; employers `demo_employer_09`–`10` are suspended.
 
-## Các lệnh thường dùng
+Job dates are relative to the first seed date, so public listing counts can change as jobs expire. Demo companies, documents and resumes are fictional.
 
-### Backend — chạy trong `ParttimeHiringBackend/`
+## Testing
 
-| Lệnh trên Windows | Mục đích |
+The database refactor verification on **8 November 2026** recorded **137 passing backend tests**, including **5 real MySQL migration tests** and **3 migration configuration guard tests**. The frontend production build and live API smoke checks also passed. This is a recorded verification result, not a coverage percentage or a guarantee for later changes.
+
+| Area | Verified behavior |
 |---|---|
-| `.\mvnw.cmd spring-boot:run '-Dspring-boot.run.profiles=local'` | Chạy backend với profile local |
-| `.\mvnw.cmd test` | Chạy kiểm thử backend |
-| `.\mvnw.cmd package` | Kiểm thử và đóng gói ứng dụng |
+| Accounts and access | Authentication lifecycle, role restrictions and resource ownership. |
+| Recruitment | Application handling, employment/review rules and public job visibility. |
+| Migration safety | Empty schema initialization, fixture idempotency, rollback on conflicts, checksum validation and independent shared/dev version ordering. |
+| Private CVs | Authorized candidate/employer downloads; access denied for unrelated employers and guests. |
+| Live API smoke | Cookie/CSRF login, dashboards, candidate profile, demo images, disabled accounts and logout. |
 
-Trên macOS/Linux, thay `.\mvnw.cmd` bằng `./mvnw`. Các integration test dùng MySQL theo cấu hình và có thể cập nhật database; chạy với database phát triển riêng.
+### Backend tests
 
-### Frontend — chạy trong `ParttimeHiringFrontend/`
+From `ParttimeHiringBackend`:
 
-| Lệnh | Mục đích |
-|---|---|
-| `npm ci` | Cài dependency theo lockfile |
-| `npm run dev` | Chạy development server |
-| `npm run build` | Kiểm tra TypeScript và tạo bản build |
-| `npm run lint` | Kiểm tra quy tắc mã nguồn |
-| `npm run preview` | Xem trước bản build trên máy cục bộ |
+```powershell
+.\mvnw.cmd test
+```
 
-## Tác giả
+Normal application tests use isolated H2 databases. The five MySQL tests are opt-in; provide `MYSQL_MIGRATION_TESTS=true`, `MYSQL_TEST_URL`, `MYSQL_TEST_USERNAME` and `MYSQL_TEST_PASSWORD` to include them. They create disposable `parttime_flyway_test_<uuid>` schemas rather than resetting dev or prod.
 
-**Ho Si Tan**  
-Software Engineering Student — FPT University Da Nang
+### Frontend checks
+
+From `ParttimeHiringFrontend`:
+
+```powershell
+npm run build
+node --experimental-strip-types --test tests/*.test.mjs
+```
+
+`npm run build` checks TypeScript and produces the Vite build. `npm run lint` is available separately; the recorded build result does not assert that repository-wide lint is clean.
+
+For MySQL test setup, API smoke checks and backup/reset commands, see the [database operations guide](scripts/database/README.md).
+
+## Configuration and Deployment Notes
+
+- **Database ownership:** Flyway manages schema changes; Hibernate validates mappings. Shared migrations and dev fixtures use separate history tables. Do not edit applied migrations.
+- **Production configuration:** explicitly select `prod` and supply the variables in [`.env.prod.example`](.env.prod.example). The profile does not import the local `.env`, seed demo accounts or expose demo images; secure cookies are enabled.
+- **External services:** Google login, SMTP delivery and Cloudinary uploads require valid provider credentials. Local fallback configuration allows development startup but does not establish that these integrations work with real providers.
+- **Private local files:** `.env`, backups under `.local/`, and working documentation under `docs/` are excluded from Git. Operational instructions needed for a fresh checkout are kept in this README and `scripts/database/README.md`.
+
+## Author
+
+**Ho Si Tan**
+
+Software Engineering Student · FPT University Da Nang
+
+[GitHub](https://github.com/Hositan26)

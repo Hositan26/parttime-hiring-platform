@@ -1,5 +1,7 @@
 package tanhs.fudn.parttime_hiring_plaform_project.repository.employment;
 
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -9,9 +11,23 @@ import tanhs.fudn.parttime_hiring_plaform_project.entity.application.JobApplicat
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 
 @Repository
 public interface EmploymentRecordRepository extends JpaRepository<EmploymentRecord, Integer> {
+    // Retrieves a bounded history belonging exclusively to one account.
+    @EntityGraph(attributePaths = {"store", "jobPost"})
+    Page<EmploymentRecord> findByUser_Id(Long userId, Pageable pageable);
+
+    // Serializes concurrent updates to an employee's work status.
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select record from EmploymentRecord record where record.employmentRecordId = :id")
+    Optional<EmploymentRecord> lockById(@Param("id") Integer id);
+
+    // Checks whether a store has employment history before deletion.
+    boolean existsByStore_StoreId(Integer storeId);
 
     Optional<EmploymentRecord> findByApplication(JobApplication application);
 

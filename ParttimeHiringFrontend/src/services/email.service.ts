@@ -1,7 +1,8 @@
-const API_URL = 'http://localhost:8088/parttime_hiring_platform/api/employers/verifications/email';
+import { apiFetch, apiBase } from './apiClient';
+const API_URL = apiBase + '/employers/verifications/email';
 
 export const sendOtp = async (email: string) => {
-    const response = await fetch(`${API_URL}/send-otp`, {
+    const response = await apiFetch(`${API_URL}/send-otp`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -18,14 +19,14 @@ export const sendOtp = async (email: string) => {
     return response.json();
 };
 
-export const verifyOtp = async (otpCode: string) => {
-    const response = await fetch(`${API_URL}/verify-otp`, {
+export const verifyOtp = async (email: string, otpCode: string) => {
+    const response = await apiFetch(`${API_URL}/verify-otp`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         credentials: 'include',
-        body: JSON.stringify({ otpCode })
+        body: JSON.stringify({ email, otpCode })
     });
     
     if (!response.ok) {

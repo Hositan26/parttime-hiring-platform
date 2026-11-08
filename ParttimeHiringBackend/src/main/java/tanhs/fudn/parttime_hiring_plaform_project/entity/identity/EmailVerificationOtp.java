@@ -17,11 +17,18 @@ public class EmailVerificationOtp {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @ManyToOne
+    @JoinColumn(name = "owner_user_id")
+    private User owner;
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    private int attempts;
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean verified;
 
     @Column(name = "email", nullable = false)
     private String email;
 
-    @Column(name = "otp_code", nullable = false, length = 6)
+    @Column(name = "otp_code", nullable = false, length = 64)
     private String otpCode;
 
     @Column(name = "expiration_time", nullable = false)
@@ -31,3 +38,4 @@ public class EmailVerificationOtp {
     @Builder.Default
     private boolean isUsed = false;
 }
+
