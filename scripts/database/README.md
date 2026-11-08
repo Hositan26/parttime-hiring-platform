@@ -56,3 +56,9 @@ To additionally execute real MySQL migration tests, provide `MYSQL_MIGRATION_TES
 For live API smoke checks, set `DEMO_SEED_PASSWORD` in the shell, then run `python scripts/database/check_api.py`. It checks cookie/CSRF login, role boundaries, dashboards, public jobs, private CV ownership, disabled users, demo images, and logout. It writes results under ignored `.local/database-backups/`.
 
 `generate_fixtures.py` is an authoring helper, not an application startup step. Its Python definitions live under resources with the fixture SQL. Do not regenerate or edit the checksum-protected SQL after deployment; introduce a new dev migration for later changes.
+
+## Recorded verification
+
+The database refactor was merged into `dev` through PR #6 (implementation commit `ca65a20`). Verification on 8 November 2026 passed 137 backend tests, including five real MySQL migration tests and three migration configuration guard tests, plus the frontend build and live API smoke checks. These are recorded results, not a claim that tests run whenever this document is read. Normal test runs skip the five opt-in MySQL tests unless the environment variables above are supplied.
+
+The canonical dev seed creates 52 demo users and 10 employers. The migrated local database initially contained 58 users and 12 employers because six existing users and two existing employers were preserved. Reference data is shared: 3 roles, 12 categories, and 6 shifts. Business timestamps are relative to the first seed date; jobs can expire naturally over time.

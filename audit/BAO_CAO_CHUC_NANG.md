@@ -1,7 +1,7 @@
 # Báo cáo rà soát chức năng — 04/11/2026
 
-> Đây là báo cáo trước khi triển khai nhóm Authentication / Authorization. Kết quả AUTH mới nhất nằm trong [báo cáo hoàn thành AUTH](../docs/AUTH_TASK_REPORT.md).
-> Các thay đổi USER sau rà soát được ghi trong [báo cáo USER](../docs/USER_TASK_REPORT.md).
+> Báo cáo lịch sử ngày 04/11/2026, trước các đợt AUTH/USER/ADMIN và database. Các kết quả lỗi/test dưới đây chỉ phản ánh thời điểm rà soát gốc.
+> Cập nhật 09/11/2026: database dev/prod đã tách và dùng Flyway qua PR #6; đợt triển khai database đạt 137 test backend và frontend build. Hướng dẫn hiện tại ở [README](../README.md) và [database operations](../scripts/database/README.md). Tài liệu chi tiết trong `docs/` chỉ có ở local.
 
 ## Phạm vi và cách đọc kết quả
 
