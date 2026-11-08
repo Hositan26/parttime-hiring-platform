@@ -1,6 +1,7 @@
 package tanhs.fudn.parttime_hiring_plaform_project.security;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
@@ -36,6 +37,8 @@ public class SecurityConfig {
     private final EmployerStatusFilter employerStatusFilter;
     @Value("${app.auth.cookie-secure:true}")
     private boolean cookieSecure;
+    @Value("${app.demo.public-images:false}")
+    private boolean publicDemoImages;
     @Value("${app.cors.allowed-origins:http://localhost:5173}")
     private String[] allowedOrigins;
     @Value("${app.frontend-url:http://localhost:5173}")
@@ -90,6 +93,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.csrfTokenRepository(csrfRepository).csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/demo/**").access((authentication, context) -> new AuthorizationDecision(publicDemoImages))
                 .requestMatchers("/api/auth/csrf", "/api/auth/register", "/api/auth/login", "/api/auth/logout", "/api/auth/refresh", "/api/auth/forgot-password", "/api/auth/reset-password", "/oauth2/**", "/login/oauth2/**", "/api/jobs/**", "/error").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/employer/**").hasRole("EMPLOYER")
