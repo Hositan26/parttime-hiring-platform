@@ -53,11 +53,7 @@ Dữ liệu tuyển dụng được tổ chức theo mối quan hệ **doanh ngh
 - Phân quyền theo các vai trò `USER`, `EMPLOYER` và `ADMIN`.
 - Xác minh email bằng OTP trong quy trình nộp hồ sơ doanh nghiệp.
 
-Chức năng quản trị, API và kết quả triển khai: [Admin features](docs/ADMIN_FEATURES.md) · [Báo cáo ADMIN](docs/ADMIN_TASK_REPORT.md).
-
-Chi tiết API và cách kiểm thử: [Authentication / Authorization](docs/AUTHENTICATION.md).
-
-Chức năng người tìm việc, API và hướng dẫn sử dụng: [User features](docs/USER_FEATURES.md).
+Tài liệu chi tiết trong `docs/` được duy trì ở local và không đưa vào Git. Hướng dẫn vận hành database dùng chung nằm tại [scripts/database/README.md](scripts/database/README.md).
 
 ### Người tìm việc — User
 
@@ -147,7 +143,10 @@ Parttime_Hiring_Plaform_Project/
 │   │   │   │   └── service/           # Nghiệp vụ và triển khai
 │   │   │   └── resources/
 │   │   │       ├── application.yml
-│   │   │       └── application-local.yml
+│   │   │       ├── application-dev.yml
+│   │   │       ├── application-prod.yml
+│   │   │       ├── application-local.yml # Alias của dev
+│   │   │       └── db/                   # Flyway chung và dữ liệu dev
 │   │   └── test/                      # Kiểm thử backend
 │   ├── mvnw
 │   ├── mvnw.cmd
@@ -164,8 +163,8 @@ Parttime_Hiring_Plaform_Project/
 │   ├── package.json
 │   └── vite.config.ts
 ├── database/
-│   ├── schema_db.sql                  # Định nghĩa cấu trúc database
-│   └── data.sql                       # Dữ liệu mẫu
+│   └── demo/                          # Chỉ ảnh và CV minh họa
+├── scripts/database/                  # Sao lưu, reset dev và kiểm thử API
 └── README.md
 ```
 
@@ -183,9 +182,16 @@ Dự án có Maven Wrapper nên không cần cài Maven riêng.
 
 ### 2. Chuẩn bị database
 
-Sử dụng database phát triển có tên `parttime_hiring_platform`. Cấu hình backend mặc định cho phép tạo database nếu chưa tồn tại và cập nhật cấu trúc bảng bằng Hibernate.
+Hai database được tách thành `parttime_hiring_platform_dev` và `parttime_hiring_platform_prod`. Flyway trong backend `src/main/resources/db/` quản lý schema và danh mục chung; dữ liệu demo chỉ nạp vào dev. Hibernate dùng `ddl-auto=validate`.
 
-Nếu cần khởi tạo từ SQL, sử dụng các tập tin trong thư mục `database/` sau khi kiểm tra nội dung. **`schema_db.sql` chứa lệnh xóa database hiện có**; chỉ chạy trên database phát triển có thể khởi tạo lại. Kiểm tra tên bảng và dữ liệu trong `data.sql` trước khi import.
+Khởi động container MySQL local, tạo schema, rồi cấu hình `.env` theo `.env.dev.example`:
+
+```powershell
+docker start mysql-parttime
+python scripts/database/manage.py init
+```
+
+Thư mục `database/` chỉ chứa ảnh và CV demo. Không import SQL thủ công. Xem [hướng dẫn database](scripts/database/README.md) để reset dev có backup hoặc cấu hình production.
 
 Thông tin kết nối mặc định:
 
@@ -193,21 +199,25 @@ Thông tin kết nối mặc định:
 |---|---|
 | Host | `localhost` |
 | Port | `3306` |
-| Database | `parttime_hiring_platform` |
+| Database dev | `parttime_hiring_platform_dev` |
+| Database prod | `parttime_hiring_platform_prod` |
 | Username | `root` |
 
 Đặt thông tin đăng nhập MySQL trong PowerShell trước khi chạy backend:
 
 ```powershell
-$env:DB_USERNAME = "root"
-$env:DB_PASSWORD = "your_mysql_password"
+$env:DEV_DB_USERNAME = "root"
+$env:DEV_DB_PASSWORD = "your_mysql_password"
+$env:DEMO_SEED_PASSWORD = "your-demo-password-at-least-12-characters"
 ```
 
 ### 3. Cấu hình dịch vụ
 
 | Biến môi trường | Mục đích |
 |---|---|
-| `DB_USERNAME`, `DB_PASSWORD` | Tài khoản kết nối MySQL |
+| `DEV_DB_URL`, `DEV_DB_USERNAME`, `DEV_DB_PASSWORD` | Kết nối MySQL dev |
+| `PROD_DB_URL`, `PROD_DB_USERNAME`, `PROD_DB_PASSWORD` | Kết nối production, bắt buộc khai báo riêng |
+| `DEMO_SEED_PASSWORD` | Mật khẩu demo khi chạy migration dev lần đầu |
 | `PORT` | Cổng backend; mặc định `8088` |
 | `JWT_SIGNER_KEY` | Khóa ký JWT; tối thiểu 64 byte cho HS512 |
 | `JWT_SECRET` | Giá trị cấu hình JWT bổ sung |
@@ -216,7 +226,7 @@ $env:DB_PASSWORD = "your_mysql_password"
 | `CLOUDINARY_CLOUD_NAME` | Tên cloud Cloudinary |
 | `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Thông tin truy cập Cloudinary |
 
-Profile `local` cung cấp giá trị phát triển cho các cấu hình dịch vụ. Để sử dụng Google Login, gửi email và upload ảnh, cần cung cấp thông tin dịch vụ thật.
+Profile `dev` cung cấp giá trị phát triển; `local` là alias tương thích. Để sử dụng Google Login, gửi email và upload ảnh, cần cung cấp thông tin dịch vụ thật.
 
 Profile `local` tự đọc file `.env` ở thư mục gốc hoặc thư mục backend khi chạy từ một trong hai thư mục này. Biến môi trường của tiến trình vẫn có độ ưu tiên cao hơn; các môi trường triển khai khác phải được cấu hình riêng. Không commit thông tin bí mật hoặc sử dụng khóa ký của profile `local` khi triển khai.
 

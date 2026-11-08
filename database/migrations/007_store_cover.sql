@@ -1,1 +1,0 @@
-ALTER TABLE stores ADD COLUMN cover_image_url VARCHAR(1024) NULL;

@@ -1,6 +1,7 @@
 package tanhs.fudn.parttime_hiring_plaform_project.configuration;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @ConditionalOnProperty(name = "app.seed-data", havingValue = "true")
+@Profile("test")
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -30,7 +32,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final EmployerRepository employerRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // Initializes development accounts only when explicitly enabled by configuration.
+    // Initializes lightweight test accounts independently from MySQL Flyway fixtures.
     @Override
     @Transactional
     public void run(String... args) throws Exception {
