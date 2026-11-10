@@ -16,7 +16,7 @@ Common migrations use `flyway_schema_history`. Dev fixtures use `flyway_dev_seed
 ## First local startup
 
 1. Copy `.env.dev.example` to `.env` and fill in the local MySQL password and a demo password of at least 12 characters (at most 72 UTF-8 bytes).
-2. Start the existing container: `docker start mysql-parttime`.
+2. Start MySQL with the root `compose.yaml`: `docker compose up -d --wait`. If the container was created manually before Compose was added, use `docker start mysql-parttime` or follow the migration instructions in the root README.
 3. Create the two local schemas: `python scripts/database/manage.py init`.
 4. From `ParttimeHiringBackend`, run `./mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"`.
 5. From `ParttimeHiringFrontend`, run `npm install` if needed, then `npm run dev`.
