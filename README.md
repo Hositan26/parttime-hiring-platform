@@ -4,7 +4,7 @@
 
 **A recruitment platform connecting job seekers, local businesses, and platform administrators.**
 
-Java 17 · Spring Boot 4 · React 19 · TypeScript · MySQL 8 · Flyway
+Java 21 · Spring Boot 4 · React 19 · TypeScript · MySQL 8 · Flyway
 
 [Explore the Features](#features) · [Architecture](#architecture) · [Run Locally](#run-locally) · [Testing](#testing)
 
@@ -75,7 +75,7 @@ flowchart TB
 
 | Layer | Technologies |
 |---|---|
-| Backend | Java 17 target, Spring Boot 4.0.6, Spring Web, Jakarta Validation |
+| Backend | Java 21 target, Spring Boot 4.0.6, Spring Web, Jakarta Validation |
 | Security | Spring Security, JWT, OAuth 2.0 Client, BCrypt |
 | Persistence | Spring Data JPA, Hibernate, MySQL 8, Flyway |
 | Mapping | MapStruct, Lombok |
@@ -115,7 +115,7 @@ scripts/database/        Database operations and live API smoke checks
 
 ### Prerequisites
 
-- JDK 17+ with `JAVA_HOME` configured.
+- JDK 21 with `JAVA_HOME` configured.
 - Node.js compatible with Vite 8 and npm; Node.js 22.12+ on the 22.x line is supported.
 - Docker Desktop for the local MySQL container.
 - Python 3.11+ for the database utilities.
@@ -141,24 +141,24 @@ The dev profile reads the root `.env` when the backend runs from its own directo
 
 ### 2. Start MySQL and create databases
 
-If the project container already exists:
+The root `compose.yaml` runs local MySQL 8 using `.env` and the persistent `parttime-mysql-data` volume:
 
 ```powershell
-docker start mysql-parttime
-```
-
-For a fresh setup, create it once instead:
-
-```powershell
-$env:DEV_DB_PASSWORD = "your-local-mysql-password"
-docker run --name mysql-parttime -e "MYSQL_ROOT_PASSWORD=$env:DEV_DB_PASSWORD" -p 3306:3306 -v parttime-mysql-data:/var/lib/mysql -d mysql:8.0
-```
-
-Use the same password as `.env`. Wait until MySQL is ready to accept connections, then run:
-
-```powershell
+docker compose up -d --wait
 python scripts/database/manage.py init
 ```
+
+The Compose file creates the dev database on first initialization. The Python command also creates the local prod verification schema. Use `DEV_DB_USERNAME=root` and set `DEV_DB_PASSWORD` in `.env` before starting. For an existing volume, the password must match its current MySQL root password; changing `.env` does not reset it.
+
+If `mysql-parttime` was previously created with `docker run`, keep using `docker start mysql-parttime` followed by the Python command above. Compose cannot adopt that existing container automatically. To migrate it while retaining its data, first inspect its volume with `docker inspect mysql-parttime --format '{{range .Mounts}}{{if eq .Destination "/var/lib/mysql"}}{{.Name}}{{end}}{{end}}'` and set `MYSQL_VOLUME_NAME` in `.env` to that exact name (including anonymous volumes). Then stop it and rename it to an unused backup name before running Compose:
+
+```powershell
+docker stop mysql-parttime
+docker rename mysql-parttime mysql-parttime-backup
+docker compose up -d --wait
+```
+
+For Compose-managed containers, view logs with `docker compose logs -f mysql` and stop with `docker compose stop`. The database volume persists.
 
 This creates `parttime_hiring_platform_dev` and a local `parttime_hiring_platform_prod` verification schema. It does not deploy a remote production environment.
 
